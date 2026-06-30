@@ -182,8 +182,7 @@ body {
 
 /* TRACKING STATUS CARDS */
 .status-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.sc { background:#fff; border:2px solid var(--line); border-radius:var(--radius); padding:14px 12px 13px; cursor:pointer; transition:all 0.18s var(--ease); display:flex; flex-direction:column; gap:6px; box-shadow:0 1px 4px rgba(10,22,40,0.05); }
-.sc:active { transform:scale(0.97); }
+.sc { background:#fff; border:2px solid var(--line); border-radius:var(--radius); padding:14px 12px 13px; transition:all 0.18s var(--ease); display:flex; flex-direction:column; gap:6px; box-shadow:0 1px 4px rgba(10,22,40,0.05); }
 .sc-dot { width:18px; height:18px; border-radius:50%; background:var(--surface-3); transition:all 0.25s var(--ease); }
 .sc-title { font-family:var(--font-display); font-size:14px; font-weight:800; color:var(--text-1); letter-spacing:-0.2px; }
 .sc-desc  { font-size:11px; color:var(--text-3); line-height:1.4; }
@@ -461,23 +460,33 @@ body {
   <div class="card">
     <div class="card-title">Status Saya</div>
     <div class="status-grid">
-      <div class="sc aktif selected" id="sb-aktif" onclick="setStatus('Aktif Bekerja')">
+      <div class="sc aktif" id="sb-aktif">
         <div class="sc-dot"></div><div class="sc-title">Aktif Bekerja</div><div class="sc-desc">Sedang eksekusi penugasan</div>
       </div>
-      <div class="sc perjalanan" id="sb-perjalanan" onclick="setStatus('Perjalanan')">
-        <div class="sc-dot"></div><div class="sc-title">Perjalanan</div><div class="sc-desc">Menuju lokasi kerja</div>
+      <div class="sc perjalanan" id="sb-perjalanan">
+        <div class="sc-dot"></div><div class="sc-title">Perjalanan</div><div class="sc-desc">Terdeteksi otomatis via GPS</div>
       </div>
-      <div class="sc standby" id="sb-standby" onclick="setStatus('Standby')">
+      <div class="sc standby" id="sb-standby">
         <div class="sc-dot"></div><div class="sc-title">Standby</div><div class="sc-desc">Siaga di posko</div>
       </div>
-      <div class="sc offline" id="sb-offline" onclick="setStatus('Offline')">
+      <div class="sc offline" id="sb-offline">
         <div class="sc-dot"></div><div class="sc-title">Offline</div><div class="sc-desc">Koneksi/shift berakhir</div>
       </div>
     </div>
     <div class="status-active-bar">
       <div class="sab-dot" id="sab-dot"></div>
-      <span>Status aktif: <b id="status-label">Aktif Bekerja</b></span>
+      <span>Status aktif: <b id="status-label">Standby</b></span>
     </div>
+    <div style="font-size:11px;color:var(--text-3);margin-top:8px;text-align:center">⚙️ Status berubah otomatis sesuai absensi &amp; deteksi GPS</div>
+  </div>
+
+  <!-- BANNER PERJALANAN TERDETEKSI -->
+  <div id="banner-perjalanan" style="display:none;background:linear-gradient(135deg,rgba(255,184,0,0.12),rgba(255,184,0,0.04));border:1.5px solid rgba(255,184,0,0.5);border-radius:var(--radius-sm);padding:14px 16px">
+    <div style="font-size:13px;font-weight:800;color:#A0660A;margin-bottom:4px">🚗 Perjalanan Terdeteksi!</div>
+    <div style="font-size:11.5px;color:var(--text-2);margin-bottom:10px" id="banner-perjalanan-desc">GPS mendeteksi kamu sedang bergerak.</div>
+    <button class="btn btn-sm" style="background:var(--ok);color:#fff" onclick="konfirmasiSudahDiLokasi()">
+      📍 Saya Sudah di Lokasi
+    </button>
   </div>
 
   <!-- GPS -->
@@ -935,11 +944,17 @@ window.submitFase = async function() {
   document.getElementById('absen-cam-ph').style.display='block';
 
   if(faseCurrent >= 3) {
-    // Sudah Standby+Perjalanan+Aktif → masuk tracking
+    // Sudah Standby+Perjalanan+Aktif → masuk tracking, status = Aktif Bekerja
     updateTrackingFase();
     showScreen('tracking');
+    setStatus('Aktif Bekerja');
     startGPS();
   } else {
+    // Update status sesuai fase yang baru saja selesai
+    const faseStatusMap = {0:'Standby', 1:'Perjalanan', 2:'Aktif Bekerja'};
+    // faseCurrent sudah di-increment, jadi fase yang baru selesai = faseCurrent-1
+    const prevFase = faseCurrent - 1;
+    if(faseStatusMap[prevFase]) setStatus(faseStatusMap[prevFase]);
     updateFaseHero();
     startAbsensiGPS();
   }
@@ -1043,8 +1058,89 @@ window.submitModalFase = async function() {
 };
 
 // ════════════════════════════════════════════
-// GPS TRACKING
+// GPS TRACKING + AUTO-DETECT PERJALANAN
 // ════════════════════════════════════════════
+// Auto-travel detection state
+let prevTravelPos = null;       // posisi sebelumnya untuk hitung displacement
+let prevTravelTime = null;      // timestamp posisi sebelumnya
+let travelSpeedBuffer = [];     // buffer speed readings (5 readings)
+const SPEED_THRESHOLD = 5;      // km/h — jika >= ini → perjalanan
+const DISP_THRESHOLD = 50;      // meter dalam 60 detik → perjalanan
+const TRAVEL_CONFIRM_COUNT = 3; // berapa kali berturut-turut harus terpenuhi
+let travelTriggerCount = 0;     // counter konfirmasi perjalanan
+let autoTravelActive = false;   // apakah sedang dalam mode auto-perjalanan
+
+function haversineDistance(lat1,lng1,lat2,lng2) {
+  const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function checkAutoTravel(pos) {
+  // Hanya aktif setelah absensi Perjalanan (fase >= 1) dan sedang Aktif Bekerja
+  if(faseCurrent < 1) return;
+  if(currentStatus !== 'Aktif Bekerja' && currentStatus !== 'Standby') return;
+  if(autoTravelActive) return; // sudah dalam perjalanan, tidak perlu cek lagi
+
+  const {latitude:lat, longitude:lng, speed, accuracy:acc} = pos.coords;
+  if(acc > 100) return; // GPS akurasi buruk, skip
+
+  const now = Date.now();
+  let isMoving = false;
+
+  // Cek 1: Speed dari GPS (m/s → km/h)
+  if(speed !== null && speed >= 0) {
+    const speedKmh = speed * 3.6;
+    if(speedKmh >= SPEED_THRESHOLD) isMoving = true;
+  }
+
+  // Cek 2: Displacement dari posisi sebelumnya
+  if(prevTravelPos && prevTravelTime) {
+    const dt = (now - prevTravelTime) / 1000; // detik
+    if(dt >= 30 && dt <= 120) { // window 30-120 detik
+      const dist = haversineDistance(
+        prevTravelPos.latitude, prevTravelPos.longitude, lat, lng
+      );
+      // displacement > 50m dalam window waktu → bergerak
+      if(dist > DISP_THRESHOLD) isMoving = true;
+    }
+  }
+
+  if(isMoving) {
+    travelTriggerCount++;
+    if(travelTriggerCount >= TRAVEL_CONFIRM_COUNT) {
+      // Konfirmasi: petugas sedang perjalanan
+      autoTravelActive = true;
+      travelTriggerCount = 0;
+      setStatus('Perjalanan');
+      const banner = document.getElementById('banner-perjalanan');
+      const desc = document.getElementById('banner-perjalanan-desc');
+      desc.textContent = 'GPS mendeteksi kamu sedang bergerak. Tap tombol di bawah jika sudah tiba di lokasi.';
+      banner.style.display = 'block';
+      addLog('🚗 Auto-detect: Perjalanan terdeteksi via GPS','warn');
+    }
+  } else {
+    // Reset counter jika tidak bergerak
+    if(travelTriggerCount > 0) travelTriggerCount--;
+  }
+
+  // Update posisi referensi setiap 30 detik
+  if(!prevTravelTime || (now - prevTravelTime) >= 30000) {
+    prevTravelPos = {latitude: lat, longitude: lng};
+    prevTravelTime = now;
+  }
+}
+
+window.konfirmasiSudahDiLokasi = function() {
+  autoTravelActive = false;
+  travelTriggerCount = 0;
+  prevTravelPos = null;
+  prevTravelTime = null;
+  document.getElementById('banner-perjalanan').style.display = 'none';
+  setStatus('Aktif Bekerja');
+  addLog('📍 Petugas konfirmasi sudah di lokasi','ok');
+};
+
 function startGPS() {
   if(!navigator.geolocation){addLog('GPS tidak didukung','err');return;}
   watchId=navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,maximumAge:10000,timeout:15000});
@@ -1054,6 +1150,7 @@ function startGPS() {
 function stopGPS() {
   if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}
   if(sendTimer){clearInterval(sendTimer);sendTimer=null;}
+  autoTravelActive=false; travelTriggerCount=0;
 }
 function onPos(pos) {
   lastPos=pos;
@@ -1062,6 +1159,7 @@ function onPos(pos) {
   document.getElementById('gps-lng').textContent=lng.toFixed(6);
   document.getElementById('gps-acc').textContent=Math.round(acc)+' m';
   document.getElementById('gps-status').textContent=acc<20?'✓ Akurasi sangat baik':acc<50?'✓ Akurasi baik':'⚠ Akurasi rendah';
+  checkAutoTravel(pos);
   pushLocation(pos);
 }
 function onPosErr(err) {
@@ -1085,7 +1183,7 @@ function pushLocation(pos) {
 }
 
 // ════════════════════════════════════════════
-// STATUS
+// STATUS (read-only, diatur oleh absensi & auto-detect)
 // ════════════════════════════════════════════
 window.setStatus = function(s) {
   currentStatus=s;
@@ -1099,10 +1197,6 @@ window.setStatus = function(s) {
   if(db&&currentUser)set(ref(db,'petugas/'+currentUser.id+'/status'),s);
   addLog('Status: '+s,'info');
   if(lastPos)pushLocation(lastPos);
-
-  // Jika ganti ke Perjalanan/Aktif, tawarkan absensi fase
-  if(s==='Perjalanan'&&faseLog.findIndex(f=>f.fase==='Perjalanan')<0) bukaModalFase(1);
-  if(s==='Aktif Bekerja'&&faseLog.findIndex(f=>f.fase==='Aktif Bekerja')<0) bukaModalFase(2);
 };
 
 // ════════════════════════════════════════════
