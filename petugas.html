@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FFM Petugas — PLN UP3 Jayapura</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0B1F3A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FFM Petugas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -266,7 +271,7 @@ body {
 .modal-close { background:var(--surface-2); border:1px solid var(--line); border-radius:var(--radius-xs); width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-2); font-size:14px; cursor:pointer; }
 
 /* LOC CARDS */
-.loc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.loc-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
 .loc-card { background:var(--surface); border:2px solid var(--line); border-radius:var(--radius-sm); padding:17px 8px; text-align:center; cursor:pointer; transition:all 0.18s var(--ease); display:flex; flex-direction:column; align-items:center; gap:7px; min-height:90px; justify-content:center; }
 .loc-card .loc-icon { font-size:27px; }
 .loc-card .loc-name { font-size:12px; font-weight:700; color:var(--text-2); }
@@ -353,18 +358,12 @@ body {
 
   <div class="fase-hero" id="fase-hero">
     <div class="fase-hero-title" id="fase-hero-title">Absensi Standby</div>
-    <div class="fase-hero-sub" id="fase-hero-sub">Foto selfie & GPS untuk konfirmasi kehadiran awal</div>
+    <div class="fase-hero-sub" id="fase-hero-sub">Foto selfie & GPS untuk konfirmasi kehadiran awal shift</div>
     <div class="fase-track">
-      <div class="fase-step active" id="fs-1"><div class="fase-dot">1</div><div class="fase-label">Standby</div></div>
-      <div class="fase-step"        id="fs-2"><div class="fase-dot">2</div><div class="fase-label">Perjalanan</div></div>
-      <div class="fase-step"        id="fs-3"><div class="fase-dot">3</div><div class="fase-label">Aktif</div></div>
-      <div class="fase-step"        id="fs-4"><div class="fase-dot">✓</div><div class="fase-label">Selesai</div></div>
-    </div>
-    <div class="fase-badge-strip" id="fase-badge-strip">
-      <div class="fase-badge active" id="fbadge-1">⏸ Standby</div>
-      <div class="fase-badge"        id="fbadge-2">🚗 Perjalanan</div>
-      <div class="fase-badge"        id="fbadge-3">⚡ Aktif Bekerja</div>
-      <div class="fase-badge"        id="fbadge-4">✅ Selesai</div>
+      <div class="fase-step active" id="fs-1"><div class="fase-dot">1</div><div class="fase-label">Standby<br><span style="opacity:0.65;font-weight:600">(Foto)</span></div></div>
+      <div class="fase-step"        id="fs-2"><div class="fase-dot">2</div><div class="fase-label">Perjalanan<br><span style="opacity:0.65;font-weight:600">(Auto GPS)</span></div></div>
+      <div class="fase-step"        id="fs-3"><div class="fase-dot">3</div><div class="fase-label">Aktif<br><span style="opacity:0.65;font-weight:600">(Auto)</span></div></div>
+      <div class="fase-step"        id="fs-4"><div class="fase-dot">✓</div><div class="fase-label">Selesai<br><span style="opacity:0.65;font-weight:600">(Foto)</span></div></div>
     </div>
   </div>
 
@@ -375,12 +374,12 @@ body {
       <div class="loc-card selected" id="loc-kantor" onclick="pilihLokasi('Kantor')">
         <span class="loc-icon">🏢</span><div class="loc-name">Kantor</div>
       </div>
-      <div class="loc-card" id="loc-posko" onclick="pilihLokasi('Posko')">
-        <span class="loc-icon">⛺</span><div class="loc-name">Posko</div>
-      </div>
       <div class="loc-card" id="loc-lapangan" onclick="pilihLokasi('Lapangan')">
         <span class="loc-icon">📍</span><div class="loc-name">Lapangan</div>
       </div>
+    </div>
+    <div id="loc-hint" style="font-size:11px;color:var(--text-3);margin-top:10px;line-height:1.6;text-align:center">
+      🏢 <b>Kantor</b>: status mulai dari Standby — Perjalanan &amp; Aktif Bekerja terdeteksi otomatis via GPS saat berangkat.
     </div>
   </div>
 
@@ -478,14 +477,18 @@ body {
       <span>Status aktif: <b id="status-label">Standby</b></span>
     </div>
     <div style="font-size:11px;color:var(--text-3);margin-top:8px;text-align:center">⚙️ Status berubah otomatis sesuai absensi &amp; deteksi GPS</div>
+    <div id="lokasi-mode-badge" style="display:none;margin-top:10px;font-size:11px;font-weight:700;text-align:center;padding:7px 10px;border-radius:var(--radius-xs);background:var(--ok-bg);color:var(--ok);border:1px solid rgba(14,161,91,0.3)"></div>
   </div>
 
   <!-- BANNER PERJALANAN TERDETEKSI -->
   <div id="banner-perjalanan" style="display:none;background:linear-gradient(135deg,rgba(255,184,0,0.12),rgba(255,184,0,0.04));border:1.5px solid rgba(255,184,0,0.5);border-radius:var(--radius-sm);padding:14px 16px">
     <div style="font-size:13px;font-weight:800;color:#A0660A;margin-bottom:4px">🚗 Perjalanan Terdeteksi!</div>
     <div style="font-size:11.5px;color:var(--text-2);margin-bottom:10px" id="banner-perjalanan-desc">GPS mendeteksi kamu sedang bergerak.</div>
-    <button class="btn btn-sm" style="background:var(--ok);color:#fff" onclick="konfirmasiSudahDiLokasi()">
-      📍 Saya Sudah di Lokasi
+    <button class="btn btn-sm" style="background:var(--ok);color:#fff;width:100%;padding:12px;font-size:13px;margin-bottom:8px" onclick="bukaModalTibaLokasi()">
+      📍 Sudah Tiba di Lokasi — Absen Kedatangan
+    </button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;padding:9px;font-size:12px" onclick="batalDeteksiPerjalanan()">
+      ↺ Salah Deteksi, Saya Masih di Tempat
     </button>
   </div>
 
@@ -596,6 +599,35 @@ body {
   </div>
 </div>
 
+<!-- ══ MODAL: ABSEN TIBA DI LOKASI LAPANGAN ══ -->
+<!-- Absensi kedatangan: dipicu sekali saat petugas pertama kali konfirmasi sudah tiba di lokasi kerja (selfie + GPS, seperti absen Standby) -->
+<div class="modal-backdrop" id="modal-tiba-lokasi">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>📍 Absen Tiba di Lokasi</h3>
+      <button class="modal-close" onclick="tutupModalTibaLokasi()">✕</button>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:14px;line-height:1.7">
+      Ambil selfie untuk konfirmasi kedatangan di lokasi kerja. Foto ini akan otomatis diberi cap GPS & waktu.
+    </div>
+    <div class="camera-box" id="tiba-cam-box">
+      <div class="cam-placeholder" id="tiba-ph"><span class="cam-icon">📷</span>Selfie tiba di lokasi</div>
+      <video id="tiba-video" playsinline autoplay muted style="display:none"></video>
+      <img id="tiba-preview" style="display:none">
+      <div class="cam-badge" id="tiba-gps-badge" style="display:none">📍 GPS · <span id="tiba-gps-val">—</span></div>
+    </div>
+    <div class="camera-actions" style="margin-bottom:14px">
+      <button class="btn btn-ghost btn-sm"    id="tiba-btn-cam"    onclick="bukaKameraTiba()">📷 Buka Kamera</button>
+      <button class="btn btn-primary btn-sm"  id="tiba-btn-shoot"  onclick="ambilFotoTiba()" style="display:none">📸 Ambil</button>
+      <button class="btn btn-ghost btn-sm"    id="tiba-btn-retake" onclick="ulangFotoTiba()" style="display:none">↺ Ulangi</button>
+    </div>
+    <canvas id="tiba-canvas" style="display:none"></canvas>
+    <div class="error-box" id="tiba-err" style="margin-bottom:12px"></div>
+    <div id="tiba-progress" style="font-size:11px;color:var(--text-2);text-align:center;margin-bottom:10px;display:none"></div>
+    <button class="btn btn-yellow" id="tiba-btn-submit" onclick="submitAbsenTiba()">✓ Konfirmasi Tiba & Mulai Bekerja</button>
+  </div>
+</div>
+
 
 <!-- ══ MODAL: SELESAI BERTUGAS ══ -->
 <div class="modal-backdrop" id="modal-selesai">
@@ -639,7 +671,7 @@ body {
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, set, update, onValue, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const FB_CONFIG = {
   apiKey: "AIzaSyDZRDMn-gvbVQhcyTCxx83i5czwiU8hAJU",
@@ -658,6 +690,14 @@ let currentStatus = 'Standby';
 let sendTimer = null;
 let lastPos = null;
 
+// ── Offline queue (blank spot / sinyal jelek) ────────────
+// Titik GPS & event status yang gagal terkirim disimpan di localStorage,
+// lalu otomatis dikirim ulang begitu koneksi internet kembali — tidak ada
+// data yang hilang walau petugas berjam-jam di area tanpa sinyal.
+const OFFLINE_QUEUE_KEY = 'ffm_offline_queue_v1';
+let isOnline = navigator.onLine;
+let flushingQueue = false;
+
 // ── Fase system ─────────────────────────────────────────
 // faseList: ['Standby', 'Perjalanan', 'Aktif Bekerja', 'Selesai']
 const FASE_LIST = ['Standby','Perjalanan','Aktif Bekerja','Selesai'];
@@ -668,6 +708,8 @@ let faseLog = []; // array of {fase, waktu, lat, lng, fotoBase64}
 let laporTugasList = [];
 let tugasTarget = 0; // bisa diisi dari tiket
 let tugasSelesai = 0;
+let editLaporanId = null; // diisi saat petugas membuka laporan "Perlu Revisi" untuk dikirim ulang (menimpa, bukan laporan baru)
+const laporListeners = {}; // pantau perubahan status verifikasi tiap laporan yang dikirim hari ini
 
 // ── Kamera state ────────────────────────────────────────
 let absenStream = null, absenPos = null, absenFotoUrl = null;
@@ -679,10 +721,103 @@ try {
   app = initializeApp(FB_CONFIG);
   db  = getDatabase(app);
   addLog('Firebase terhubung', 'ok');
-  document.getElementById('signal-dot').classList.add('live');
-  document.getElementById('conn-label').textContent = 'Live';
 } catch(e) {
   addLog('Firebase: ' + e.message + ' — mode demo aktif', 'err');
+}
+
+// ── Indikator koneksi real (bukan cuma status Firebase saat load) ──────
+function updateConnUI() {
+  const dot = document.getElementById('signal-dot');
+  const label = document.getElementById('conn-label');
+  if (!dot || !label) return;
+  if (isOnline) {
+    dot.classList.add('live');
+    const n = getOfflineQueue().length;
+    label.textContent = n>0 ? `Online · menyinkron ${n}` : 'Live';
+  } else {
+    dot.classList.remove('live');
+    label.textContent = 'Offline · data disimpan lokal';
+  }
+}
+window.addEventListener('online', () => {
+  isOnline = true;
+  addLog('🌐 Koneksi internet kembali — menyinkronkan data tersimpan...', 'ok');
+  updateConnUI();
+  flushOfflineQueue();
+});
+window.addEventListener('offline', () => {
+  isOnline = false;
+  addLog('📴 Koneksi internet terputus — data GPS & laporan disimpan otomatis di HP, akan terkirim begitu sinyal kembali', 'warn');
+  updateConnUI();
+});
+updateConnUI();
+// Cek ulang tiap 20 detik (jaringan seluler kadang tidak memicu event online/offline dengan akurat)
+setInterval(() => { flushOfflineQueue(); }, 20000);
+
+// ── Utilitas antrian offline (localStorage) ─────────────────────────────
+function getOfflineQueue() {
+  try { return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveOfflineQueue(q) {
+  try { localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(q)); } catch(e) { /* storage penuh, abaikan */ }
+}
+function enqueueOffline(item) {
+  const q = getOfflineQueue();
+  q.push(item);
+  // batasi 500 entri terakhir supaya localStorage tidak membengkak
+  while (q.length > 500) q.shift();
+  saveOfflineQueue(q);
+  updateConnUI();
+}
+async function flushOfflineQueue() {
+  if (flushingQueue || !db) return;
+  let q = getOfflineQueue();
+  if (q.length === 0) return;
+  flushingQueue = true;
+  let sent = 0;
+  while (q.length > 0) {
+    const item = q[0];
+    try {
+      if (item.type === 'location') {
+        await set(ref(db, 'petugasHistory/'+item.uid+'/'+item.payload.ts), item.payload);
+        await set(ref(db, 'petugas/'+item.uid), {...item.payload, offlineSync:true});
+      } else if (item.type === 'status') {
+        await set(ref(db, 'petugas/'+item.uid+'/status'), item.payload.status);
+      } else if (item.type === 'absensi') {
+        await set(ref(db, item.path), item.payload);
+      }
+      q.shift();
+      saveOfflineQueue(q);
+      sent++;
+    } catch(e) {
+      // masih gagal (mungkin masih offline) — hentikan, coba lagi nanti
+      break;
+    }
+  }
+  flushingQueue = false;
+  if (sent > 0) addLog(`✓ ${sent} data tersimpan offline berhasil disinkronkan ke server`, 'ok');
+  updateConnUI();
+}
+window.addEventListener('beforeunload', () => { /* queue sudah di localStorage, aman walau app ditutup */ });
+
+// Helper umum: kirim data penting (absensi/laporan) — kalau offline atau gagal,
+// otomatis masuk antrian dan tidak hilang.
+async function safeSet(path, payload, label) {
+  if (!db) return false;
+  if (!isOnline) {
+    enqueueOffline({type:'absensi', path, payload});
+    addLog((label||'Data')+' disimpan offline, akan disinkronkan otomatis','warn');
+    return false;
+  }
+  try {
+    await set(ref(db, path), payload);
+    return true;
+  } catch(e) {
+    enqueueOffline({type:'absensi', path, payload});
+    addLog((label||'Data')+' gagal kirim, disimpan offline: '+e.message,'warn');
+    return false;
+  }
 }
 
 // ════════════════════════════════════════════
@@ -698,6 +833,45 @@ function compressToBase64(dataUrl, maxW=800, q=0.65) {
       c.getContext('2d').drawImage(img,0,0,c.width,c.height);
       res(c.toDataURL('image/jpeg',q));
     };
+    img.src = dataUrl;
+  });
+}
+
+// ── WATERMARK GPS (kamera GPS) ─────────────────────────────
+// Menempelkan koordinat, waktu, dan label ke pojok bawah foto sebagai bukti lokasi.
+// Dipakai untuk semua foto (selfie absensi, before/after laporan, selfie selesai)
+// menggantikan blokir jarak otomatis — supervisor yang menilai kewajaran lokasi saat verifikasi.
+function stampFotoGPS(dataUrl, pos, label) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      const lat = pos?.coords?.latitude, lng = pos?.coords?.longitude;
+      const acc = pos?.coords?.accuracy;
+      const waktu = new Date().toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'medium' });
+      const baris1 = lat!=null ? `📍 ${lat.toFixed(6)}, ${lng.toFixed(6)} ±${Math.round(acc||0)}m` : '📍 GPS tidak tersedia';
+      const baris2 = `${waktu}${label?(' · '+label):''}`;
+
+      const fontSize = Math.max(14, Math.round(c.width / 32));
+      const padding = Math.round(fontSize * 0.6);
+      const barH = fontSize * 2 + padding * 2;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(0, c.height - barH, c.width, barH);
+      ctx.fillStyle = '#FFB800';
+      ctx.font = `700 ${fontSize}px sans-serif`;
+      ctx.textBaseline = 'top';
+      ctx.fillText(baris1, padding, c.height - barH + padding);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `500 ${Math.round(fontSize*0.88)}px sans-serif`;
+      ctx.fillText(baris2, padding, c.height - barH + padding + fontSize * 1.15);
+
+      res(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => res(dataUrl);
     img.src = dataUrl;
   });
 }
@@ -747,6 +921,9 @@ window.doLogin = function() {
   faseCurrent = 0;
   faseLog = [];
   updateFaseHero();
+  const badge0 = document.getElementById('lokasi-mode-badge');
+  if (badge0) { badge0.style.display='none'; badge0.textContent=''; }
+  pilihLokasi('Kantor');
   showScreen('absensi');
   startAbsensiGPS();
   addLog('Login: '+nama+' ('+regu+')', 'ok');
@@ -756,42 +933,22 @@ window.doLogin = function() {
 // FASE SYSTEM
 // ════════════════════════════════════════════
 function updateFaseHero() {
-  const labels  = ['Standby','Perjalanan','Aktif Bekerja','Selesai'];
-  const icons   = ['⏸','🚗','⚡','✅'];
-  const descs   = [
-    'Foto selfie & GPS untuk konfirmasi kehadiran awal',
-    'Foto selfie — kamu sedang dalam perjalanan ke lokasi',
-    'Foto selfie — kamu sudah aktif bekerja di lokasi',
-    'Foto selfie akhir — rekap laporan harian dikirim'
-  ];
-  const btnTexts = ['Konfirmasi Standby','Konfirmasi Perjalanan','Konfirmasi Aktif Bekerja','Selesai Bertugas'];
+  // Layar absensi awal sekarang hanya untuk fase Standby (satu-satunya fase berfoto di awal shift)
+  document.getElementById('fase-hero-title').textContent = 'Absensi Standby';
+  document.getElementById('fase-hero-sub').textContent   = 'Foto selfie & GPS untuk konfirmasi kehadiran awal shift';
+  document.getElementById('absen-fase-label').textContent = 'Standby';
+  document.getElementById('absen-btn-text').textContent   = 'Konfirmasi Standby';
+  document.getElementById('absen-btn-icon').textContent   = '⏸';
 
-  document.getElementById('fase-hero-title').textContent = 'Absensi ' + labels[faseCurrent];
-  document.getElementById('fase-hero-sub').textContent   = descs[faseCurrent];
-  document.getElementById('absen-fase-label').textContent = labels[faseCurrent];
-  document.getElementById('absen-btn-text').textContent   = btnTexts[faseCurrent];
-  document.getElementById('absen-btn-icon').textContent   = icons[faseCurrent];
-
-  // step tracker
+  // step tracker — fase 0 (Standby) aktif, sisanya menunggu
   for(let i=1; i<=4; i++) {
     const el = document.getElementById('fs-'+i);
     if (!el) continue;
     el.classList.remove('done','active');
-    if (i-1 < faseCurrent) el.classList.add('done');
-    else if (i-1 === faseCurrent) el.classList.add('active');
-  }
-  // badges
-  for(let i=1; i<=4; i++) {
-    const b = document.getElementById('fbadge-'+i);
-    if (!b) continue;
-    b.classList.remove('active','done');
-    if (i-1 < faseCurrent) b.classList.add('done');
-    else if (i-1 === faseCurrent) b.classList.add('active');
+    if (i===1) el.classList.add('active');
   }
 
-  // Lokasi card hanya untuk Standby & Selesai
-  const lokCard = document.getElementById('card-lokasi');
-  if (lokCard) lokCard.style.display = (faseCurrent===0||faseCurrent===3) ? 'block' : 'none';
+  document.getElementById('card-lokasi').style.display = 'block';
 }
 
 // update progress tracking screen
@@ -861,7 +1018,7 @@ window.ulangFotoAbsen = function() {
   bukaKameraAbsen();
 };
 
-// ── Submit fase di absensi screen ──────────────────────
+// ── Submit absensi Standby (satu-satunya fase yang butuh foto di awal) ──
 window.submitFase = async function() {
   const errEl=document.getElementById('absen-err');
   const btn=document.getElementById('absen-btn-submit');
@@ -871,61 +1028,97 @@ window.submitFase = async function() {
   btn.disabled=true; btn.innerHTML='<span>⏳</span> Menyimpan...';
 
   let foto=null;
-  try { foto=await compressToBase64(absenFotoUrl,800,0.65); } catch(e){ addLog('Kompres foto gagal','err'); }
+  try {
+    const stamped = await stampFotoGPS(absenFotoUrl, absenPos, 'Absensi Standby — '+absenLokasi);
+    foto = await compressToBase64(stamped,800,0.7);
+  } catch(e){ addLog('Kompres foto gagal','err'); }
 
   const waktu=Date.now();
-  const faseName = FASE_LIST[faseCurrent];
   const entry = {
-    fase:faseName, waktu,
+    fase:'Standby', waktu,
     lat:absenPos.coords.latitude, lng:absenPos.coords.longitude,
     acc:Math.round(absenPos.coords.accuracy),
     fotoBase64:foto
   };
   faseLog.push(entry);
 
-  // Simpan ke Firebase absensi (per fase)
   if(db && currentUser) {
     const payload = {
       nama:currentUser.nama, nip:currentUser.nip, regu:currentUser.regu, ulp:currentUser.ulp,
-      fase:faseName, waktu,
+      fase:'Standby', waktu,
       lat:entry.lat, lng:entry.lng, acc:entry.acc,
       fotoBase64:foto,
       lokasi:absenLokasi
     };
     try {
-      await set(ref(db,'absensi/'+currentUser.id+'_fase'+faseCurrent+'_'+waktu), payload);
-      // juga update absensiLog khusus per petugas
-      await set(ref(db,'absensiLog/'+currentUser.id+'/fase'+faseCurrent), payload);
+      await safeSet('absensi/'+currentUser.id+'_fase0_'+waktu, payload, 'Absensi Standby');
+      await safeSet('absensiLog/'+currentUser.id+'/fase0', payload, 'Absensi Standby');
     } catch(e){addLog('Simpan absensi gagal: '+e.message,'err');}
   }
 
-  addLog('✓ Fase ['+faseName+'] tercatat · '+new Date(waktu).toLocaleTimeString('id-ID'),'ok');
-  
-  faseCurrent++;
-  btn.disabled=false; btn.innerHTML='<span>'+['⏸','🚗','⚡','✅'][faseCurrent>3?3:faseCurrent]+'</span> '+['Konfirmasi Standby','Konfirmasi Perjalanan','Konfirmasi Aktif Bekerja','Selesai Bertugas'][faseCurrent>3?3:faseCurrent];
+  addLog('✓ Absensi Standby tercatat · '+new Date(waktu).toLocaleTimeString('id-ID'),'ok');
 
-  // Reset foto/kamera untuk fase berikutnya
-  absenFotoUrl=null;
-  document.getElementById('absen-preview').style.display='none';
-  document.getElementById('absen-btn-cam').style.display='block';
-  document.getElementById('absen-btn-shoot').style.display='none';
-  document.getElementById('absen-btn-retake').style.display='none';
-  document.getElementById('absen-cam-ph').style.display='block';
+  if (absenLokasi === 'Lapangan') {
+    // Petugas absen Standby langsung dari lokasi lapangan → tidak perlu menunggu
+    // deteksi GPS "Perjalanan" maupun konfirmasi "Tiba di Lokasi" lagi, karena
+    // selfie + GPS Standby ini SUDAH membuktikan dia berada di lapangan.
+    // Sesi langsung dimulai sebagai Aktif Bekerja.
+    const entryAktif = {
+      fase:'Aktif Bekerja', waktu, lat:entry.lat, lng:entry.lng, acc:entry.acc,
+      fotoBase64:foto, otomatis:true, catatan:'Standby langsung di Lapangan'
+    };
+    faseLog.push(entryAktif);
 
-  if(faseCurrent >= 3) {
-    // Sudah Standby+Perjalanan+Aktif → masuk tracking, status = Aktif Bekerja
+    if (db && currentUser) {
+      const payloadAktif = {
+        nama:currentUser.nama, nip:currentUser.nip, regu:currentUser.regu, ulp:currentUser.ulp,
+        fase:'Aktif Bekerja', waktu,
+        lat:entry.lat, lng:entry.lng, acc:entry.acc,
+        fotoBase64:foto, lokasi:'Lapangan', otomatis:true,
+        catatan:'Standby langsung di Lapangan'
+      };
+      try {
+        await safeSet('absensi/'+currentUser.id+'_fase2auto_'+waktu, payloadAktif, 'Absensi Aktif Bekerja');
+        await safeSet('absensiLog/'+currentUser.id+'/fase2auto', payloadAktif, 'Absensi Aktif Bekerja');
+      } catch(e){ addLog('Simpan absensi (auto aktif) gagal: '+e.message,'err'); }
+    }
+
+    faseCurrent = 2; // Aktif Bekerja
     updateTrackingFase();
     showScreen('tracking');
     setStatus('Aktif Bekerja');
+    // Aktifkan background GPS tracking (via plugin native Android)
+try {
+  const { BackgroundGeolocation } = await import(
+    '@capacitor-community/background-geolocation'
+  );
+  await BackgroundGeolocation.addWatcher({
+    backgroundMessage: "FFM PLN — GPS tracking aktif",
+    backgroundTitle:   "Tracking Lokasi",
+    requestPermissions: true,
+    stale: false,
+    distanceFilter: 10
+  }, function(loc, err) {
+    if (err) return;
+    // gunakan data lokasi yang sama seperti pushLocation biasa
+    pushLocation({ coords: { latitude: loc.latitude, longitude: loc.longitude,
+      accuracy: loc.accuracy, heading: loc.bearing || 0, speed: loc.speed || 0 } });
+  });
+} catch(e) {
+  // fallback ke GPS browser biasa kalau bukan di Android native
+}
     startGPS();
+    const badge = document.getElementById('lokasi-mode-badge');
+    if (badge) { badge.style.display='block'; badge.textContent='📍 Mulai Standby langsung di Lapangan — fase Perjalanan dilewati'; }
+    addLog('📍 Lokasi Lapangan terdeteksi saat Standby — sesi langsung Aktif Bekerja','ok');
   } else {
-    // Update status sesuai fase yang baru saja selesai
-    const faseStatusMap = {0:'Standby', 1:'Perjalanan', 2:'Aktif Bekerja'};
-    // faseCurrent sudah di-increment, jadi fase yang baru selesai = faseCurrent-1
-    const prevFase = faseCurrent - 1;
-    if(faseStatusMap[prevFase]) setStatus(faseStatusMap[prevFase]);
-    updateFaseHero();
-    startAbsensiGPS();
+    // Standby dari Kantor → alur normal: Perjalanan & Aktif Bekerja
+    // diatur otomatis oleh deteksi GPS, tidak perlu absensi foto lagi.
+    faseCurrent = 1;
+    updateTrackingFase();
+    showScreen('tracking');
+    setStatus('Standby');
+    startGPS();
   }
 };
 
@@ -934,8 +1127,14 @@ let absenLokasi = 'Kantor';
 window.pilihLokasi = function(lok) {
   absenLokasi=lok;
   document.querySelectorAll('.loc-card').forEach(c=>c.classList.remove('selected'));
-  const map={'Kantor':'loc-kantor','Posko':'loc-posko','Lapangan':'loc-lapangan'};
+  const map={'Kantor':'loc-kantor','Lapangan':'loc-lapangan'};
   if(map[lok]) document.getElementById(map[lok]).classList.add('selected');
+  const hint = document.getElementById('loc-hint');
+  if(hint){
+    hint.innerHTML = lok==='Lapangan'
+      ? '📍 <b>Lapangan</b>: kamu sudah berada di lokasi kerja — begitu Standby dikonfirmasi, sesi langsung jadi <b>Aktif Bekerja</b> (tanpa fase Perjalanan).'
+      : '🏢 <b>Kantor</b>: status mulai dari Standby — Perjalanan &amp; Aktif Bekerja terdeteksi otomatis via GPS saat berangkat.';
+  }
 };
 
 
@@ -946,9 +1145,9 @@ window.pilihLokasi = function(lok) {
 let prevTravelPos = null;       // posisi sebelumnya untuk hitung displacement
 let prevTravelTime = null;      // timestamp posisi sebelumnya
 let travelSpeedBuffer = [];     // buffer speed readings (5 readings)
-const SPEED_THRESHOLD = 5;      // km/h — jika >= ini → perjalanan
-const DISP_THRESHOLD = 50;      // meter dalam 60 detik → perjalanan
-const TRAVEL_CONFIRM_COUNT = 3; // berapa kali berturut-turut harus terpenuhi
+const SPEED_THRESHOLD = 12;     // km/h — dinaikkan dari 5, supaya jalan kaki cepat di lokasi tidak salah terdeteksi sebagai "Perjalanan"
+const DISP_THRESHOLD = 120;     // meter dalam jendela waktu — dinaikkan dari 50, mengurangi pemicu akibat pantulan sinyal GPS
+const TRAVEL_CONFIRM_COUNT = 5; // dinaikkan dari 3 — butuh lebih banyak konfirmasi berturut-turut sebelum status berubah
 let travelTriggerCount = 0;     // counter konfirmasi perjalanan
 let autoTravelActive = false;   // apakah sedang dalam mode auto-perjalanan
 
@@ -1013,14 +1212,114 @@ function checkAutoTravel(pos) {
   }
 }
 
-window.konfirmasiSudahDiLokasi = function() {
+// "Salah deteksi" — petugas sebenarnya masih di tempat, GPS saja yang salah baca. Tidak butuh foto, langsung batal.
+window.batalDeteksiPerjalanan = function() {
   autoTravelActive = false;
   travelTriggerCount = 0;
   prevTravelPos = null;
   prevTravelTime = null;
   document.getElementById('banner-perjalanan').style.display = 'none';
+  addLog('↺ Deteksi perjalanan dibatalkan (salah deteksi)','info');
+};
+
+// ════════════════════════════════════════════
+// ABSEN TIBA DI LOKASI (sekali per kedatangan) — selfie + GPS, seperti absen Standby
+// ════════════════════════════════════════════
+let tibaStream = null, tibaFotoUrl = null, tibaPos = null;
+
+window.bukaModalTibaLokasi = function() {
+  tibaFotoUrl = null; tibaPos = null;
+  document.getElementById('tiba-ph').style.display='block';
+  document.getElementById('tiba-preview').style.display='none';
+  document.getElementById('tiba-video').style.display='none';
+  document.getElementById('tiba-btn-cam').style.display='block';
+  document.getElementById('tiba-btn-shoot').style.display='none';
+  document.getElementById('tiba-btn-retake').style.display='none';
+  document.getElementById('tiba-gps-badge').style.display='none';
+  document.getElementById('tiba-err').style.display='none';
+  document.getElementById('modal-tiba-lokasi').classList.add('active');
+  // ambil posisi GPS terkini untuk dilampirkan
+  if (lastPos) { tibaPos = lastPos; }
+  else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(p => { tibaPos = p; }, ()=>{});
+  }
+};
+window.tutupModalTibaLokasi = function() {
+  if (tibaStream) { tibaStream.getTracks().forEach(t=>t.stop()); tibaStream=null; }
+  document.getElementById('modal-tiba-lokasi').classList.remove('active');
+};
+window.bukaKameraTiba = async function() {
+  try {
+    tibaStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+    const v = document.getElementById('tiba-video');
+    v.srcObject = tibaStream; v.style.display='block';
+    document.getElementById('tiba-ph').style.display='none';
+    document.getElementById('tiba-btn-cam').style.display='none';
+    document.getElementById('tiba-btn-shoot').style.display='block';
+  } catch(e) { addLog('Kamera absen tiba gagal','err'); }
+};
+window.ambilFotoTiba = function() {
+  const v=document.getElementById('tiba-video'), c=document.getElementById('tiba-canvas');
+  c.width=v.videoWidth||480; c.height=v.videoHeight||640;
+  const ctx=c.getContext('2d'); ctx.translate(c.width,0); ctx.scale(-1,1);
+  ctx.drawImage(v,0,0,c.width,c.height);
+  tibaFotoUrl = c.toDataURL('image/jpeg',0.7);
+  const img=document.getElementById('tiba-preview');
+  img.src=tibaFotoUrl; img.style.display='block';
+  v.style.display='none';
+  if (tibaStream) { tibaStream.getTracks().forEach(t=>t.stop()); tibaStream=null; }
+  document.getElementById('tiba-btn-shoot').style.display='none';
+  document.getElementById('tiba-btn-retake').style.display='block';
+  if (tibaPos) {
+    document.getElementById('tiba-gps-badge').style.display='block';
+    document.getElementById('tiba-gps-val').textContent = tibaPos.coords.latitude.toFixed(4)+', '+tibaPos.coords.longitude.toFixed(4);
+  }
+};
+window.ulangFotoTiba = function() {
+  tibaFotoUrl = null;
+  document.getElementById('tiba-preview').style.display='none';
+  document.getElementById('tiba-btn-retake').style.display='none';
+  bukaKameraTiba();
+};
+window.submitAbsenTiba = async function() {
+  const errEl = document.getElementById('tiba-err');
+  const btn = document.getElementById('tiba-btn-submit');
+  if (!tibaFotoUrl) { errEl.textContent='Selfie wajib diambil.'; errEl.style.display='block'; return; }
+  errEl.style.display='none'; btn.disabled=true; btn.textContent='Menyimpan...';
+  document.getElementById('tiba-progress').textContent='Menyimpan absen kedatangan...'; document.getElementById('tiba-progress').style.display='block';
+
+  let foto = null;
+  try {
+    const stamped = await stampFotoGPS(tibaFotoUrl, tibaPos || lastPos, 'Tiba di Lokasi Kerja');
+    foto = await compressToBase64(stamped, 800, 0.7);
+  } catch(e) { addLog('Kompres foto absen tiba gagal','err'); }
+
+  const waktu = Date.now();
+  const pos = tibaPos || lastPos;
+  const entry = { fase:'Aktif Bekerja', waktu, lat:pos?.coords.latitude||null, lng:pos?.coords.longitude||null, acc:pos?Math.round(pos.coords.accuracy):null, fotoBase64:foto };
+  faseLog.push(entry);
+
+  if (db && currentUser) {
+    try {
+      await safeSet('absensi/'+currentUser.id+'_tiba_'+waktu, {...entry, nama:currentUser.nama, nip:currentUser.nip, regu:currentUser.regu, ulp:currentUser.ulp, lokasi:'Lapangan'}, 'Absen Tiba di Lokasi');
+      await safeSet('absensiLog/'+currentUser.id+'/tiba_'+waktu, entry, 'Absen Tiba di Lokasi');
+    } catch(e) { addLog('Simpan absen tiba gagal: '+e.message,'err'); }
+  }
+
+  document.getElementById('tiba-progress').style.display='none';
+  btn.disabled=false; btn.textContent='✓ Konfirmasi Tiba & Mulai Bekerja';
+  tutupModalTibaLokasi();
+
+  // lanjutkan alur lama: tutup banner perjalanan, set status Aktif Bekerja
+  autoTravelActive = false;
+  travelTriggerCount = 0;
+  prevTravelPos = null;
+  prevTravelTime = null;
+  document.getElementById('banner-perjalanan').style.display = 'none';
+  faseCurrent = 2; // Aktif Bekerja
+  updateTrackingFase();
   setStatus('Aktif Bekerja');
-  addLog('📍 Petugas konfirmasi sudah di lokasi','ok');
+  addLog('✓ Absen tiba di lokasi tercatat · '+new Date(waktu).toLocaleTimeString('id-ID'),'ok');
 };
 
 function startGPS() {
@@ -1053,15 +1352,22 @@ function pushLocation(pos) {
   if(!currentUser) return;
   const {latitude:lat,longitude:lng,accuracy:acc,heading,speed}=pos.coords;
   const payload={lat,lng,acc:Math.round(acc),heading:heading||0,speed:speed?Math.round(speed*3.6):0,status:currentStatus,nama:currentUser.nama,nip:currentUser.nip,regu:currentUser.regu,ulp:currentUser.ulp,ts:Date.now(),fase:FASE_LIST[Math.min(faseCurrent,3)]};
-  if(db){
-    const pr=ref(db,'petugas/'+currentUser.id);
-    set(pr,payload).then(()=>{
-      sendCount++; document.getElementById('send-count').textContent=sendCount;
-      onDisconnect(pr).update({status:'Offline',ts:Date.now()});
-    }).catch(e=>addLog('GPS kirim gagal: '+e.message,'err'));
-  } else {
+
+  if (!isOnline || !db) {
+    enqueueOffline({type:'location', uid:currentUser.id, payload});
     sendCount++; document.getElementById('send-count').textContent=sendCount;
+    return;
   }
+
+  const pr=ref(db,'petugas/'+currentUser.id);
+  set(pr,payload).then(()=>{
+    sendCount++; document.getElementById('send-count').textContent=sendCount;
+    onDisconnect(pr).update({status:'Offline',ts:Date.now()});
+  }).catch(e=>{
+    addLog('GPS kirim gagal, disimpan offline: '+e.message,'warn');
+    enqueueOffline({type:'location', uid:currentUser.id, payload});
+    sendCount++; document.getElementById('send-count').textContent=sendCount;
+  });
 }
 
 // ════════════════════════════════════════════
@@ -1076,7 +1382,13 @@ window.setStatus = function(s) {
   if(key) document.getElementById('sb-'+key).classList.add('selected');
   const sabDot=document.getElementById('sab-dot');
   if(sabDot){const colors={'Aktif Bekerja':'#22A64A','Perjalanan':'#FFB800','Standby':'#0057B8','Offline':'#E03131'};sabDot.style.background=colors[s]||'#22A64A';}
-  if(db&&currentUser)set(ref(db,'petugas/'+currentUser.id+'/status'),s);
+  if (currentUser) {
+    if (isOnline && db) {
+      set(ref(db,'petugas/'+currentUser.id+'/status'),s).catch(()=>enqueueOffline({type:'status', uid:currentUser.id, payload:{status:s}}));
+    } else if (db) {
+      enqueueOffline({type:'status', uid:currentUser.id, payload:{status:s}});
+    }
+  }
   addLog('Status: '+s,'info');
   if(lastPos)pushLocation(lastPos);
 };
@@ -1099,6 +1411,9 @@ function updateProgres() {
 // LAPORAN PEKERJAAN
 // ════════════════════════════════════════════
 window.bukaModalLapor = function() {
+  editLaporanId = null;
+  document.querySelector('#modal-lapor h3').textContent = 'Laporan Pekerjaan Selesai';
+  document.getElementById('lapor-btn-submit').innerHTML = '<span>✓</span> Kirim Laporan & Tambah Progres';
   document.getElementById('lapor-tiket').value='';
   document.getElementById('lapor-rincian').value='';
   document.getElementById('lapor-material').value='';
@@ -1107,6 +1422,7 @@ window.bukaModalLapor = function() {
   document.getElementById('tiket-info-box').style.display='none';
   laporFotoBefore=null; laporFotoAfter=null;
   resetSlotFoto('before'); resetSlotFoto('after');
+  document.getElementById('lapor-err').style.color='';
   document.getElementById('lapor-err').style.display='none';
   document.getElementById('modal-lapor').classList.add('active');
 };
@@ -1205,33 +1521,85 @@ window.submitLaporan = async function() {
 
   let fB=null,fA=null;
   try{
-    fB=await compressToBase64(laporFotoBefore,800,0.6);
-    fA=await compressToBase64(laporFotoAfter,800,0.6);
+    const sB = await stampFotoGPS(laporFotoBefore, lastPos, 'Sebelum — '+rincian);
+    const sA = await stampFotoGPS(laporFotoAfter,  lastPos, 'Sesudah — '+rincian);
+    fB=await compressToBase64(sB,800,0.65);
+    fA=await compressToBase64(sA,800,0.65);
   }catch(e){errEl.textContent='Gagal proses foto.';errEl.style.display='block';progEl.style.display='none';btn.disabled=false;return;}
 
-  const waktu=Date.now();
+  const isRevisi = !!editLaporanId;
+  const waktu = isRevisi ? (laporTugasList.find(l=>l.id===editLaporanId)?.waktu || Date.now()) : Date.now();
+  const key = isRevisi ? editLaporanId : (currentUser.id+'_'+waktu);
+
   const laporan={
     nama:currentUser?.nama||'—', nip:currentUser?.nip||'—', regu:currentUser?.regu||'—', ulp:currentUser?.ulp||'—',
     rincian, material, target:target||null, realisasi:realisasi||null,
     nomorTiket:nomorTiket||null,
     lat:lastPos?.coords.latitude||null, lng:lastPos?.coords.longitude||null,
-    waktu, statusVerifikasi:null,
+    waktu,
+    // Saat dikirim ulang, status verifikasi & catatan lama direset supaya kembali masuk antrean supervisor
+    statusVerifikasi:null, verifCatatan:null, verifOleh:null, verifWaktu:null,
+    direvisiPada: isRevisi ? Date.now() : null,
     fotoBeforeBase64:fB, fotoAfterBase64:fA,
     fase:FASE_LIST[Math.min(faseCurrent,3)]
   };
 
-  progEl.textContent='Menyimpan laporan...';
+  progEl.textContent= isRevisi ? 'Mengirim ulang laporan...' : 'Menyimpan laporan...';
   if(db){
-    try{await set(ref(db,'laporan/'+currentUser.id+'_'+waktu),laporan);}
+    try{ await safeSet('laporan/'+key, laporan, 'Laporan Pekerjaan'); pantauStatusLaporan(key); }
     catch(e){addLog('Laporan gagal: '+e.message,'err');}
   }
 
   progEl.style.display='none'; btn.disabled=false;
-  laporTugasList.unshift({...laporan,fotoBefore:fB,fotoAfter:fA});
+
+  if (isRevisi) {
+    const idx = laporTugasList.findIndex(l=>l.id===editLaporanId);
+    if (idx>-1) laporTugasList[idx] = {...laporan, id:key, fotoBefore:fB, fotoAfter:fA};
+    editLaporanId = null;
+    addLog('✓ Laporan direvisi & dikirim ulang: '+rincian,'ok');
+  } else {
+    laporTugasList.unshift({...laporan, id:key, fotoBefore:fB, fotoAfter:fA});
+    addLog('✓ Laporan terkirim: '+rincian+' (realisasi: '+(realisasi||'—')+')','ok');
+  }
   updateProgres();
   renderTaskList();
   tutupModalLapor();
-  addLog('✓ Laporan terkirim: '+rincian+' (realisasi: '+(realisasi||'—')+')','ok');
+};
+
+// Pantau perubahan status verifikasi laporan ini secara realtime (supaya badge & tombol "Kirim Ulang" update otomatis)
+function pantauStatusLaporan(key) {
+  if (!db || laporListeners[key]) return;
+  laporListeners[key] = onValue(ref(db, 'laporan/'+key), snap => {
+    const data = snap.val();
+    if (!data) return;
+    const idx = laporTugasList.findIndex(l=>l.id===key);
+    if (idx>-1) {
+      laporTugasList[idx] = {...laporTugasList[idx], statusVerifikasi:data.statusVerifikasi, verifCatatan:data.verifCatatan};
+      renderTaskList();
+      if (data.statusVerifikasi==='Perlu Revisi') addLog('⚠ Laporan "'+laporTugasList[idx].rincian+'" diminta revisi oleh supervisor','warn');
+    }
+  });
+}
+
+// Buka kembali form laporan dalam mode revisi — data lama jadi prefill, dan saat dikirim akan MENIMPA laporan lama (bukan bikin baru)
+window.bukaRevisiLaporan = function(id) {
+  const t = laporTugasList.find(l=>l.id===id);
+  if (!t) return;
+  bukaModalLapor();
+  editLaporanId = id; // diisi SETELAH bukaModalLapor(), karena fungsi itu mereset mode revisi
+  document.getElementById('lapor-tiket').value    = t.nomorTiket||'';
+  document.getElementById('lapor-rincian').value  = t.rincian||'';
+  document.getElementById('lapor-material').value = t.material||'';
+  document.getElementById('lapor-target').value   = t.target||'';
+  document.getElementById('lapor-realisasi').value= t.realisasi||'';
+  if (t.verifCatatan) {
+    const errEl=document.getElementById('lapor-err');
+    errEl.style.color='var(--warn)';
+    errEl.textContent='Catatan supervisor: '+t.verifCatatan+' — silakan perbaiki lalu ambil ulang foto before/after.';
+    errEl.style.display='block';
+  }
+  document.querySelector('#modal-lapor h3').textContent = 'Kirim Ulang Laporan (Revisi)';
+  document.getElementById('lapor-btn-submit').innerHTML = '<span>↺</span> Kirim Ulang Revisi';
 };
 
 function renderTaskList() {
@@ -1244,7 +1612,9 @@ function renderTaskList() {
     const thumbs=(before&&after)?`<div style="display:flex;gap:6px;margin-top:8px"><img src="${before}" style="width:50%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer" onclick="bukaFotoFullscreen(this)"><img src="${after}" style="width:50%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer" onclick="bukaFotoFullscreen(this)"></div>`:'';
     const sv=t.statusVerifikasi;
     const svBadge=sv==='Terverifikasi'?`<div class="task-badge" style="background:var(--ok-bg);color:var(--ok);border:1px solid rgba(14,161,91,0.3)">✓ Terverifikasi</div>`:sv==='Perlu Revisi'?`<div class="task-badge" style="background:var(--warn-bg);color:var(--warn);border:1px solid rgba(217,123,10,0.3)">⚠ Perlu Revisi</div>`:`<div class="task-badge" style="background:var(--info-bg);color:var(--info);border:1px solid rgba(37,99,235,0.2)">⏳ Menunggu Verifikasi</div>`;
-    return `<div class="task-item"><div style="display:flex;justify-content:space-between;align-items:center"><div class="task-title">✓ ${t.rincian}</div><div style="font-size:10px;font-weight:700;background:var(--ok-bg);color:var(--ok);padding:2px 8px;border-radius:99px">#${laporTugasList.length-i}</div></div><div class="task-meta">${jam} · Target ${t.target||'—'} | Realisasi ${t.realisasi||'—'}</div>${svBadge}${thumbs}</div>`;
+    const catatan = (sv==='Perlu Revisi' && t.verifCatatan) ? `<div style="font-size:11px;color:var(--warn);margin-top:6px;line-height:1.5">📝 ${t.verifCatatan}</div>` : '';
+    const tombolRevisi = sv==='Perlu Revisi' ? `<button onclick="bukaRevisiLaporan('${t.id}')" style="margin-top:8px;width:100%;background:var(--warn);color:#fff;border:none;border-radius:var(--radius-xs);padding:8px;font-size:12px;font-weight:700;cursor:pointer">↺ Kirim Ulang Laporan Ini</button>` : '';
+    return `<div class="task-item"><div style="display:flex;justify-content:space-between;align-items:center"><div class="task-title">✓ ${t.rincian}</div><div style="font-size:10px;font-weight:700;background:var(--ok-bg);color:var(--ok);padding:2px 8px;border-radius:99px">#${laporTugasList.length-i}</div></div><div class="task-meta">${jam} · Target ${t.target||'—'} | Realisasi ${t.realisasi||'—'}</div>${svBadge}${catatan}${thumbs}${tombolRevisi}</div>`;
   }).join('');
 }
 window.renderTaskList=renderTaskList;
@@ -1253,6 +1623,13 @@ window.renderTaskList=renderTaskList;
 // SELESAI BERTUGAS
 // ════════════════════════════════════════════
 window.mulaiSelesaiBertugas = function() {
+  // Peringatan kalau belum ada laporan pekerjaan sama sekali hari itu —
+  // tetap boleh lanjut (bisa saja memang standby/tidak ada tugas lapangan),
+  // tapi petugas diingatkan dulu dan ditandai di rekap untuk perhatian supervisor.
+  if (laporTugasList.length === 0) {
+    const lanjut = confirm('Anda belum membuat laporan pekerjaan hari ini.\n\nYakin ingin mengakhiri tugas tanpa laporan? Hal ini akan tercatat sebagai "Tanpa Laporan" di rekap supervisor.');
+    if (!lanjut) return;
+  }
   selesaiFotoUrl=null;
   document.getElementById('selesai-ph').style.display='block';
   document.getElementById('selesai-preview').style.display='none';
@@ -1269,7 +1646,7 @@ window.mulaiSelesaiBertugas = function() {
     `<b>ULP:</b> ${currentUser?.ulp||'—'}<br>`+
     `<b>Total Tugas Selesai:</b> <span style="color:var(--ok);font-weight:800">${tugasSelesai} tugas</span><br>`+
     `<b>Fase Absensi:</b> `+faseLog.map(f=>`${f.fase} (${new Date(f.waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})})`).join(' → ')+'<br>'+
-    `<b>Laporan:</b> `+(laporTugasList.map(l=>l.rincian).join(', ')||'Tidak ada');
+    `<b>Laporan:</b> `+(laporTugasList.map(l=>l.rincian).join(', ')||'<span style="color:var(--crit);font-weight:700">Tidak ada laporan</span>');
   document.getElementById('selesai-ringkasan').style.display='block';
   document.getElementById('modal-selesai').classList.add('active');
 };
@@ -1315,7 +1692,10 @@ window.submitSelesai = async function() {
   document.getElementById('selesai-progress').textContent='Menyimpan laporan akhir...'; document.getElementById('selesai-progress').style.display='block';
 
   let foto=null;
-  try{foto=await compressToBase64(selesaiFotoUrl,800,0.65);}catch(e){}
+  try{
+    const stamped = await stampFotoGPS(selesaiFotoUrl, lastPos, 'Selesai Bertugas');
+    foto = await compressToBase64(stamped,800,0.7);
+  }catch(e){}
 
   const waktu=Date.now();
   // Simpan fase selesai
@@ -1328,6 +1708,7 @@ window.submitSelesai = async function() {
     tanggal:new Date().toLocaleDateString('id-ID'),
     waktuSelesai:waktu,
     tugasSelesai,
+    tanpaLaporan: laporTugasList.length === 0, // penanda untuk supervisor: hari ini selesai tanpa laporan pekerjaan
     faseLog,
     laporan:laporTugasList.map(l=>({rincian:l.rincian,target:l.target,realisasi:l.realisasi,waktu:l.waktu})),
     fotoSelesai:foto
@@ -1335,10 +1716,10 @@ window.submitSelesai = async function() {
 
   if(db&&currentUser){
     try{
-      await set(ref(db,'absensi/'+currentUser.id+'_faseSelesai_'+waktu),{...entry,nama:currentUser.nama,nip:currentUser.nip,regu:currentUser.regu,ulp:currentUser.ulp,lokasi:'Selesai'});
-      await set(ref(db,'absensiLog/'+currentUser.id+'/faseSelesai'),entry);
-      await set(ref(db,'rekapHarian/'+currentUser.id+'_'+waktu),rekap);
-      await set(ref(db,'petugas/'+currentUser.id+'/status'),'Offline');
+      await safeSet('absensi/'+currentUser.id+'_faseSelesai_'+waktu,{...entry,nama:currentUser.nama,nip:currentUser.nip,regu:currentUser.regu,ulp:currentUser.ulp,lokasi:'Selesai'}, 'Absen Selesai Bertugas');
+      await safeSet('absensiLog/'+currentUser.id+'/faseSelesai', entry, 'Absen Selesai Bertugas');
+      await safeSet('rekapHarian/'+currentUser.id+'_'+waktu, rekap, 'Rekap Harian');
+      await safeSet('petugas/'+currentUser.id+'/status', 'Offline', 'Status Selesai');
     }catch(e){addLog('Laporan akhir gagal: '+e.message,'err');}
   }
 
@@ -1364,6 +1745,16 @@ window.navTab = function(el, tab) {
   else if(tab==='log') document.getElementById('log-list').closest('.card').scrollIntoView({behavior:'smooth',block:'start'});
   else document.getElementById('screen-tracking').scrollTo({top:0,behavior:'smooth'});
 };
+
+// ── Service Worker: supaya aplikasi tetap bisa DIBUKA walau HP sedang
+//    tanpa sinyal (file sw.js wajib ada di folder yang sama dengan petugas.html) ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => addLog('Mode offline aktif (app-shell tersimpan di HP)','ok'))
+      .catch((e) => addLog('Service worker gagal aktif: '+e.message,'warn'));
+  });
+}
 </script>
 </body>
 </html>

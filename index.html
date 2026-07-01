@@ -1875,12 +1875,17 @@ function renderPetugasList(entries) {
     const minsAgo = p.ts ? Math.round((Date.now()-p.ts)/60000) : null;
     const ago = minsAgo === null ? '—' : minsAgo < 1 ? 'baru saja' : minsAgo + ' menit lalu';
     const delBtn = isAdminMode ? `<button class="btn-del" title="Hapus data petugas ini" onclick="hapusPetugas('${id}')">🗑</button>` : '';
+    // Pengganti batas jam paksa: kalau status bukan Offline tapi update GPS sudah lama mati (>4 jam),
+    // tandai sebagai "Sesi Tidak Aktif" — supervisor yang menilai, bukan sistem yang memaksa logout.
+    const tidakAktif = p.status !== 'Offline' && minsAgo !== null && minsAgo > 240;
+    const peringatan = tidakAktif ? `<div style="font-size:10.5px;color:var(--warn);font-weight:700;margin-top:3px">⚠ Sesi tidak aktif — GPS terakhir ${ago}, mohon dicek</div>` : '';
     return `<div class="petugas-card">
       <div class="petugas-avatar">👷</div>
       <div style="flex:1;min-width:0">
         <div class="petugas-name">${p.nama||'—'}</div>
         <div class="petugas-meta">${p.regu||'—'} · ${p.ulp||'—'}</div>
         <div class="petugas-meta" style="margin-top:3px">📡 ${ago} · ${p.lat ? p.lat.toFixed(4)+', '+p.lng.toFixed(4) : 'GPS —'}</div>
+        ${peringatan}
       </div>
       <span class="petugas-status ${statusClass(p.status)}">${p.status||'Offline'}</span>
       ${delBtn}
@@ -2184,6 +2189,7 @@ function renderTiketTable(entries) {
     const pClass = prioritasColor[t.prioritas] || 'badge-gray';
     const statusCls = t.statusTiket === 'Selesai' ? 'badge-green' : 'badge-blue';
     const editBtn = `<button onclick="bukaModalTiket('${id}',${JSON.stringify(t).replace(/'/g,"\\'")})" style="background:var(--info-bg);color:var(--info);border:none;border-radius:var(--radius-xs);padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:4px">Edit</button>`;
+    const tutupBtn = t.statusTiket !== 'Selesai' ? `<button onclick="tutupTiketManual('${id}')" style="background:var(--ok-bg);color:var(--ok);border:none;border-radius:var(--radius-xs);padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:4px" title="Tandai tiket ini selesai secara manual">✓ Tutup</button>` : '';
     const delBtn = isAdminMode ? `<button class="btn-del" onclick="hapusTiket('${id}')">🗑</button>` : '';
     return `<tr>
       <td style="font-family:var(--mono);font-size:12px;font-weight:700">${t.nomor||'—'}</td>
@@ -2194,7 +2200,7 @@ function renderTiketTable(entries) {
       <td style="font-family:var(--mono);font-size:11px">${t.target||'—'}</td>
       <td><span class="badge ${statusCls}"><span class="badge-dot"></span>${t.statusTiket||'Aktif'}</span></td>
       <td style="font-size:11px;color:var(--text-3)">${waktu}</td>
-      <td>${editBtn}${delBtn}</td>
+      <td>${editBtn}${tutupBtn}${delBtn}</td>
     </tr>`;
   }).join('');
 }
@@ -2212,10 +2218,12 @@ function listenTiket() {
 // VERIFIKASI SUPERVISOR
 // ══════════════════════════════════════
 let currentVerifId = null;
+let currentVerifLaporan = null;
 let lastVerifEntries = null;
 
 window.bukaModalVerifikasi = function(id, laporan) {
   currentVerifId = id;
+  currentVerifLaporan = laporan;
   document.getElementById('verif-target').value    = laporan.target    || '';
   document.getElementById('verif-realisasi').value = laporan.realisasi || '';
   document.getElementById('verif-catatan').value   = '';
@@ -2281,8 +2289,29 @@ window.submitVerifikasi = async function() {
       verifWaktu: Date.now(),
       verifOleh: 'Supervisor FFM'
     };
-    const { update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const { update, get } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
     await update(window._fbRef(fbDb, 'laporan/' + currentVerifId), upd);
+
+    // ── Auto-tutup tiket terkait ──
+    // Begitu laporan yang terhubung ke nomor tiket dinyatakan "Terverifikasi", tiket P0/P1
+    // otomatis ditandai "Selesai" supaya tidak menumpuk "Aktif" selamanya.
+    const nomorTiket = currentVerifLaporan?.nomorTiket;
+    if (hasil === 'Terverifikasi' && nomorTiket) {
+      try {
+        const tiketSnap = await get(window._fbRef(fbDb, 'tiket'));
+        const tiketData = tiketSnap.val() || {};
+        const found = Object.entries(tiketData).find(([,t]) => (t.nomor||'').toUpperCase() === nomorTiket.toUpperCase());
+        if (found) {
+          const [tiketId] = found;
+          await update(window._fbRef(fbDb, 'tiket/' + tiketId), {
+            statusTiket: 'Selesai',
+            selesaiOtomatisPada: Date.now(),
+            selesaiOtomatisDari: currentVerifId
+          });
+        }
+      } catch(e) { console.warn('Auto-tutup tiket gagal:', e.message); }
+    }
+
     tutupModalVerifikasi();
   } catch(e) {
     errEl.textContent = 'Gagal menyimpan: ' + e.message;
@@ -2290,6 +2319,16 @@ window.submitVerifikasi = async function() {
   } finally {
     btn.disabled = false; btn.textContent = 'Kirim Verifikasi';
   }
+};
+
+// Tombol manual untuk supervisor menutup tiket sendiri (cadangan, kalau tidak tertaut/tidak ke-auto-close)
+window.tutupTiketManual = async function(tiketId) {
+  if (!fbDb) return;
+  if (!confirm('Tutup tiket ini? Status akan diubah menjadi "Selesai".')) return;
+  try {
+    const { update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    await update(window._fbRef(fbDb, 'tiket/' + tiketId), { statusTiket: 'Selesai', selesaiOtomatisPada: Date.now(), selesaiOtomatisDari: 'manual-supervisor' });
+  } catch(e) { alert('Gagal menutup tiket: ' + e.message); }
 };
 
 function renderVerifikasiGrid(entries) {
