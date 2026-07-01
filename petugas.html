@@ -388,6 +388,10 @@ body {
 .counter-label { font-size: 12px; color: var(--text-sec); }
 .counter-num   { font-size: 26px; font-weight: 800; color: var(--pln-blue); font-variant-numeric: tabular-nums; }
 
+/* ── PROGRESS BAR (tugas selesai) ── */
+.progress-bar-wrap { background: var(--surface3); border-radius: 99px; height: 10px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), #14B86A); border-radius: 99px; transition: width 0.6s ease; }
+
 /* ── PROFILE CHIP ── */
 .profile-chip {
   display: flex; align-items: center; gap: 14px;
@@ -679,10 +683,24 @@ body {
 
   <div class="profile-chip" id="profile-chip">
     <div class="profile-avatar">👷</div>
-    <div>
+    <div style="flex:1">
       <div class="profile-name" id="prof-nama">—</div>
       <div class="profile-sub"  id="prof-sub">—</div>
     </div>
+    <div style="text-align:right">
+      <div style="font-size:9.5px;color:rgba(255,255,255,0.55);font-weight:700;letter-spacing:0.4px">TUGAS SELESAI</div>
+      <div style="font-size:22px;font-weight:800;color:var(--pln-yellow)" id="tugas-selesai-count">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Progres Tugas Hari Ini</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-sec)">Progres Laporan</div>
+      <div style="font-size:12px;font-weight:800;color:var(--green)" id="progres-pct">0%</div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progres-fill" style="width:0%"></div></div>
+    <div style="font-size:10.5px;color:var(--text-muted);margin-top:6px;text-align:center" id="progres-sub">0 dari target tugas terpenuhi</div>
   </div>
 
   <div class="card">
@@ -778,6 +796,14 @@ body {
       <h3>Laporan Pekerjaan</h3>
       <button class="modal-close" onclick="tutupModalLapor()">✕</button>
     </div>
+    <div class="field">
+      <label>Nomor Tiket P0/P1 <span style="font-size:10px;color:var(--text-muted);font-weight:400">(opsional)</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="lapor-tiket" placeholder="cth: P1-2025-0042" style="font-family:'SF Mono','Fira Code',monospace;text-transform:uppercase;flex:1" oninput="this.value=this.value.toUpperCase()" onblur="cariTiket()">
+        <button type="button" onclick="cariTiket()" style="background:var(--pln-blue);color:#fff;border:none;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">🔍 Cari</button>
+      </div>
+      <div id="tiket-info-box" style="display:none;margin-top:8px;background:var(--surface2);border:1px solid var(--border-str);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.8;color:var(--text)"></div>
+    </div>
     <div class="field"><label>Rincian Pekerjaan</label><input type="text" id="lapor-rincian" placeholder="cth: Pemasangan Cover Anti Hewan"></div>
     <div class="field"><label>Audit Material</label><input type="text" id="lapor-material" placeholder="cth: Cover Anti Hewan, Cable Tie"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -824,7 +850,7 @@ body {
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, set, get, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 // Firebase Storage tidak digunakan (Spark plan) — foto disimpan sebagai Base64 di Realtime Database
 
 const firebaseConfig = {
@@ -845,6 +871,8 @@ let currentUser = null;
 let currentStatus = 'Standby';   // status efektif yang tampil/terkirim (bisa 'Offline' otomatis)
 let manualStatus  = 'Standby';   // status terakhir yang dipilih petugas sendiri (bukan Offline)
 let sendTimer = null;
+let tugasTarget = 0;   // bisa diisi otomatis dari data tiket
+let tugasSelesai = 0;
 let lastPos = null;
 
 // ── Offline queue (blank spot / sinyal jelek) ────────────
@@ -1005,6 +1033,9 @@ window.doLogout = function() {
     pushStatus('Offline');
     currentUser = null;
     sendCount = 0;
+    tugasTarget = 0;
+    tugasSelesai = 0;
+    laporTugasList = [];
     document.getElementById('send-count').textContent = '0';
     document.getElementById('bottom-nav').style.display = 'none';
     showScreen('login');
@@ -1340,6 +1371,8 @@ let laporStream = null;
 let laporFotoSementara = null;
 
 window.bukaModalLapor = function() {
+  document.getElementById('lapor-tiket').value = '';
+  document.getElementById('tiket-info-box').style.display = 'none';
   document.getElementById('lapor-rincian').value = '';
   document.getElementById('lapor-material').value = '';
   document.getElementById('lapor-target').value = '';
@@ -1352,6 +1385,32 @@ window.bukaModalLapor = function() {
 
 window.tutupModalLapor = function() {
   document.getElementById('modal-lapor').classList.remove('active');
+};
+
+// Cari data tiket P0/P1 di Firebase (node 'tiket') lalu isi otomatis
+// rincian pekerjaan & target volume kalau ditemukan.
+window.cariTiket = async function() {
+  const nomor = document.getElementById('lapor-tiket').value.trim().toUpperCase();
+  const infoBox = document.getElementById('tiket-info-box');
+  if (!nomor) { infoBox.style.display = 'none'; return; }
+  if (!db) { infoBox.textContent = '⚠️ Firebase belum terhubung.'; infoBox.style.display = 'block'; return; }
+  infoBox.innerHTML = '🔍 Mencari tiket <b>' + nomor + '</b>...';
+  infoBox.style.display = 'block';
+  try {
+    const snap = await get(ref(db, 'tiket'));
+    const data = snap.val() || {};
+    const found = Object.values(data).find(t => (t.nomor || '').toUpperCase() === nomor);
+    if (!found) {
+      infoBox.innerHTML = '❌ Tiket <b>' + nomor + '</b> tidak ditemukan.';
+    } else {
+      infoBox.innerHTML = '✅ <b>' + (found.jenis || '—') + '</b> · ' + (found.ulp || '—') + '<br>Target: ' + (found.target || '—');
+      if (found.jenis && !document.getElementById('lapor-rincian').value) document.getElementById('lapor-rincian').value = found.jenis;
+      if (found.target && !document.getElementById('lapor-target').value) document.getElementById('lapor-target').value = found.target;
+      if (found.target) tugasTarget = (+found.target) || 0;
+    }
+  } catch (e) {
+    infoBox.textContent = '⚠️ Error: ' + e.message;
+  }
 };
 
 function resetSlotFoto(target) {
@@ -1430,6 +1489,7 @@ window.submitLaporan = async function() {
   const material  = document.getElementById('lapor-material').value.trim();
   const target    = document.getElementById('lapor-target').value;
   const realisasi = document.getElementById('lapor-realisasi').value;
+  const nomorTiket = (document.getElementById('lapor-tiket')?.value || '').trim().toUpperCase() || null;
 
   if (!rincian) { errEl.textContent = 'Rincian pekerjaan wajib diisi.'; errEl.style.display = 'block'; return; }
   if (!laporFotoBefore || !laporFotoAfter) { errEl.textContent = 'Foto Before dan After wajib diambil keduanya.'; errEl.style.display = 'block'; return; }
@@ -1465,6 +1525,7 @@ window.submitLaporan = async function() {
     ulp:  currentUser ? currentUser.ulp  : '—',
     rincian, material,
     target: target || null, realisasi: realisasi || null,
+    nomorTiket: nomorTiket || null,
     lat: lastPos ? lastPos.coords.latitude  : null,
     lng: lastPos ? lastPos.coords.longitude : null,
     waktu,
@@ -1487,9 +1548,27 @@ window.submitLaporan = async function() {
   laporan.fotoBefore = fotoBeforeB64;
   laporan.fotoAfter  = fotoAfterB64;
   laporTugasList.unshift(laporan);
+  updateProgres();
   renderTaskList();
   document.getElementById('modal-lapor').classList.remove('active');
 };
+
+// Update tampilan progres tugas: jumlah laporan terkirim hari ini vs target
+// (target bisa terisi otomatis lewat pencarian nomor tiket).
+function updateProgres() {
+  tugasSelesai = laporTugasList.length;
+  const countEl = document.getElementById('tugas-selesai-count');
+  if (countEl) countEl.textContent = tugasSelesai;
+  const target = Math.max(tugasTarget, 1);
+  const pct = Math.min(100, Math.round(tugasSelesai / target * 100));
+  const fillEl = document.getElementById('progres-fill');
+  const pctEl  = document.getElementById('progres-pct');
+  const subEl  = document.getElementById('progres-sub');
+  if (fillEl) fillEl.style.width = pct + '%';
+  if (pctEl)  pctEl.textContent = pct + '%';
+  if (subEl)  subEl.textContent = tugasSelesai + ' dari ' + (tugasTarget || '?') + ' tugas terpenuhi';
+}
+window.updateProgres = updateProgres;
 
 function renderTaskList() {
   const list = document.getElementById('task-list');
@@ -1508,7 +1587,7 @@ function renderTaskList() {
         '</div>'
       : '';
     return '<div class="task-item">' +
-      '<div class="task-title">' + t.rincian + '</div>' +
+      '<div class="task-title">' + t.rincian + (t.nomorTiket ? ' <span style="font-weight:700;color:var(--pln-blue);font-size:11px">· ' + t.nomorTiket + '</span>' : '') + '</div>' +
       '<div class="task-meta">' + jam + ' · Target ' + (t.target||'—') + ' | Realisasi ' + (t.realisasi||'—') + '</div>' +
       '<div class="task-badge done">✓ Terkirim</div>' +
       thumbs +
