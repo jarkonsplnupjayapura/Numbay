@@ -489,7 +489,7 @@ body {
   <div id="banner-perjalanan" style="display:none;background:linear-gradient(135deg,rgba(255,184,0,0.12),rgba(255,184,0,0.04));border:1.5px solid rgba(255,184,0,0.5);border-radius:var(--radius-sm);padding:14px 16px">
     <div style="font-size:13px;font-weight:800;color:#A0660A;margin-bottom:4px">🚗 Perjalanan Terdeteksi!</div>
     <div style="font-size:11.5px;color:var(--text-2);margin-bottom:10px" id="banner-perjalanan-desc">GPS mendeteksi kamu sedang bergerak.</div>
-    <button class="btn btn-sm" style="background:var(--ok);color:#fff;width:100%;padding:12px;font-size:13px;margin-bottom:8px" onclick="bukaModalTibaLokasi()">
+    <button class="btn btn-sm" style="background:var(--ok);color:#fff;width:100%;padding:12px;font-size:13px;margin-bottom:8px" onclick="bukaScreenTiba()">
       📍 Sudah Tiba di Lokasi — Absen Kedatangan
     </button>
     <button class="btn btn-ghost btn-sm" style="width:100%;padding:9px;font-size:12px" onclick="batalDeteksiPerjalanan()">
@@ -538,6 +538,53 @@ body {
   <!-- TOMBOL SELESAI BERTUGAS -->
   <button class="btn btn-red" onclick="mulaiSelesaiBertugas()">🏁 Selesai Bertugas — Foto & Laporan Akhir</button>
 
+</div>
+
+<!-- ══ SCREEN: TIBA DI LAPANGAN (AKTIF BEKERJA) — copy struktur dari screen Standby ══ -->
+<div class="screen" id="screen-tiba">
+
+  <div class="fase-hero">
+    <div class="fase-hero-title">📍 Tiba di Lapangan</div>
+    <div class="fase-hero-sub">Foto selfie & GPS untuk konfirmasi kedatangan — sesi jadi Aktif Bekerja</div>
+    <div class="fase-track">
+      <div class="fase-step done"   id="tbfs-1"><div class="fase-dot">✓</div><div class="fase-label">Standby<br><span style="opacity:0.65;font-weight:600">(Foto)</span></div></div>
+      <div class="fase-step done"   id="tbfs-2"><div class="fase-dot">✓</div><div class="fase-label">Perjalanan<br><span style="opacity:0.65;font-weight:600">(Auto GPS)</span></div></div>
+      <div class="fase-step active" id="tbfs-3"><div class="fase-dot">3</div><div class="fase-label">Aktif<br><span style="opacity:0.65;font-weight:600">(Foto)</span></div></div>
+      <div class="fase-step"        id="tbfs-4"><div class="fase-dot">✓</div><div class="fase-label">Selesai<br><span style="opacity:0.65;font-weight:600">(Foto)</span></div></div>
+    </div>
+  </div>
+
+  <!-- Selfie -->
+  <div class="card">
+    <div class="card-title">📷 Selfie Tiba di Lokasi</div>
+    <div class="camera-box">
+      <div class="cam-placeholder" id="tiba-ph"><span class="cam-icon">📷</span>Selfie tiba di lokasi</div>
+      <video id="tiba-video" playsinline autoplay muted style="display:none"></video>
+      <img id="tiba-preview" style="display:none">
+      <div class="cam-badge" id="tiba-gps-badge" style="display:none">📍 GPS · <span id="tiba-gps-val">—</span></div>
+    </div>
+    <div class="camera-actions">
+      <button class="btn btn-ghost btn-sm"    id="tiba-btn-cam"    onclick="bukaKameraTiba()">📷 Buka Kamera</button>
+      <button class="btn btn-primary btn-sm"  id="tiba-btn-shoot"  onclick="ambilFotoTiba()" style="display:none">📸 Ambil</button>
+      <button class="btn btn-ghost btn-sm"    id="tiba-btn-retake" onclick="ulangFotoTiba()" style="display:none">↺ Ulangi</button>
+    </div>
+    <canvas id="tiba-canvas" style="display:none"></canvas>
+  </div>
+
+  <!-- GPS -->
+  <div class="card">
+    <div class="card-title">📡 Validasi GPS</div>
+    <div class="gps-panel">
+      <div class="gps-row"><span class="gps-key">Latitude</span><span class="gps-val" id="tiba-lat">—</span></div>
+      <div class="gps-row"><span class="gps-key">Longitude</span><span class="gps-val" id="tiba-lng">—</span></div>
+      <div class="gps-note" id="tiba-gps-status">Menunggu sinyal GPS...</div>
+    </div>
+  </div>
+
+  <div class="error-box" id="tiba-err"></div>
+  <div id="tiba-progress" style="font-size:11px;color:var(--text-2);text-align:center;margin-bottom:4px;display:none"></div>
+  <button class="btn btn-yellow" id="tiba-btn-submit" onclick="submitAbsenTiba()">✓ Konfirmasi Tiba & Mulai Bekerja</button>
+  <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="batalDanKembaliTracking()">↺ Salah Deteksi, Saya Masih di Tempat</button>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -604,34 +651,6 @@ body {
   </div>
 </div>
 
-<!-- ══ MODAL: ABSEN TIBA DI LOKASI LAPANGAN ══ -->
-<!-- Absensi kedatangan: dipicu sekali saat petugas pertama kali konfirmasi sudah tiba di lokasi kerja (selfie + GPS, seperti absen Standby) -->
-<div class="modal-backdrop" id="modal-tiba-lokasi">
-  <div class="modal-sheet">
-    <div class="modal-header">
-      <h3>📍 Absen Tiba di Lokasi</h3>
-      <button class="modal-close" onclick="tutupModalTibaLokasi()">✕</button>
-    </div>
-    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:14px;line-height:1.7">
-      Ambil selfie untuk konfirmasi kedatangan di lokasi kerja. Foto ini akan otomatis diberi cap GPS & waktu.
-    </div>
-    <div class="camera-box" id="tiba-cam-box">
-      <div class="cam-placeholder" id="tiba-ph"><span class="cam-icon">📷</span>Selfie tiba di lokasi</div>
-      <video id="tiba-video" playsinline autoplay muted style="display:none"></video>
-      <img id="tiba-preview" style="display:none">
-      <div class="cam-badge" id="tiba-gps-badge" style="display:none">📍 GPS · <span id="tiba-gps-val">—</span></div>
-    </div>
-    <div class="camera-actions" style="margin-bottom:14px">
-      <button class="btn btn-ghost btn-sm"    id="tiba-btn-cam"    onclick="bukaKameraTiba()">📷 Buka Kamera</button>
-      <button class="btn btn-primary btn-sm"  id="tiba-btn-shoot"  onclick="ambilFotoTiba()" style="display:none">📸 Ambil</button>
-      <button class="btn btn-ghost btn-sm"    id="tiba-btn-retake" onclick="ulangFotoTiba()" style="display:none">↺ Ulangi</button>
-    </div>
-    <canvas id="tiba-canvas" style="display:none"></canvas>
-    <div class="error-box" id="tiba-err" style="margin-bottom:12px"></div>
-    <div id="tiba-progress" style="font-size:11px;color:var(--text-2);text-align:center;margin-bottom:10px;display:none"></div>
-    <button class="btn btn-yellow" id="tiba-btn-submit" onclick="submitAbsenTiba()">✓ Konfirmasi Tiba & Mulai Bekerja</button>
-  </div>
-</div>
 
 
 <!-- ══ MODAL: SELESAI BERTUGAS ══ -->
@@ -1261,7 +1280,7 @@ window.batalDeteksiPerjalanan = function() {
 // ════════════════════════════════════════════
 let tibaStream = null, tibaFotoUrl = null, tibaPos = null;
 
-window.bukaModalTibaLokasi = function() {
+window.bukaScreenTiba = function() {
   tibaFotoUrl = null; tibaPos = null;
   document.getElementById('tiba-ph').style.display='block';
   document.getElementById('tiba-preview').style.display='none';
@@ -1271,16 +1290,17 @@ window.bukaModalTibaLokasi = function() {
   document.getElementById('tiba-btn-retake').style.display='none';
   document.getElementById('tiba-gps-badge').style.display='none';
   document.getElementById('tiba-err').style.display='none';
-  document.getElementById('modal-tiba-lokasi').classList.add('active');
+  showScreen('tiba');
   // ambil posisi GPS terkini untuk dilampirkan
   if (lastPos) { tibaPos = lastPos; }
   else if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(p => { tibaPos = p; }, ()=>{});
   }
 };
-window.tutupModalTibaLokasi = function() {
+window.batalDanKembaliTracking = function() {
   if (tibaStream) { tibaStream.getTracks().forEach(t=>t.stop()); tibaStream=null; }
-  document.getElementById('modal-tiba-lokasi').classList.remove('active');
+  batalDeteksiPerjalanan();
+  showScreen('tracking');
 };
 window.bukaKameraTiba = async function() {
   try {
@@ -1342,7 +1362,7 @@ window.submitAbsenTiba = async function() {
 
   document.getElementById('tiba-progress').style.display='none';
   btn.disabled=false; btn.textContent='✓ Konfirmasi Tiba & Mulai Bekerja';
-  tutupModalTibaLokasi();
+  if (tibaStream) { tibaStream.getTracks().forEach(t=>t.stop()); tibaStream=null; }
 
   // lanjutkan alur lama: tutup banner perjalanan, set status Aktif Bekerja
   autoTravelActive = false;
@@ -1350,9 +1370,11 @@ window.submitAbsenTiba = async function() {
   prevTravelPos = null;
   prevTravelTime = null;
   document.getElementById('banner-perjalanan').style.display = 'none';
+  const t3 = document.getElementById('tbfs-3'); if (t3) { t3.classList.remove('active'); t3.classList.add('done'); }
   faseCurrent = 2; // Aktif Bekerja
   updateTrackingFase();
   setStatus('Aktif Bekerja');
+  showScreen('tracking');
   addLog('✓ Absen tiba di lokasi tercatat · '+new Date(waktu).toLocaleTimeString('id-ID'),'ok');
 };
 
@@ -1374,6 +1396,8 @@ function onPos(pos) {
   document.getElementById('gps-lng').textContent=lng.toFixed(6);
   document.getElementById('gps-acc').textContent=Math.round(acc)+' m';
   document.getElementById('gps-status').textContent=acc<20?'✓ Akurasi sangat baik':acc<50?'✓ Akurasi baik':'⚠ Akurasi rendah';
+  const tLat=document.getElementById('tiba-lat'), tLng=document.getElementById('tiba-lng'), tStat=document.getElementById('tiba-gps-status');
+  if(tLat){ tLat.textContent=lat.toFixed(6); tLng.textContent=lng.toFixed(6); tStat.textContent=acc<20?'✓ Akurasi sangat baik':acc<50?'✓ Akurasi baik':'⚠ Akurasi rendah'; }
   checkAutoTravel(pos);
   pushLocation(pos);
 }
