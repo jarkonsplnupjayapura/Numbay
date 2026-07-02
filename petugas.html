@@ -992,7 +992,7 @@ body {
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, set, get, onValue, update, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-// Firebase Storage tidak digunakan (Spark plan) — foto disimpan sebagai Base64 di Realtime Database
+// Foto disimpan di Cloudinary (bukan lagi Base64 di Realtime Database) — Firebase hanya menyimpan URL foto
 
 const firebaseConfig = {
   apiKey: "AIzaSyBGOuBBug0x-yHWlp6KuFBkc8YaFDnWH5M",
@@ -1227,6 +1227,70 @@ async function compressFileToBase64(file, maxWidth = 800, quality = 0.65, maxByt
   }
 }
 
+// ══════════════════════════════════════
+// CLOUDINARY — penyimpanan foto (menggantikan Base64 di Realtime Database)
+// Foto tetap dikompres dulu di HP (hemat kuota data & lebih cepat), baru
+// diupload ke Cloudinary lewat unsigned upload preset. Yang disimpan ke
+// Firebase hanya URL-nya (string pendek), bukan lagi data gambar penuh.
+// ══════════════════════════════════════
+const CLOUDINARY_CLOUD_NAME    = 'jarkonsplnupjayapura';
+const CLOUDINARY_UPLOAD_PRESET = 'ffm_pln_unsigned';
+const CLOUDINARY_UPLOAD_URL    = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+// Upload dataURL (hasil compressToBase64/compressFileToBase64) ke Cloudinary.
+// folder: dipakai untuk mengelompokkan foto di Cloudinary (mis. 'ffm/absensi').
+// publicIdHint: opsional, biar nama file di Cloudinary mudah ditelusuri.
+async function uploadToCloudinary(dataUrl, folder, publicIdHint) {
+  if (!dataUrl) return null;
+  const form = new FormData();
+  form.append('file', dataUrl);
+  form.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  if (folder) form.append('folder', folder);
+  if (publicIdHint) form.append('public_id', publicIdHint);
+  const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: form });
+  if (!res.ok) {
+    let msg = 'Upload ke Cloudinary gagal (HTTP ' + res.status + ')';
+    try { const j = await res.json(); if (j?.error?.message) msg = j.error.message; } catch(e) {}
+    throw new Error(msg);
+  }
+  const json = await res.json();
+  if (!json.secure_url) throw new Error('Cloudinary tidak mengembalikan URL foto');
+  return json.secure_url;
+}
+
+// Helper gabungan: kompres dataURL lalu langsung upload ke Cloudinary, return secure_url.
+async function compressAndUploadDataUrl(dataUrl, folder, publicIdHint, opts = {}) {
+  const compressed = await compressToBase64(dataUrl, opts.maxWidth ?? 800, opts.quality ?? 0.65, opts.maxBytes ?? 320000);
+  return uploadToCloudinary(compressed, folder, publicIdHint);
+}
+
+// Helper gabungan untuk File dari input galeri.
+async function compressAndUploadFile(file, folder, publicIdHint, opts = {}) {
+  const compressed = await compressFileToBase64(file, opts.maxWidth ?? 800, opts.quality ?? 0.7, opts.maxBytes ?? 320000);
+  return uploadToCloudinary(compressed, folder, publicIdHint);
+}
+
+// Helper "aman" dipakai di semua alur foto: kompres dulu (selalu), lalu coba upload
+// ke Cloudinary. Kalau lagi offline atau upload gagal (server Cloudinary bermasalah),
+// otomatis fallback simpan foto terkompresi sebagai Base64 langsung ke Realtime Database
+// supaya foto TIDAK HILANG — sinkron GPS/laporan tetap jalan seperti biasa lewat offline queue.
+// Return: { fotoUrl } kalau berhasil upload ke Cloudinary, atau { fotoBase64 } kalau fallback.
+async function uploadFotoAman(dataUrl, folder, publicIdHint, opts = {}) {
+  const compressed = await compressToBase64(dataUrl, opts.maxWidth ?? 800, opts.quality ?? 0.65, opts.maxBytes ?? 320000);
+  if (!isOnline) {
+    addLog('Offline — foto disimpan sementara, akan diunggah ke Cloudinary saat online kembali', 'warn');
+    return { fotoBase64: compressed };
+  }
+  try {
+    const url = await uploadToCloudinary(compressed, folder, publicIdHint);
+    addLog('Foto berhasil diunggah ke Cloudinary', 'ok');
+    return { fotoUrl: url };
+  } catch (e) {
+    addLog('Upload ke Cloudinary gagal, foto disimpan sementara: ' + e.message, 'warn');
+    return { fotoBase64: compressed };
+  }
+}
+
 // ── LOGIN ──────────────────────────────────────────────
 window.doLogin = function() {
   const nama = document.getElementById('in-nama').value.trim();
@@ -1308,8 +1372,9 @@ function addAbsensiEntry(a, tersinkron, label) {
   if (!list.querySelector('.at-item')) item.style.borderTop = 'none'; // entri pertama tanpa garis pembatas
   item.classList.add('at-item');
 
-  const fotoHtml = a.fotoBase64
-    ? `<img src="${a.fotoBase64}" style="width:56px; height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--border-str); flex-shrink:0">`
+  const fotoSrc = a.fotoUrl || a.fotoBase64 || '';
+  const fotoHtml = fotoSrc
+    ? `<img src="${fotoSrc}" style="width:56px; height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--border-str); flex-shrink:0">`
     : `<div style="width:56px; height:56px; border-radius:12px; background:var(--surface2); flex-shrink:0"></div>`;
 
   const waktuStr = new Date(a.waktu).toLocaleString('id-ID', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short' });
@@ -1623,12 +1688,12 @@ window.submitAbsensi = async function() {
   const origLabel = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Mengompres & menyimpan foto...'; }
 
-  let fotoBase64 = null;
+  let fotoResult = null;
+  if (btn) btn.innerHTML = '<span>⏳</span> Mengompres & mengunggah foto...';
   try {
-    fotoBase64 = await compressToBase64(absenFotoDataUrl, 800, 0.65);
-    addLog('Foto absensi dikompres ke Base64', 'ok');
+    fotoResult = await uploadFotoAman(absenFotoDataUrl, 'ffm/absensi', (currentUser?.id || 'petugas') + '_' + waktu);
   } catch (e) {
-    addLog('Gagal kompres foto absen: ' + e.message, 'err');
+    addLog('Gagal memproses foto absen: ' + e.message, 'err');
     errEl.textContent = 'Gagal memproses foto. Coba lagi.';
     errEl.style.display = 'block';
     if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
@@ -1641,7 +1706,7 @@ window.submitAbsensi = async function() {
     lng: absenPos.coords.longitude,
     acc: Math.round(absenPos.coords.accuracy),
     waktu,
-    fotoBase64
+    ...fotoResult
   };
 
   let absensiTersinkron = false;
@@ -1650,7 +1715,7 @@ window.submitAbsensi = async function() {
       nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
       fase: 'Standby', lokasi: absenLokasi,
       lat: currentUser.absensi.lat, lng: currentUser.absensi.lng, acc: currentUser.absensi.acc,
-      waktu, fotoBase64
+      waktu, ...fotoResult
     }, 'Absensi');
   }
 
@@ -1801,13 +1866,13 @@ window.submitAbsenCepat = async function() {
 
   const waktu = Date.now();
   const origLabel = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Mengompres & menyimpan foto...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Mengompres & mengunggah foto...'; }
 
-  let fotoBase64 = null;
+  let fotoResult = null;
   try {
-    fotoBase64 = await compressToBase64(acFotoDataUrl, 800, 0.65);
+    fotoResult = await uploadFotoAman(acFotoDataUrl, 'ffm/absen-cepat', (currentUser?.id || 'petugas') + '_' + waktu);
   } catch (e) {
-    addLog('Gagal kompres foto absen cepat: ' + e.message, 'err');
+    addLog('Gagal memproses foto absen cepat: ' + e.message, 'err');
     errEl.textContent = 'Gagal memproses foto. Coba lagi.';
     errEl.style.display = 'block';
     if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
@@ -1819,7 +1884,7 @@ window.submitAbsenCepat = async function() {
     lng: acPos.coords.longitude,
     acc: Math.round(acPos.coords.accuracy),
     waktu,
-    fotoBase64
+    ...fotoResult
   };
 
   let tersinkron = false;
@@ -1828,7 +1893,7 @@ window.submitAbsenCepat = async function() {
       nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
       fase: AC_CONFIG[acPurpose].label,
       lat: entry.lat, lng: entry.lng, acc: entry.acc,
-      waktu, fotoBase64
+      waktu, ...fotoResult
     }, 'Absensi');
   }
 
@@ -2110,15 +2175,15 @@ window.submitLaporan = async function() {
   btn.disabled = true;
   progEl.style.display = 'block';
 
-  let fotoBeforeB64 = null, fotoAfterB64 = null;
+  let fotoBeforeResult = null, fotoAfterResult = null;
   try {
-    progEl.textContent = 'Mengompres foto before...';
+    progEl.textContent = 'Mengunggah foto before ke cloud...';
     btn.innerHTML = '<span>⏳</span> Memproses...';
-    fotoBeforeB64 = await compressToBase64(laporFotoBefore, 800, 0.6);
-    progEl.textContent = 'Mengompres foto after...';
-    fotoAfterB64  = await compressToBase64(laporFotoAfter,  800, 0.6);
+    fotoBeforeResult = await uploadFotoAman(laporFotoBefore, 'ffm/laporan-before', uid + '_' + waktu, { quality: 0.6 });
+    progEl.textContent = 'Mengunggah foto after ke cloud...';
+    fotoAfterResult  = await uploadFotoAman(laporFotoAfter, 'ffm/laporan-after', uid + '_' + waktu, { quality: 0.6 });
   } catch (e) {
-    addLog('Gagal kompres foto laporan: ' + e.message, 'err');
+    addLog('Gagal memproses foto laporan: ' + e.message, 'err');
     errEl.textContent = 'Gagal memproses foto. Coba lagi.';
     errEl.style.display = 'block';
     progEl.style.display = 'none';
@@ -2139,7 +2204,8 @@ window.submitLaporan = async function() {
     lng: lastPos ? lastPos.coords.longitude : null,
     waktu,
     status: 'Selesai diverifikasi oleh Supervisor',
-    fotoBeforeBase64: fotoBeforeB64, fotoAfterBase64: fotoAfterB64
+    fotoBeforeUrl: fotoBeforeResult.fotoUrl || null, fotoBeforeBase64: fotoBeforeResult.fotoBase64 || null,
+    fotoAfterUrl:  fotoAfterResult.fotoUrl  || null, fotoAfterBase64:  fotoAfterResult.fotoBase64  || null
   };
 
   if (db) {
@@ -2165,8 +2231,8 @@ window.submitLaporan = async function() {
   btn.disabled = false;
   btn.innerHTML = origLabel;
 
-  laporan.fotoBefore = fotoBeforeB64;
-  laporan.fotoAfter  = fotoAfterB64;
+  laporan.fotoBefore = fotoBeforeResult.fotoUrl || fotoBeforeResult.fotoBase64;
+  laporan.fotoAfter  = fotoAfterResult.fotoUrl  || fotoAfterResult.fotoBase64;
   laporTugasList.unshift(laporan);
   clearLaporDraft();
   updateProgres();

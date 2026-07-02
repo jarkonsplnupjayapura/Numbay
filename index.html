@@ -2455,7 +2455,7 @@ function renderAbsensiTable(todayEntries) {
       const done = !!p.fases[f];
       const fc = FASE_COLORS[f];
       const jam = done ? new Date(p.fases[f].waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '—';
-      const fotoSrc = done ? (p.fases[f].fotoBase64||'') : '';
+      const fotoSrc = done ? (p.fases[f].fotoUrl || p.fases[f].fotoBase64 || '') : '';
       const foto = fotoSrc
         ? `<img src="${fotoSrc}" onclick="bukaFotoFullscreen(this)" style="width:38px;height:38px;object-fit:cover;border-radius:7px;border:1.5px solid ${done?fc.color:' var(--line)'};cursor:pointer;flex-shrink:0">`
         : `<div style="width:38px;height:38px;border-radius:7px;background:var(--surface-3);border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:var(--text-3)">${fc.icon}</div>`;
@@ -2839,8 +2839,8 @@ window.bukaModalVerifikasi = function(id, laporan) {
   document.getElementById('verif-label-revisi').style.background  = '';
   document.getElementById('verif-err').style.display = 'none';
 
-  const before = laporan.fotoBeforeBase64 || '';
-  const after  = laporan.fotoAfterBase64  || '';
+  const before = laporan.fotoBeforeUrl || laporan.fotoBeforeBase64 || '';
+  const after  = laporan.fotoAfterUrl  || laporan.fotoAfterBase64  || '';
   const waktu  = laporan.waktu ? new Date(laporan.waktu).toLocaleString('id-ID') : '—';
 
   document.getElementById('verif-detail-body').innerHTML = `
@@ -2962,8 +2962,8 @@ function renderVerifikasiGrid(entries) {
 
   grid.innerHTML = entries.map(([id, l]) => {
     const waktu = l.waktu ? new Date(l.waktu).toLocaleString('id-ID') : '—';
-    const before = l.fotoBeforeBase64 || '';
-    const after  = l.fotoAfterBase64  || '';
+    const before = l.fotoBeforeUrl || l.fotoBeforeBase64 || '';
+    const after  = l.fotoAfterUrl  || l.fotoAfterBase64  || '';
     const sv = l.statusVerifikasi;
     const svColor = sv === 'Terverifikasi' ? 'var(--ok)' : sv === 'Perlu Revisi' ? 'var(--warn)' : 'var(--text-3)';
     const svBg    = sv === 'Terverifikasi' ? 'var(--ok-bg)' : sv === 'Perlu Revisi' ? 'var(--warn-bg)' : 'var(--surface-2)';
