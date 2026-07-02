@@ -516,10 +516,70 @@ body {
   color:var(--text-sec); font-size:14px; cursor:pointer;
 }
 
+/* ══════════════════════════════════════
+   TOAST — notifikasi kecil dalam aplikasi (pengganti alert() bawaan browser)
+══════════════════════════════════════ */
+.toast-stack {
+  position:fixed; left:14px; right:14px; z-index:2000;
+  top:calc(14px + env(safe-area-inset-top));
+  display:flex; flex-direction:column; gap:8px;
+  pointer-events:none;
+}
+.toast-card {
+  pointer-events:auto;
+  display:flex; align-items:flex-start; gap:10px;
+  background:var(--surface); border-radius:var(--radius-sm);
+  box-shadow:var(--shadow);
+  padding:12px 13px;
+  border-left:4px solid var(--pln-blue-light);
+  animation:toast-in 0.25s cubic-bezier(0.22,1,0.36,1);
+}
+.toast-card.leaving { animation:toast-out 0.2s ease forwards; }
+.toast-card.ok   { border-left-color:var(--green); }
+.toast-card.err  { border-left-color:var(--red); }
+.toast-card.warn { border-left-color:var(--amber); }
+.toast-icon {
+  flex-shrink:0; width:24px; height:24px; border-radius:7px;
+  display:flex; align-items:center; justify-content:center; font-size:13px;
+}
+.toast-card.ok   .toast-icon { background:var(--green-dim); color:var(--green); }
+.toast-card.err  .toast-icon { background:var(--red-dim);   color:var(--red); }
+.toast-card.warn .toast-icon { background:var(--amber-dim); color:var(--amber); }
+.toast-body { flex:1; min-width:0; font-size:12.5px; color:var(--text); line-height:1.4; }
+.toast-close { flex-shrink:0; background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer; padding:2px; }
+@keyframes toast-in  { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+@keyframes toast-out { from{opacity:1;} to{opacity:0; transform:translateY(-6px);} }
+
+/* ══════════════════════════════════════
+   CONFIRM SHEET — pengganti confirm() bawaan browser
+══════════════════════════════════════ */
+.confirm-actions { display:flex; gap:10px; margin-top:18px; }
+.confirm-actions button {
+  flex:1; padding:13px; border-radius:var(--radius-sm); font-size:13.5px; font-weight:700;
+  border:none; cursor:pointer;
+}
+.confirm-btn-cancel { background:var(--surface2); color:var(--text-sec); border:1px solid var(--border-str) !important; }
+.confirm-btn-ok { background:var(--red); color:#fff; }
+
 /* ── kept for compat ── */
 </style>
 </head>
 <body>
+
+<!-- TOAST NOTIFICATIONS -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- CONFIRM SHEET -->
+<div class="modal-backdrop" id="confirm-backdrop">
+  <div class="modal-sheet" style="max-width:400px">
+    <div class="modal-header"><h3 id="confirm-title">Konfirmasi</h3></div>
+    <div id="confirm-msg" style="font-size:13.5px;color:var(--text-sec);line-height:1.55"></div>
+    <div class="confirm-actions">
+      <button class="confirm-btn-cancel" id="confirm-btn-cancel">Batal</button>
+      <button class="confirm-btn-ok" id="confirm-btn-ok">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
 
 <!-- HEADER -->
 <div class="header">
@@ -700,6 +760,18 @@ body {
     </div>
   </div>
 
+  <!-- #4: Banner Laporan Perlu Direvisi -->
+  <div class="card" id="revisi-banner" style="display:none;background:rgba(220,53,69,0.06);border:1px solid rgba(220,53,69,0.25)">
+    <div class="card-title" style="color:#C0293C">⚠️ Laporan Perlu Direvisi</div>
+    <div id="revisi-list" style="display:flex;flex-direction:column;gap:10px;margin-top:6px"></div>
+  </div>
+
+  <!-- #5: Card Tugas Ditugaskan Supervisor -->
+  <div class="card" id="tugas-ditugaskan-card" style="display:none">
+    <div class="card-title">🎫 Tugas Ditugaskan untuk Anda</div>
+    <div id="tugas-ditugaskan-list" style="display:flex;flex-direction:column;gap:10px;margin-top:6px"></div>
+  </div>
+
   <div class="card" id="absensi-terakhir-card">
     <div class="card-title">Absensi Terakhir</div>
     <div style="display:flex; gap:12px; align-items:center">
@@ -875,7 +947,7 @@ body {
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, set, get, onValue, update, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 // Firebase Storage tidak digunakan (Spark plan) — foto disimpan sebagai Base64 di Realtime Database
 
 const firebaseConfig = {
@@ -888,6 +960,44 @@ const firebaseConfig = {
   appId: "1:1044691512722:web:3638c4e44bdf7b612e254b",
   measurementId: "G-L3WGKSVG2L"
 };
+
+// ══════════════════════════════════════
+// TOAST & CONFIRM — pengganti alert()/confirm() bawaan browser
+// ══════════════════════════════════════
+function showToast(message, type = 'info', duration = 3800) {
+  const stack = document.getElementById('toast-stack');
+  if (!stack) return;
+  const iconByType = { ok: '✓', err: '✕', warn: '⚠', info: 'ℹ' };
+  const card = document.createElement('div');
+  card.className = 'toast-card ' + type;
+  card.innerHTML = `<div class="toast-icon">${iconByType[type] || iconByType.info}</div><div class="toast-body"></div><button class="toast-close">✕</button>`;
+  card.querySelector('.toast-body').textContent = message; // textContent -> aman dari HTML injection
+  const remove = () => { card.classList.add('leaving'); setTimeout(() => card.remove(), 200); };
+  card.querySelector('.toast-close').onclick = remove;
+  const timer = setTimeout(remove, duration);
+  card.addEventListener('mouseenter', () => clearTimeout(timer));
+  stack.appendChild(card);
+}
+
+function confirmDialog(message, { title = 'Konfirmasi', okLabel = 'Ya, Lanjutkan' } = {}) {
+  return new Promise((resolve) => {
+    const backdrop = document.getElementById('confirm-backdrop');
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-msg').textContent = message;
+    const btnOk = document.getElementById('confirm-btn-ok');
+    const btnCancel = document.getElementById('confirm-btn-cancel');
+    btnOk.textContent = okLabel;
+    const cleanup = (result) => {
+      backdrop.classList.remove('active');
+      btnOk.onclick = null; btnCancel.onclick = null;
+      resolve(result);
+    };
+    btnOk.onclick = () => cleanup(true);
+    btnCancel.onclick = () => cleanup(false);
+    backdrop.onclick = (e) => { if (e.target === backdrop) cleanup(false); };
+    backdrop.classList.add('active');
+  });
+}
 
 let app, db;
 let watchId = null;
@@ -1010,20 +1120,65 @@ try {
   addLog('Mode demo — GPS tetap berjalan', 'info');
 }
 
-// Kompres foto ke Base64 kecil (max ~200KB) agar muat di Realtime Database (limit 10MB/node)
-function compressToBase64(dataUrl, maxWidth = 800, quality = 0.65) {
-  return new Promise((resolve) => {
+// Kompres foto ke Base64 kecil agar muat & hemat kuota Realtime Database (plan gratis:
+// 1GB storage, 10GB/bulan transfer). Kompresi ADAPTIF: kalau hasil masih lebih besar dari
+// maxBytes, otomatis diulang dengan kualitas/lebar lebih kecil (maks 4 percobaan) supaya
+// ukuran akhir konsisten kecil walau kontennya detail/kontras tinggi.
+function compressToBase64(dataUrl, maxWidth = 800, quality = 0.65, maxBytes = 320000) {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const scale  = Math.min(1, maxWidth / img.width);
-      canvas.width  = Math.round(img.width  * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
+      let w = maxWidth, q = quality, result = '';
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const canvas = document.createElement('canvas');
+        const scale  = Math.min(1, w / img.width);
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        result = canvas.toDataURL('image/jpeg', q);
+        const approxBytes = result.length * 0.75; // perkiraan ukuran biner dari panjang base64
+        if (approxBytes <= maxBytes || (w <= 480 && q <= 0.4)) break;
+        if (q > 0.4) q -= 0.15; else w = Math.round(w * 0.8);
+      }
+      resolve(result);
     };
+    img.onerror = () => reject(new Error('Gagal memuat gambar untuk dikompres'));
     img.src = dataUrl;
   });
+}
+
+// Sama seperti compressToBase64, tapi menerima File langsung dari <input type="file"> (galeri).
+// Pakai createImageBitmap({imageOrientation:'from-image'}) supaya rotasi EXIF dari foto kamera
+// HP asli (bukan hasil kamera in-app) dibaca & dikoreksi otomatis — mengatasi foto galeri yang
+// sebelumnya bisa muncul miring/terbalik saat digambar ke canvas. Fallback ke cara lama kalau
+// browser tidak mendukung opsi tersebut.
+async function compressFileToBase64(file, maxWidth = 800, quality = 0.65, maxBytes = 320000) {
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    let w = maxWidth, q = quality, result = '';
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const canvas = document.createElement('canvas');
+      const scale  = Math.min(1, w / bitmap.width);
+      canvas.width  = Math.round(bitmap.width  * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      result = canvas.toDataURL('image/jpeg', q);
+      const approxBytes = result.length * 0.75;
+      if (approxBytes <= maxBytes || (w <= 480 && q <= 0.4)) break;
+      if (q > 0.4) q -= 0.15; else w = Math.round(w * 0.8);
+    }
+    if (bitmap.close) bitmap.close();
+    return result;
+  } catch (e) {
+    // Fallback untuk browser lama yang belum dukung createImageBitmap + imageOrientation
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Gagal membaca file gambar'));
+      reader.readAsDataURL(file);
+    });
+    return compressToBase64(dataUrl, maxWidth, quality, maxBytes);
+  }
 }
 
 // ── LOGIN ──────────────────────────────────────────────
@@ -1052,8 +1207,8 @@ window.doLogin = function() {
   startAbsensiGPS();
 };
 
-window.doLogout = function() {
-  if (confirm('Selesai bertugas dan hentikan tracking GPS?')) {
+window.doLogout = async function() {
+  if (await confirmDialog('Selesai bertugas dan hentikan tracking GPS?', { title: 'Selesai Bertugas', okLabel: 'Ya, Selesai' })) {
     stopGPS();
     // Selesai bertugas (laporan & absensi terakhir sudah dikirim) → status
     // otomatis berubah ke Offline, bukan aksi pilihan manual petugas.
@@ -1415,6 +1570,7 @@ window.submitAbsensi = async function() {
   renderStatusUI(currentStatus);
   pushStatus('Standby');
   startGPS();
+  listenRevisiDanTugas();
 };
 
 // ════════════════════════════════════════════════════════
@@ -1444,8 +1600,70 @@ window.tutupModalLapor = function() {
   document.getElementById('modal-lapor').classList.remove('active');
 };
 
-// Cari data tiket P0/P1 di Firebase (node 'tiket') lalu isi otomatis
-// rincian pekerjaan & target volume kalau ditemukan.
+// Buka form Lapor dengan Nomor Tiket sudah terisi — dipakai dari banner
+// "Perlu Direvisi" (#4) dan card "Tugas Ditugaskan" (#5), supaya petugas
+// tidak perlu ketik ulang nomor tiket secara manual.
+// revisiAsalId diisi kalau ini alur "Lapor Ulang" dari revisi, supaya laporan
+// lama otomatis ditandai "sudah ditindaklanjuti" setelah submit berhasil.
+window.bukaModalLaporUntuk = function(nomorTiket, revisiAsalId) {
+  bukaModalLapor();
+  if (nomorTiket) {
+    document.getElementById('lapor-tiket').value = nomorTiket;
+    cariTiket();
+  }
+  window._revisiAsalId = revisiAsalId || null;
+};
+
+// #4 + #5: Listener realtime untuk laporan "Perlu Revisi" dan tiket yang
+// di-assign supervisor ke NIP petugas ini. Difilter di sisi client karena
+// data petugas/laporan/tiket tidak besar dan tidak perlu index khusus.
+window.listenRevisiDanTugas = function() {
+  if (!db || !currentUser) return;
+
+  onValue(ref(db, 'laporan'), snap => {
+    const data = snap.val() || {};
+    const perluRevisi = Object.entries(data).filter(([, l]) =>
+      l.nip === currentUser.nip && l.statusVerifikasi === 'Perlu Revisi' && !l.ditindaklanjuti
+    );
+    const banner = document.getElementById('revisi-banner');
+    const list   = document.getElementById('revisi-list');
+    if (perluRevisi.length === 0) { banner.style.display = 'none'; return; }
+    banner.style.display = 'block';
+    list.innerHTML = perluRevisi.sort((a,b) => (b[1].verifWaktu||0) - (a[1].verifWaktu||0)).map(([id, l]) => `
+      <div style="background:var(--surface-card,#fff);border:1px solid rgba(220,53,69,0.2);border-radius:12px;padding:10px 12px">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text)">${l.rincian || '—'}</div>
+        ${l.nomorTiket ? `<div style="font-size:11px;color:var(--text-muted);font-family:'SF Mono','Fira Code',monospace;margin-top:2px">${l.nomorTiket}</div>` : ''}
+        ${l.verifCatatan ? `<div style="font-size:11.5px;color:#C0293C;margin-top:6px">📝 ${l.verifCatatan}</div>` : ''}
+        <button type="button" onclick="bukaModalLaporUntuk('${l.nomorTiket||''}','${id}')" style="margin-top:8px;background:#C0293C;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;width:100%">🔁 Lapor Ulang</button>
+      </div>
+    `).join('');
+  });
+
+  onValue(ref(db, 'tiket'), snap => {
+    const data = snap.val() || {};
+    const tugasSaya = Object.entries(data).filter(([, t]) =>
+      t.assignedNip === currentUser.nip && t.statusTiket !== 'Selesai'
+    );
+    const card = document.getElementById('tugas-ditugaskan-card');
+    const list = document.getElementById('tugas-ditugaskan-list');
+    if (tugasSaya.length === 0) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const prioColor = { P0: '#C0293C', P1: '#D97B0A', P2: 'var(--pln-blue)' };
+    list.innerHTML = tugasSaya.sort((a,b) => (a[1].prioritas||'').localeCompare(b[1].prioritas||'')).map(([id, t]) => `
+      <div style="background:var(--surface2);border:1px solid var(--border-str);border-radius:12px;padding:10px 12px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="background:${prioColor[t.prioritas]||'#888'};color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px">${t.prioritas||'—'}</span>
+          <span style="font-family:'SF Mono','Fira Code',monospace;font-size:11px;color:var(--text-muted)">${t.nomor||''}</span>
+        </div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-top:5px">${t.jenis || '—'}</div>
+        <div style="font-size:11px;color:var(--text-sec);margin-top:2px">${t.lokasi || '—'}</div>
+        <button type="button" onclick="bukaModalLaporUntuk('${t.nomor||''}')" style="margin-top:8px;background:var(--pln-blue);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;width:100%">📋 Kerjakan Tugas Ini</button>
+      </div>
+    `).join('');
+  });
+};
+
+
 window.cariTiket = async function() {
   const nomor = document.getElementById('lapor-tiket').value.trim().toUpperCase();
   const infoBox = document.getElementById('tiket-info-box');
@@ -1544,25 +1762,33 @@ window.pakaiFotoLapor = function() {
 
 // Ambil foto dari galeri HP sebagai alternatif kamera langsung — berguna
 // kalau petugas mau lanjut kerja dulu baru upload foto Before/After belakangan.
-window.pilihFileLapor = function(target, inputEl) {
+// PENTING: foto galeri dikompres LANGSUNG saat dipilih — bukan disimpan mentah — karena file
+// asli dari kamera HP bisa 3-12MB. Kalau disimpan mentah ke localStorage (via saveLaporDraft),
+// itu gampang melebihi kuota localStorage (~5-10MB) dan gagal tersimpan tanpa pemberitahuan.
+// Kompresi di sini juga otomatis mengoreksi rotasi EXIF, jadi foto tidak lagi muncul miring/terbalik.
+window.pilihFileLapor = async function(target, inputEl) {
   const file = inputEl.files && inputEl.files[0];
+  inputEl.value = ''; // reset supaya bisa pilih file yang sama lagi kalau perlu
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function() {
-    const dataUrl = reader.result;
+
+  const slot = document.getElementById('slot-' + target);
+  const prevHTML = slot.innerHTML;
+  slot.innerHTML = '<span class="slot-label">⏳ Memproses foto...</span>';
+
+  try {
+    const dataUrl = await compressFileToBase64(file, 800, 0.7);
     if (target === 'before') laporFotoBefore = dataUrl;
     else laporFotoAfter = dataUrl;
 
-    const slot = document.getElementById('slot-' + target);
     slot.classList.add('filled');
     slot.innerHTML = galleryBtnHTML(target) + '<img src="' + dataUrl + '"><span class="slot-label">' +
       (target === 'before' ? 'Sebelum ✓' : 'Sesudah ✓') + '</span>';
     saveLaporDraft();
     addLog('Foto ' + (target === 'before' ? 'Before' : 'After') + ' dipilih dari galeri', 'ok');
-  };
-  reader.onerror = function() { addLog('Gagal membaca foto dari galeri', 'err'); };
-  reader.readAsDataURL(file);
-  inputEl.value = ''; // reset supaya bisa pilih file yang sama lagi kalau perlu
+  } catch (e) {
+    slot.innerHTML = prevHTML;
+    addLog('Gagal membaca foto dari galeri: ' + e.message, 'err');
+  }
 };
 
 // ── Draft foto laporan (before/after) — simpan ke localStorage supaya TIDAK
@@ -1652,6 +1878,17 @@ window.submitLaporan = async function() {
     progEl.textContent = 'Menyimpan laporan...';
     const ok = await safeSet('laporan/' + uid + '_' + waktu, laporan, 'Laporan');
     if (ok) addLog('Laporan pekerjaan terkirim: ' + rincian, 'ok');
+
+    // #4: kalau ini "Lapor Ulang" dari laporan yang perlu direvisi, tandai
+    // laporan lama sebagai sudah ditindaklanjuti supaya hilang dari banner revisi.
+    if (ok && window._revisiAsalId) {
+      try {
+        await update(ref(db, 'laporan/' + window._revisiAsalId), {
+          ditindaklanjuti: true, ditindaklanjutiWaktu: Date.now()
+        });
+      } catch (e) { addLog('Gagal menandai revisi selesai: ' + e.message, 'warn'); }
+      window._revisiAsalId = null;
+    }
   } else {
     addLog('[DEMO] Laporan tersimpan lokal: ' + rincian, 'info');
   }

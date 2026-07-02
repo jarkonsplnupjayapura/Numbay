@@ -541,6 +541,99 @@ tbody tr:hover td { background: var(--surface-2); }
 
 .empty { padding: 44px; text-align: center; color: var(--text-3); font-size: 13px; }
 
+/* ══════════════════════════════════════
+   TOAST NOTIFICATIONS — pengganti alert() bawaan browser
+══════════════════════════════════════ */
+.toast-stack {
+  position: fixed; top: 18px; right: 18px; z-index: 10000;
+  display: flex; flex-direction: column; gap: 10px;
+  width: 340px; max-width: calc(100vw - 36px);
+  pointer-events: none;
+}
+.toast-card {
+  pointer-events: auto;
+  display: flex; align-items: flex-start; gap: 11px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 13px 14px;
+  border-left: 4px solid var(--info);
+  animation: toast-in 0.28s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.toast-card.leaving { animation: toast-out 0.22s var(--ease) forwards; }
+.toast-card.ok    { border-left-color: var(--ok); }
+.toast-card.err   { border-left-color: var(--crit); }
+.toast-card.warn  { border-left-color: var(--warn); }
+.toast-card.info  { border-left-color: var(--info); }
+.toast-icon {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.toast-card.ok   .toast-icon { background: var(--ok-bg);   color: var(--ok); }
+.toast-card.err  .toast-icon { background: var(--crit-bg); color: var(--crit); }
+.toast-card.warn .toast-icon { background: var(--warn-bg); color: var(--warn); }
+.toast-card.info .toast-icon { background: var(--info-bg); color: var(--info); }
+.toast-body { flex: 1; min-width: 0; }
+.toast-title { font-size: 12.5px; font-weight: 700; color: var(--text-1); line-height: 1.4; }
+.toast-msg   { font-size: 12px; color: var(--text-2); line-height: 1.4; margin-top: 2px; }
+.toast-close {
+  flex-shrink: 0; background: none; border: none; cursor: pointer;
+  color: var(--text-3); font-size: 14px; padding: 2px; line-height: 1;
+}
+.toast-close:hover { color: var(--text-1); }
+.toast-bar {
+  position: absolute; left: 0; bottom: 0; height: 2.5px;
+  background: currentColor; opacity: 0.35;
+  animation: toast-shrink linear forwards;
+}
+.toast-card.ok .toast-bar   { color: var(--ok); }
+.toast-card.err .toast-bar  { color: var(--crit); }
+.toast-card.warn .toast-bar { color: var(--warn); }
+.toast-card.info .toast-bar { color: var(--info); }
+@keyframes toast-in  { from { opacity: 0; transform: translateX(24px) scale(0.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes toast-out { from { opacity: 1; transform: translateX(0); max-height: 200px; margin-bottom: 0; } to { opacity: 0; transform: translateX(24px); max-height: 0; margin-bottom: -10px; } }
+@keyframes toast-shrink { from { width: 100%; } to { width: 0%; } }
+
+/* ══════════════════════════════════════
+   CONFIRM MODAL — pengganti confirm() bawaan browser
+══════════════════════════════════════ */
+.confirm-overlay {
+  display: none; position: fixed; inset: 0; z-index: 10001;
+  background: rgba(10,20,36,0.55);
+  align-items: center; justify-content: center;
+  animation: fade-in 0.15s var(--ease);
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.confirm-card {
+  background: var(--surface); border-radius: var(--radius-lg);
+  padding: 26px; width: 100%; max-width: 380px;
+  box-shadow: var(--shadow-lg); margin: 16px;
+  animation: toast-in 0.2s var(--ease);
+}
+.confirm-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 14px;
+}
+.confirm-icon.danger { background: var(--crit-bg); color: var(--crit); }
+.confirm-icon.warn   { background: var(--warn-bg); color: var(--warn); }
+.confirm-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-1); margin-bottom: 6px; }
+.confirm-msg   { font-size: 13px; color: var(--text-2); line-height: 1.55; margin-bottom: 22px; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-actions button {
+  flex: 1; padding: 11px; border-radius: var(--radius-xs); font-size: 13px; font-weight: 700;
+  cursor: pointer; border: none; font-family: var(--font);
+}
+.confirm-btn-cancel { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--line) !important; }
+.confirm-btn-cancel:hover { background: var(--surface-3); }
+.confirm-btn-ok { color: #fff; }
+.confirm-btn-ok.danger { background: var(--crit); }
+.confirm-btn-ok.warn   { background: var(--warn); }
+.confirm-btn-ok:hover  { filter: brightness(1.08); }
+
 /* ── POPUP ── */
 .leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: var(--shadow-lg); }
 .leaflet-popup-content { font-size: 13px; line-height: 1.65; min-width: 200px; font-family: var(--font); margin: 13px 16px; }
@@ -632,6 +725,13 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
   flex-shrink: 0; transition: all 0.18s var(--ease);
 }
 .btn-del:hover { background: var(--crit); color: #fff; }
+.btn-edit {
+  background: var(--info-bg); color: var(--info); border: none;
+  border-radius: var(--radius-xs); width: 28px; height: 28px; cursor: pointer;
+  font-size: 13px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.18s var(--ease);
+}
+.btn-edit:hover { background: var(--pln-blue-light); color: #fff; }
 .user-chip.is-admin .user-avatar { background: var(--crit); color: #fff; }
 .user-chip.is-admin .user-role   { color: var(--pln-yellow); font-weight: 700; }
 
@@ -656,6 +756,22 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
   <div class="loading-spinner"></div>
   <div class="loading-text">Memuat data inspeksi...</div>
   <div class="loading-sub">Menghubungkan ke Google Sheets UP3 Jayapura</div>
+</div>
+
+<!-- TOAST NOTIFICATIONS -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-card">
+    <div class="confirm-icon" id="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">Konfirmasi</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-actions">
+      <button class="confirm-btn-cancel" id="confirm-btn-cancel">Batal</button>
+      <button class="confirm-btn-ok" id="confirm-btn-ok">Ya, Lanjutkan</button>
+    </div>
+  </div>
 </div>
 
 <div class="app">
@@ -976,6 +1092,45 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
     </div>
 
+    <!-- Modal Edit Laporan -->
+    <div id="modal-edit-laporan" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
+      <div style="background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:520px;box-shadow:var(--shadow-lg);position:relative;margin:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:800">Edit Laporan Pekerjaan</div>
+          <button onclick="tutupModalEditLaporan()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px">✕</button>
+        </div>
+        <div id="el-info" style="font-size:12px;color:var(--text-2);margin-bottom:12px;padding:10px 13px;background:var(--surface-2);border-radius:var(--radius-xs)"></div>
+        <div id="el-warn-verified" style="display:none;font-size:12px;color:var(--warn);background:var(--warn-bg);border:1px solid rgba(217,123,10,0.3);padding:10px 13px;border-radius:var(--radius-xs);margin-bottom:16px">
+          ⚠️ Laporan ini <b>sudah diverifikasi</b>. Menyimpan perubahan akan mengembalikan status ke <b>"Menunggu Verifikasi"</b> — perlu diverifikasi ulang oleh supervisor.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Rincian Pekerjaan *</label>
+            <textarea id="el-rincian" rows="2" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;resize:vertical;font-family:var(--font)" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'"></textarea>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Material</label>
+            <input id="el-material" type="text" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Target</label>
+              <input id="el-target" type="text" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Realisasi</label>
+              <input id="el-realisasi" type="text" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+            </div>
+          </div>
+        </div>
+        <div id="el-err" style="display:none;background:var(--crit-bg);color:var(--crit);padding:9px 13px;border-radius:var(--radius-xs);font-size:12px;margin-top:14px;border:1px solid rgba(220,53,69,0.2)"></div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onclick="tutupModalEditLaporan()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:var(--radius-xs);background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-2)">Batal</button>
+          <button onclick="simpanEditLaporan()" style="flex:2;padding:11px;border:none;border-radius:var(--radius-xs);background:linear-gradient(135deg,var(--pln-yellow),var(--pln-yellow-deep));color:var(--ink-900);font-size:13px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-glow-yellow)">✓ Simpan Perubahan</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ REKAP LAPORAN VIEW ══ -->
     <div id="viewRekap" style="display:none;" class="firebase-view">
       <div class="fb-header">
@@ -1173,15 +1328,23 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               <input id="tiket-ulp" type="text" placeholder="cth: ULP Sentani" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
             <div>
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Koordinat (lat, lng)</label>
-              <input id="tiket-koordinat" type="text" placeholder="cth: -2.5916, 140.6719" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+              <input id="tiket-koordinat" type="text" placeholder="cth: -2.5916, 140.6719" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'" oninput="renderTimTerdekat()">
             </div>
             <div>
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Target Volume</label>
               <input id="tiket-target" type="number" placeholder="0" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
             </div>
+          </div>
+          <div id="tiket-assigned-chip" style="display:none;align-items:center;justify-content:space-between;background:var(--ok-bg);border:1px solid rgba(26,140,60,0.25);border-radius:var(--radius-xs);padding:8px 12px;margin-bottom:12px;font-size:12px">
+            <span>📌 Ditugaskan ke: <b id="tiket-assigned-nama"></b></span>
+            <button type="button" onclick="clearAssignTiket()" style="background:none;border:none;color:var(--crit);font-weight:700;cursor:pointer;font-size:12px">Batal</button>
+          </div>
+          <div id="tiket-tim-terdekat" style="display:none;margin-bottom:16px;background:var(--surface-2);border-radius:var(--radius-xs);padding:12px 13px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);margin-bottom:8px">🎯 Tim Terdekat dari Lokasi Ini</div>
+            <div id="tiket-tim-terdekat-list" style="display:flex;flex-direction:column;gap:6px"></div>
           </div>
           <div id="tiket-err" style="display:none;background:var(--crit-bg);color:var(--crit);padding:9px 13px;border-radius:var(--radius-xs);font-size:12px;margin-bottom:12px;border:1px solid rgba(220,53,69,0.2)"></div>
           <div style="display:flex;gap:10px">
@@ -1206,6 +1369,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
                   <th>Jenis Pekerjaan</th>
                   <th>Lokasi / Aset</th>
                   <th>ULP</th>
+                  <th>Ditugaskan</th>
                   <th>Target</th>
                   <th>Status</th>
                   <th>Dibuat</th>
@@ -1281,6 +1445,77 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 </div><!-- /app -->
 
 <script>
+// ══════════════════════════════════════
+// TOAST & CONFIRM — pengganti alert()/confirm() bawaan browser
+// (dialog sistem yang terasa "keluar" dari aplikasi)
+// ══════════════════════════════════════
+const TOAST_META = {
+  ok:   { icon: '✓', title: 'Berhasil' },
+  err:  { icon: '✕', title: 'Gagal' },
+  warn: { icon: '⚠', title: 'Perhatian' },
+  info: { icon: 'ℹ', title: 'Info' },
+};
+function showToast(message, type = 'info', duration = 4200) {
+  const stack = document.getElementById('toast-stack');
+  if (!stack) { console.log('[toast]', type, message); return; }
+  const meta = TOAST_META[type] || TOAST_META.info;
+  const card = document.createElement('div');
+  card.className = 'toast-card ' + type;
+  card.innerHTML = `
+    <div class="toast-icon">${meta.icon}</div>
+    <div class="toast-body">
+      <div class="toast-title">${meta.title}</div>
+      <div class="toast-msg"></div>
+    </div>
+    <button class="toast-close" aria-label="Tutup">✕</button>
+    <div class="toast-bar" style="animation-duration:${duration}ms"></div>
+  `;
+  card.querySelector('.toast-msg').textContent = message; // textContent -> aman dari HTML injection
+  const remove = () => {
+    if (!card.parentNode) return;
+    card.classList.add('leaving');
+    setTimeout(() => card.remove(), 220);
+  };
+  card.querySelector('.toast-close').onclick = remove;
+  const timer = setTimeout(remove, duration);
+  card.addEventListener('mouseenter', () => clearTimeout(timer));
+  stack.prepend(card);
+}
+
+// Modal konfirmasi berbasis Promise, menggantikan confirm() bawaan browser.
+// Pemakaian: if (!(await confirmDialog('Hapus data ini?'))) return;
+function confirmDialog(message, { title = 'Konfirmasi', okLabel = 'Ya, Lanjutkan', danger = true } = {}) {
+  return new Promise((resolve) => {
+    const overlay  = document.getElementById('confirm-overlay');
+    const icon     = document.getElementById('confirm-icon');
+    const titleEl  = document.getElementById('confirm-title');
+    const msgEl    = document.getElementById('confirm-msg');
+    const btnOk    = document.getElementById('confirm-btn-ok');
+    const btnCancel= document.getElementById('confirm-btn-cancel');
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    icon.textContent = danger ? '⚠️' : 'ℹ️';
+    icon.className = 'confirm-icon ' + (danger ? 'danger' : 'warn');
+    btnOk.textContent = okLabel;
+    btnOk.className = 'confirm-btn-ok ' + (danger ? 'danger' : 'warn');
+
+    const cleanup = (result) => {
+      overlay.style.display = 'none';
+      btnOk.onclick = null; btnCancel.onclick = null;
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') cleanup(false); };
+    btnOk.onclick = () => cleanup(true);
+    btnCancel.onclick = () => cleanup(false);
+    overlay.onclick = (e) => { if (e.target === overlay) cleanup(false); };
+    document.addEventListener('keydown', onKey);
+
+    overlay.style.display = 'flex';
+  });
+}
+
 // ── LIVE CLOCK ──────────────────────────────────
 (function() {
   const timeEl = document.getElementById('live-time');
@@ -1361,7 +1596,7 @@ async function loadAll() {
     applyFilters();
     document.getElementById('lastUpdate').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
   } catch(e) {
-    alert('Gagal memuat data: ' + e.message);
+    showToast('Gagal memuat data: ' + e.message, 'err');
   } finally {
     document.getElementById('loadingOverlay').style.display = 'none';
     btn.classList.remove('loading');
@@ -1757,17 +1992,18 @@ let fbListeners = {};
 const ADMIN_PIN = '1111'; // ganti PIN ini sesuai keinginan Anda
 let isAdminMode = sessionStorage.getItem('ffm_admin') === '1'; // reset tiap tab/browser ditutup
 
-function toggleAdminMode() {
+async function toggleAdminMode() {
   if (isAdminMode) {
-    if (!confirm('Keluar dari Mode Admin?')) return;
+    if (!(await confirmDialog('Keluar dari Mode Admin?', { title: 'Keluar Mode Admin', okLabel: 'Ya, Keluar', danger: false }))) return;
     isAdminMode = false;
     sessionStorage.removeItem('ffm_admin');
   } else {
     const pin = prompt('Masukkan PIN Admin untuk mengaktifkan tombol hapus data:');
     if (pin === null) return; // dibatalkan
-    if (pin !== ADMIN_PIN) { alert('PIN salah.'); return; }
+    if (pin !== ADMIN_PIN) { showToast('PIN salah.', 'err'); return; }
     isAdminMode = true;
     sessionStorage.setItem('ffm_admin', '1');
+    showToast('Mode Admin aktif.', 'ok');
   }
   applyAdminUI();
 }
@@ -1786,31 +2022,31 @@ function applyAdminUI() {
 
 async function hapusPetugas(id) {
   if (!isAdminMode) return;
-  if (!confirm('Hapus data petugas ini dari peta & daftar petugas aktif?')) return;
-  try { await window._fbRemove(window._fbRef(fbDb, 'petugas/' + id)); }
-  catch(e) { alert('Gagal menghapus: ' + e.message); }
+  if (!(await confirmDialog('Hapus data petugas ini dari peta & daftar petugas aktif?', { title: 'Hapus Petugas' }))) return;
+  try { await window._fbRemove(window._fbRef(fbDb, 'petugas/' + id)); showToast('Data petugas dihapus.', 'ok'); }
+  catch(e) { showToast('Gagal menghapus: ' + e.message, 'err'); }
 }
 async function hapusAbsensi(id) {
   if (!isAdminMode) return;
-  if (!confirm('Hapus data absensi ini? Tindakan ini tidak bisa dibatalkan.')) return;
-  try { await window._fbRemove(window._fbRef(fbDb, 'absensi/' + id)); }
-  catch(e) { alert('Gagal menghapus: ' + e.message); }
+  if (!(await confirmDialog('Hapus data absensi ini? Tindakan ini tidak bisa dibatalkan.', { title: 'Hapus Absensi' }))) return;
+  try { await window._fbRemove(window._fbRef(fbDb, 'absensi/' + id)); showToast('Data absensi dihapus.', 'ok'); }
+  catch(e) { showToast('Gagal menghapus: ' + e.message, 'err'); }
 }
 async function hapusLaporan(id) {
   if (!isAdminMode) return;
-  if (!confirm('Hapus laporan pekerjaan ini? Tindakan ini tidak bisa dibatalkan.')) return;
-  try { await window._fbRemove(window._fbRef(fbDb, 'laporan/' + id)); }
-  catch(e) { alert('Gagal menghapus: ' + e.message); }
+  if (!(await confirmDialog('Hapus laporan pekerjaan ini? Tindakan ini tidak bisa dibatalkan.', { title: 'Hapus Laporan' }))) return;
+  try { await window._fbRemove(window._fbRef(fbDb, 'laporan/' + id)); showToast('Laporan dihapus.', 'ok'); }
+  catch(e) { showToast('Gagal menghapus: ' + e.message, 'err'); }
 }
 
 async function initFirebase() {
   if (fbApp) return true;
   try {
     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    const { getDatabase, ref, onValue, remove } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const { getDatabase, ref, onValue, remove, update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
     fbApp = initializeApp(FB_CONFIG, 'supervisor');
     fbDb  = getDatabase(fbApp);
-    window._fbRef = ref; window._fbOnValue = onValue; window._fbRemove = remove;
+    window._fbRef = ref; window._fbOnValue = onValue; window._fbRemove = remove; window._fbUpdate = update;
     return true;
   } catch(e) {
     console.error('Firebase init gagal:', e);
@@ -2085,14 +2321,17 @@ function renderLaporanGrid(entries) {
           <div class="photo-label">SESUDAH</div>
         </div>
       </div>` : '';
-    const delBtn = isAdminMode ? `<button class="btn-del" title="Hapus laporan ini" onclick="hapusLaporan('${id}')">🗑</button>` : '';
+    const editBtn = isAdminMode ? `<button class="btn-edit" title="Edit laporan ini" onclick="bukaModalEditLaporan('${id}')">✏️</button>` : '';
+    const delBtn  = isAdminMode ? `<button class="btn-del" title="Hapus laporan ini" onclick="hapusLaporan('${id}')">🗑</button>` : '';
+    const editedBadge = l.editedAt ? `<div style="font-size:10.5px;color:var(--warn);margin-top:4px">✏️ Diedit ${l.statusVerifikasi ? '' : '— menunggu verifikasi ulang '}oleh ${l.editedBy||'Supervisor'} · ${new Date(l.editedAt).toLocaleString('id-ID')}</div>` : '';
     return `<div class="laporan-card">
       <div class="laporan-card-header">
         <div>
           <div class="laporan-card-name">👷 ${l.nama||'—'} <span style="font-weight:400;color:var(--text-secondary);font-size:11px">${l.regu||''} · ${l.ulp||''}</span></div>
           <div class="laporan-card-meta">${waktu}</div>
+          ${editedBadge}
         </div>
-        ${delBtn}
+        <div style="display:flex;gap:6px">${editBtn}${delBtn}</div>
       </div>
       ${photos}
       <div class="laporan-card-body">
@@ -2117,11 +2356,94 @@ function listenLaporan() {
   });
 }
 
+// ── Edit Laporan (Supervisor/Admin) — #8: edit pasca-verifikasi wajib verifikasi ulang ──
+let currentEditLaporanId = null;
+let editLaporanWasVerified = false;
+
+window.bukaModalEditLaporan = function(id) {
+  if (!isAdminMode) return;
+  const entry = (lastLaporanEntries || []).find(([eid]) => eid === id);
+  if (!entry) { showToast('Data laporan tidak ditemukan (mungkin baru saja berubah). Coba lagi.', 'err'); return; }
+  const data = entry[1];
+  currentEditLaporanId = id;
+  editLaporanWasVerified = data.statusVerifikasi === 'Terverifikasi';
+
+  document.getElementById('el-info').textContent =
+    `👷 ${data?.nama || '—'}  ·  ${data?.regu || ''} · ${data?.ulp || ''}  ·  ${data?.waktu ? new Date(data.waktu).toLocaleString('id-ID') : '—'}`;
+  document.getElementById('el-warn-verified').style.display = editLaporanWasVerified ? 'block' : 'none';
+  document.getElementById('el-rincian').value   = data?.rincian   || '';
+  document.getElementById('el-material').value  = data?.material  || '';
+  document.getElementById('el-target').value    = data?.target    || '';
+  document.getElementById('el-realisasi').value = data?.realisasi || '';
+  document.getElementById('el-err').style.display = 'none';
+  document.getElementById('modal-edit-laporan').style.display = 'flex';
+};
+window.tutupModalEditLaporan = function() {
+  document.getElementById('modal-edit-laporan').style.display = 'none';
+  currentEditLaporanId = null;
+};
+
+window.simpanEditLaporan = async function() {
+  if (!isAdminMode || !currentEditLaporanId) return;
+  const rincian   = document.getElementById('el-rincian').value.trim();
+  const material  = document.getElementById('el-material').value.trim();
+  const target    = document.getElementById('el-target').value.trim();
+  const realisasi = document.getElementById('el-realisasi').value.trim();
+  const errEl     = document.getElementById('el-err');
+
+  if (!rincian) {
+    errEl.textContent = 'Rincian Pekerjaan wajib diisi.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  if (!fbDb) { showToast('Firebase belum terhubung.', 'err'); return; }
+
+  const payload = {
+    rincian, material, target, realisasi,
+    editedAt: Date.now(), editedBy: 'Supervisor'
+  };
+
+  // #8: kalau laporan ini sebelumnya sudah Terverifikasi, reset ke "menunggu verifikasi"
+  // supaya perubahan data tidak "menyelinap" tanpa dicek ulang oleh supervisor.
+  // Data verifikasi lama disimpan di verifSebelumnya sebagai jejak audit, bukan dihapus.
+  if (editLaporanWasVerified) {
+    const entry = (lastLaporanEntries || []).find(([eid]) => eid === currentEditLaporanId);
+    const old = entry ? entry[1] : {};
+    payload.verifSebelumnya = {
+      statusVerifikasi: old.statusVerifikasi || null,
+      verifOleh: old.verifOleh || null,
+      verifWaktu: old.verifWaktu || null,
+      verifCatatan: old.verifCatatan || null
+    };
+    payload.statusVerifikasi = null;
+    payload.verifOleh = null;
+    payload.verifWaktu = null;
+    payload.verifCatatan = null;
+  }
+
+  try {
+    await window._fbUpdate(window._fbRef(fbDb, 'laporan/' + currentEditLaporanId), payload);
+    tutupModalEditLaporan();
+    if (editLaporanWasVerified) {
+      showToast('Perubahan disimpan. Laporan ini dikembalikan ke status "Menunggu Verifikasi" karena datanya diubah setelah sempat terverifikasi.', 'warn', 6000);
+    } else {
+      showToast('Perubahan laporan disimpan.', 'ok');
+    }
+  } catch (e) {
+    errEl.textContent = 'Gagal menyimpan: ' + e.message;
+    errEl.style.display = 'block';
+  }
+};
+
 // ══════════════════════════════════════
 // TIKET P0/P1 — SUPERVISOR
 // ══════════════════════════════════════
 let currentEditTiketId = null;
 let lastTiketEntries = null;
+
+let currentAssignNip = null, currentAssignNama = null;
 
 window.bukaModalTiket = function(id, data) {
   currentEditTiketId = id || null;
@@ -2133,8 +2455,86 @@ window.bukaModalTiket = function(id, data) {
   document.getElementById('tiket-koordinat').value= data?.koordinat|| '';
   document.getElementById('tiket-target').value   = data?.target   || '';
   document.getElementById('tiket-err').style.display = 'none';
+
+  currentAssignNip  = data?.assignedNip  || null;
+  currentAssignNama = data?.assignedNama || null;
+  updateAssignedChip();
+
   document.getElementById('modal-tiket').style.display = 'flex';
+  renderTimTerdekat();
 };
+
+function updateAssignedChip() {
+  const chip = document.getElementById('tiket-assigned-chip');
+  if (currentAssignNip) {
+    chip.style.display = 'flex';
+    document.getElementById('tiket-assigned-nama').textContent = currentAssignNama || currentAssignNip;
+  } else {
+    chip.style.display = 'none';
+  }
+}
+
+window.assignTiket = function(nip, nama) {
+  currentAssignNip = nip;
+  currentAssignNama = nama;
+  updateAssignedChip();
+};
+window.clearAssignTiket = function() {
+  currentAssignNip = null;
+  currentAssignNama = null;
+  updateAssignedChip();
+};
+
+// Jarak antar 2 titik GPS pakai formula Haversine, hasil dalam km
+function jarakKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+window.renderTimTerdekat = function() {
+  const panel = document.getElementById('tiket-tim-terdekat');
+  const listEl = document.getElementById('tiket-tim-terdekat-list');
+  const raw = document.getElementById('tiket-koordinat').value.trim();
+  const parts = raw.split(',').map(s => parseFloat(s.trim()));
+
+  if (parts.length !== 2 || parts.some(isNaN)) { panel.style.display = 'none'; return; }
+  const [lat, lng] = parts;
+  if (!lastPetugasEntries || lastPetugasEntries.length === 0) {
+    panel.style.display = 'block';
+    listEl.innerHTML = `<div style="font-size:12px;color:var(--text-3)">Belum ada data posisi tim (semua tim offline/belum login).</div>`;
+    return;
+  }
+
+  const withJarak = lastPetugasEntries
+    .filter(([,p]) => p.lat && p.lng)
+    .map(([id, p]) => ({ id, p, jarak: jarakKm(lat, lng, p.lat, p.lng) }))
+    .sort((a,b) => a.jarak - b.jarak)
+    .slice(0, 5);
+
+  panel.style.display = 'block';
+  if (withJarak.length === 0) {
+    listEl.innerHTML = `<div style="font-size:12px;color:var(--text-3)">Belum ada data posisi tim.</div>`;
+    return;
+  }
+  const statusIcon = { 'Aktif Bekerja':'🟢', 'Perjalanan':'🟡', 'Standby':'🔵', 'Offline':'🔴' };
+  listEl.innerHTML = withJarak.map(({p, jarak}, i) => {
+    const nip = p.nip || '';
+    const nama = (p.nama||'—').replace(/'/g, "\\'");
+    const isAssigned = currentAssignNip && nip && currentAssignNip === nip;
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:var(--radius-xs);padding:7px 10px;font-size:12px;${i===0?'border:1px solid var(--pln-blue-light)':''}">
+      <span>${i===0?'⭐ ':''}${statusIcon[p.status]||'⚪'} <b>${p.nama||'—'}</b> <span style="color:var(--text-3)">· ${p.regu||''}</span></span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:var(--mono);font-weight:700;color:${i===0?'var(--pln-blue-light)':'var(--text-2)'}">${jarak.toFixed(1)} km</span>
+        ${nip ? `<button type="button" onclick="assignTiket('${nip}','${nama}')" style="background:${isAssigned?'var(--ok)':'var(--info-bg)'};color:${isAssigned?'#fff':'var(--info)'};border:none;border-radius:6px;padding:3px 8px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">${isAssigned?'✓ Ditugaskan':'📌 Assign'}</button>` : ''}
+      </span>
+    </div>`;
+  }).join('');
+};
+
 window.tutupModalTiket = function() {
   document.getElementById('modal-tiket').style.display = 'none';
 };
@@ -2156,12 +2556,13 @@ window.simpanTiket = async function() {
   }
   errEl.style.display = 'none';
 
-  if (!fbDb) { alert('Firebase belum terhubung.'); return; }
+  if (!fbDb) { showToast('Firebase belum terhubung.', 'err'); return; }
   const id = currentEditTiketId || ('tiket_' + nomor.replace(/[^a-zA-Z0-9]/g,'_') + '_' + Date.now().toString(36));
-  const payload = { nomor, prioritas, jenis, lokasi, ulp, koordinat, target: target||null, waktu: Date.now(), statusTiket: 'Aktif' };
+  const payload = { nomor, prioritas, jenis, lokasi, ulp, koordinat, target: target||null, waktu: Date.now(), statusTiket: 'Aktif', assignedNip: currentAssignNip || null, assignedNama: currentAssignNama || null };
   try {
     await window._fbSet(window._fbRef(fbDb, 'tiket/' + id), payload);
     tutupModalTiket();
+    showToast('Tiket ' + nomor + ' disimpan.', 'ok');
   } catch(e) {
     errEl.textContent = 'Gagal menyimpan: ' + e.message;
     errEl.style.display = 'block';
@@ -2170,9 +2571,9 @@ window.simpanTiket = async function() {
 
 window.hapusTiket = async function(id) {
   if (!isAdminMode) return;
-  if (!confirm('Hapus tiket ini?')) return;
-  try { await window._fbRemove(window._fbRef(fbDb, 'tiket/' + id)); }
-  catch(e) { alert('Gagal menghapus: ' + e.message); }
+  if (!(await confirmDialog('Hapus tiket ini?', { title: 'Hapus Tiket' }))) return;
+  try { await window._fbRemove(window._fbRef(fbDb, 'tiket/' + id)); showToast('Tiket dihapus.', 'ok'); }
+  catch(e) { showToast('Gagal menghapus: ' + e.message, 'err'); }
 };
 
 function renderTiketTable(entries) {
@@ -2180,7 +2581,7 @@ function renderTiketTable(entries) {
   document.getElementById('tiketCount').textContent = entries.length + ' tiket';
   const tbody = document.getElementById('tiketBody');
   if (entries.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty">Belum ada tiket. Buat tiket baru di atas.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">Belum ada tiket. Buat tiket baru di atas.</td></tr>';
     return;
   }
   const prioritasColor = { P0: 'badge-red', P1: 'badge-amber', P2: 'badge-blue' };
@@ -2197,6 +2598,7 @@ function renderTiketTable(entries) {
       <td style="font-weight:600">${t.jenis||'—'}</td>
       <td style="font-size:12px;color:var(--text-2)">${t.lokasi||'—'}</td>
       <td>${t.ulp||'—'}</td>
+      <td style="font-size:12px">${t.assignedNama ? `📌 ${t.assignedNama}` : '<span style="color:var(--text-3)">Belum ditugaskan</span>'}</td>
       <td style="font-family:var(--mono);font-size:11px">${t.target||'—'}</td>
       <td><span class="badge ${statusCls}"><span class="badge-dot"></span>${t.statusTiket||'Aktif'}</span></td>
       <td style="font-size:11px;color:var(--text-3)">${waktu}</td>
@@ -2324,11 +2726,12 @@ window.submitVerifikasi = async function() {
 // Tombol manual untuk supervisor menutup tiket sendiri (cadangan, kalau tidak tertaut/tidak ke-auto-close)
 window.tutupTiketManual = async function(tiketId) {
   if (!fbDb) return;
-  if (!confirm('Tutup tiket ini? Status akan diubah menjadi "Selesai".')) return;
+  if (!(await confirmDialog('Tutup tiket ini? Status akan diubah menjadi "Selesai".', { title: 'Tutup Tiket', danger: false }))) return;
   try {
     const { update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
     await update(window._fbRef(fbDb, 'tiket/' + tiketId), { statusTiket: 'Selesai', selesaiOtomatisPada: Date.now(), selesaiOtomatisDari: 'manual-supervisor' });
-  } catch(e) { alert('Gagal menutup tiket: ' + e.message); }
+    showToast('Tiket ditutup.', 'ok');
+  } catch(e) { showToast('Gagal menutup tiket: ' + e.message, 'err'); }
 };
 
 function renderVerifikasiGrid(entries) {
@@ -2722,7 +3125,7 @@ window.tambahBarisProgramTarget = function() {
 };
 
 window.simpanProgresTarget = async function() {
-  if (!fbDb) { alert('Firebase belum terhubung.'); return; }
+  if (!fbDb) { showToast('Firebase belum terhubung.', 'err'); return; }
   const rows = document.querySelectorAll('#progres-target-list [data-idx]');
   const payload = {};
   rows.forEach((row, i) => {
@@ -2734,7 +3137,8 @@ window.simpanProgresTarget = async function() {
   try {
     await window._fbSet(window._fbRef(fbDb, 'progresTarget'), payload);
     tutupModalProgresTarget();
-  } catch(e) { alert('Gagal menyimpan: ' + e.message); }
+    showToast('Target program disimpan.', 'ok');
+  } catch(e) { showToast('Gagal menyimpan: ' + e.message, 'err'); }
 };
 </script>
 <!-- FOTO FULLSCREEN MODAL -->
