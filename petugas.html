@@ -774,16 +774,11 @@ body {
 
   <div class="card" id="absensi-terakhir-card">
     <div class="card-title">Absensi Terakhir</div>
-    <div style="display:flex; gap:12px; align-items:center">
-      <img id="at-foto" src="" style="display:none; width:56px; height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--border-str); flex-shrink:0">
-      <div style="flex:1; min-width:0">
-        <div style="font-size:13px; font-weight:700; color:var(--text)" id="at-lokasi">—</div>
-        <div style="font-size:11.5px; color:var(--text-sec); margin-top:2px" id="at-waktu">Belum ada data absensi</div>
-        <div style="font-size:10.5px; color:var(--text-muted); margin-top:2px; font-family:'SF Mono','Fira Code',monospace" id="at-gps">—</div>
-      </div>
-      <div id="at-sync-badge" style="font-size:10px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; background:var(--green-dim); color:#1A7A38; border:1px solid var(--green-border)">✓ Tersimpan</div>
+    <div id="at-list" style="display:flex; flex-direction:column; gap:12px">
+      <div style="font-size:12px; color:var(--text-muted); text-align:center; padding:6px 0" id="at-empty">Belum ada data absensi</div>
     </div>
   </div>
+
 
   <div class="card">
     <div class="card-title">Progres Tugas Hari Ini</div>
@@ -945,6 +940,40 @@ body {
   </div>
 </div>
 
+<!-- ══════ MODAL: ABSEN CEPAT (Mulai Kerja Aktif / Selesai Bertugas) ══════ -->
+<div class="modal-backdrop" id="modal-absen-cepat">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3 id="ac-title">Absen</h3>
+      <button class="modal-close" onclick="tutupAbsenCepat()">✕</button>
+    </div>
+    <div style="font-size:11.5px; color:var(--text-sec); margin-bottom:12px; line-height:1.5" id="ac-desc"></div>
+    <div class="camera-box" id="ac-camera-box">
+      <div class="cam-placeholder" id="ac-cam-placeholder">
+        <span class="cam-icon">📷</span>Ketuk untuk buka kamera selfie
+      </div>
+      <video id="ac-video" playsinline autoplay muted style="display:none"></video>
+      <img id="ac-photo-preview" style="display:none">
+      <div class="cam-badge" id="ac-gps-badge">GPS: —</div>
+    </div>
+    <div class="camera-actions">
+      <button class="btn btn-ghost btn-sm"   id="ac-btn-cam"    onclick="bukaKameraCepat()">📷 Buka Kamera</button>
+      <button class="btn btn-primary btn-sm" id="ac-btn-shoot"  onclick="ambilFotoCepat()" style="display:none">📸 Ambil Foto</button>
+      <button class="btn btn-ghost btn-sm"   id="ac-btn-retake" onclick="ulangFotoCepat()" style="display:none">↺ Ulangi</button>
+    </div>
+    <canvas id="ac-canvas" style="display:none"></canvas>
+    <div class="gps-panel" style="margin-top:12px">
+      <div class="gps-row"><span class="gps-key">Latitude</span><span class="gps-val" id="ac-lat">—</span></div>
+      <div class="gps-row"><span class="gps-key">Longitude</span><span class="gps-val" id="ac-lng">—</span></div>
+      <div class="gps-note" id="ac-gps-status">Mencari lokasi GPS...</div>
+    </div>
+    <div class="error-box" id="ac-err" style="margin-top:12px"></div>
+    <button class="btn btn-yellow" id="ac-btn-submit" onclick="submitAbsenCepat()" style="margin-top:12px">
+      <span>✓</span> Konfirmasi Absen
+    </button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, set, get, onValue, update, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -1009,6 +1038,7 @@ let sendTimer = null;
 let tugasTarget = 0;   // bisa diisi otomatis dari data tiket
 let tugasSelesai = 0;
 let lastPos = null;
+let absenAktifBekerjaDone = false; // reset tiap login — absen selfie "Mulai Kerja Aktif" cukup sekali per shift
 
 // ── Offline queue (blank spot / sinyal jelek) ────────────
 // Titik GPS & event status yang gagal terkirim disimpan di localStorage,
@@ -1086,7 +1116,7 @@ async function flushOfflineQueue() {
   flushingQueue = false;
   if (sent > 0) {
     addLog(`✓ ${sent} data tersimpan offline berhasil disinkronkan ke server`, 'ok');
-    if (currentUser && currentUser.absensi) renderAbsensiTerakhir(true);
+    markLastAbsensiTersinkron();
   }
   updateConnUI();
 }
@@ -1208,27 +1238,30 @@ window.doLogin = function() {
 };
 
 window.doLogout = async function() {
-  if (await confirmDialog('Selesai bertugas dan hentikan tracking GPS?', { title: 'Selesai Bertugas', okLabel: 'Ya, Selesai' })) {
-    stopGPS();
-    // Selesai bertugas (laporan & absensi terakhir sudah dikirim) → status
-    // otomatis berubah ke Offline, bukan aksi pilihan manual petugas.
-    currentStatus = 'Offline';
-    pushStatus('Offline');
-    currentUser = null;
-    sendCount = 0;
-    tugasTarget = 0;
-    tugasSelesai = 0;
-    laporTugasList = [];
-    document.getElementById('at-lokasi').textContent = '—';
-    document.getElementById('at-waktu').textContent = 'Belum ada data absensi';
-    document.getElementById('at-gps').textContent = '—';
-    document.getElementById('at-foto').style.display = 'none';
-    document.getElementById('send-count').textContent = '0';
-    document.getElementById('bottom-nav').style.display = 'none';
-    showScreen('login');
-    addLog('Logout — tracking dihentikan', 'info');
-  }
+  if (!(await confirmDialog('Selesai bertugas dan hentikan tracking GPS?', { title: 'Selesai Bertugas', okLabel: 'Ya, Selesai' }))) return;
+  // Sebelum benar-benar mengakhiri shift, wajib absen selfie + GPS dulu
+  // sebagai bukti penutupan tugas (bukan cuma klik tombol).
+  bukaAbsenCepat('selesai', finalizeLogout);
 };
+
+function finalizeLogout() {
+  stopGPS();
+  // Selesai bertugas (laporan & absensi terakhir sudah dikirim) → status
+  // otomatis berubah ke Offline, bukan aksi pilihan manual petugas.
+  currentStatus = 'Offline';
+  pushStatus('Offline');
+  currentUser = null;
+  sendCount = 0;
+  tugasTarget = 0;
+  tugasSelesai = 0;
+  laporTugasList = [];
+  absenAktifBekerjaDone = false;
+  resetAbsensiTerakhir();
+  document.getElementById('send-count').textContent = '0';
+  document.getElementById('bottom-nav').style.display = 'none';
+  showScreen('login');
+  addLog('Logout — tracking dihentikan', 'info');
+}
 
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1243,27 +1276,55 @@ window.showScreen = showScreen;
 // atau kendala teknis lain (kirim data gagal terus-menerus). Lihat
 // applyOfflineOverride() di bawah. Petugas hanya bisa memilih:
 // Aktif Bekerja, Perjalanan, atau Standby.
-// ── Kartu ringkasan "Absensi Terakhir" ──────────────────
-// Menampilkan lokasi/waktu/foto absensi terbaru petugas, plus status apakah
-// datanya sudah tersinkron ke server atau masih tersimpan lokal (offline).
-function renderAbsensiTerakhir(tersinkron) {
-  if (!currentUser || !currentUser.absensi) return;
-  const a = currentUser.absensi;
-  const fotoEl = document.getElementById('at-foto');
-  if (a.fotoBase64) { fotoEl.src = a.fotoBase64; fotoEl.style.display = 'block'; }
-  document.getElementById('at-lokasi').textContent = a.lokasi || '—';
-  document.getElementById('at-waktu').textContent = new Date(a.waktu).toLocaleString('id-ID', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short' });
-  document.getElementById('at-gps').textContent = a.lat.toFixed(5) + ', ' + a.lng.toFixed(5) + ' · ±' + a.acc + 'm';
-  const badge = document.getElementById('at-sync-badge');
-  if (tersinkron) {
-    badge.textContent = '✓ Tersimpan';
-    badge.style.background = 'var(--green-dim)'; badge.style.color = '#1A7A38'; badge.style.borderColor = 'var(--green-border)';
-  } else {
-    badge.textContent = '⏳ Lokal';
-    badge.style.background = 'var(--amber-dim)'; badge.style.color = 'var(--amber)'; badge.style.borderColor = 'var(--amber-border)';
-  }
+// ── Kartu "Absensi Terakhir" ──────────────────────────────
+// Menampilkan RIWAYAT absen hari ini (Standby/Kantor di awal, lalu Mulai Kerja
+// Aktif, lalu Selesai Bertugas), ditambahkan berurutan ke bawah — bukan
+// menimpa entri sebelumnya. Tiap entri: foto, label, waktu, GPS, status sinkron.
+let lastAbsensiBadgeEl = null;
+function addAbsensiEntry(a, tersinkron, label) {
+  const list = document.getElementById('at-list');
+  const empty = document.getElementById('at-empty');
+  if (empty) empty.style.display = 'none';
+
+  const item = document.createElement('div');
+  item.style.cssText = 'display:flex; gap:12px; align-items:center; padding-top:12px; border-top:1px solid var(--border-str)';
+  if (!list.querySelector('.at-item')) item.style.borderTop = 'none'; // entri pertama tanpa garis pembatas
+  item.classList.add('at-item');
+
+  const fotoHtml = a.fotoBase64
+    ? `<img src="${a.fotoBase64}" style="width:56px; height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--border-str); flex-shrink:0">`
+    : `<div style="width:56px; height:56px; border-radius:12px; background:var(--surface2); flex-shrink:0"></div>`;
+
+  const waktuStr = new Date(a.waktu).toLocaleString('id-ID', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short' });
+  const gpsStr = a.lat.toFixed(5) + ', ' + a.lng.toFixed(5) + ' · ±' + a.acc + 'm';
+  const badgeOk = tersinkron;
+
+  item.innerHTML = `
+    ${fotoHtml}
+    <div style="flex:1; min-width:0">
+      <div style="font-size:13px; font-weight:700; color:var(--text)">${label}</div>
+      <div style="font-size:11.5px; color:var(--text-sec); margin-top:2px">${waktuStr}</div>
+      <div style="font-size:10.5px; color:var(--text-muted); margin-top:2px; font-family:'SF Mono','Fira Code',monospace">${gpsStr}</div>
+    </div>
+    <div class="at-item-badge" style="font-size:10px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; ${badgeOk
+      ? 'background:var(--green-dim); color:#1A7A38; border:1px solid var(--green-border)'
+      : 'background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber-border)'}">${badgeOk ? '✓ Tersimpan' : '⏳ Lokal'}</div>
+  `;
+  list.appendChild(item);
+  lastAbsensiBadgeEl = item.querySelector('.at-item-badge');
 }
-window.renderAbsensiTerakhir = renderAbsensiTerakhir;
+function markLastAbsensiTersinkron() {
+  if (!lastAbsensiBadgeEl) return;
+  lastAbsensiBadgeEl.textContent = '✓ Tersimpan';
+  lastAbsensiBadgeEl.style.background = 'var(--green-dim)';
+  lastAbsensiBadgeEl.style.color = '#1A7A38';
+  lastAbsensiBadgeEl.style.borderColor = 'var(--green-border)';
+}
+function resetAbsensiTerakhir() {
+  const list = document.getElementById('at-list');
+  list.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:6px 0" id="at-empty">Belum ada data absensi</div>';
+  lastAbsensiBadgeEl = null;
+}
 
 function renderStatusUI(s) {
   document.getElementById('status-label').textContent = s;
@@ -1292,6 +1353,17 @@ function pushStatus(s) {
 // Dipanggil dari tap kartu status oleh petugas (Aktif Bekerja / Perjalanan / Standby saja)
 window.setStatus = function(s) {
   if (s === 'Offline') return; // dijaga: offline tidak bisa dipilih manual
+  // Transisi PERTAMA ke "Aktif Bekerja" dalam satu shift wajib absen selfie +
+  // GPS sebagai bukti mulai kerja. Transisi berikutnya (mis. balik dari
+  // Perjalanan/Standby ke Aktif Bekerja lagi) tidak perlu selfie ulang.
+  if (s === 'Aktif Bekerja' && !absenAktifBekerjaDone) {
+    bukaAbsenCepat('aktif', () => { absenAktifBekerjaDone = true; applyStatusChange(s); });
+    return;
+  }
+  applyStatusChange(s);
+};
+
+function applyStatusChange(s) {
   manualStatus = s;
   // Kalau sedang dalam kondisi offline otomatis, simpan pilihan tapi tampilan
   // tetap menunjukkan Offline sampai koneksi/kondisi teknis pulih.
@@ -1564,7 +1636,8 @@ window.submitAbsensi = async function() {
   if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
   addLog('Absensi berhasil di ' + absenLokasi, 'ok');
   showScreen('tracking');
-  renderAbsensiTerakhir(absensiTersinkron);
+  absenAktifBekerjaDone = false; // shift baru dimulai — absen "Mulai Kerja Aktif" wajib lagi
+  addAbsensiEntry(currentUser.absensi, absensiTersinkron, absenLokasi);
   manualStatus = 'Standby';
   currentStatus = isOnline ? 'Standby' : 'Offline';
   renderStatusUI(currentStatus);
@@ -1574,7 +1647,177 @@ window.submitAbsensi = async function() {
 };
 
 // ════════════════════════════════════════════════════════
-// CLOSED-LOOP REPORTING
+// ABSEN CEPAT — checkpoint selfie+GPS di tengah shift, dipakai untuk
+// "Mulai Kerja Aktif" (sekali per shift) dan "Selesai Bertugas" (tiap logout).
+// Tidak ada pilihan lokasi seperti absen awal — cukup selfie + GPS.
+// ════════════════════════════════════════════════════════
+let acPurpose = null;      // 'aktif' | 'selesai'
+let acOnSuccess = null;    // callback dijalankan setelah absen berhasil disimpan
+let acStream = null;
+let acPos = null;
+let acFotoDataUrl = null;
+
+const AC_CONFIG = {
+  aktif:   { title: 'Absen Mulai Kerja Aktif', desc: 'Ambil selfie + kunci GPS untuk menandai kamu mulai mengeksekusi penugasan.', label: 'Mulai Kerja Aktif' },
+  selesai: { title: 'Absen Selesai Bertugas',  desc: 'Ambil selfie + kunci GPS sebagai bukti penutupan tugas hari ini.',         label: 'Selesai Bertugas' }
+};
+
+window.bukaAbsenCepat = function(purpose, onSuccess) {
+  acPurpose = purpose;
+  acOnSuccess = onSuccess;
+  acPos = null;
+  acFotoDataUrl = null;
+
+  const cfg = AC_CONFIG[purpose];
+  document.getElementById('ac-title').textContent = cfg.title;
+  document.getElementById('ac-desc').textContent = cfg.desc;
+  document.getElementById('ac-err').style.display = 'none';
+
+  document.getElementById('ac-cam-placeholder').style.display = 'flex';
+  document.getElementById('ac-video').style.display = 'none';
+  document.getElementById('ac-photo-preview').style.display = 'none';
+  document.getElementById('ac-btn-cam').style.display = 'block';
+  document.getElementById('ac-btn-shoot').style.display = 'none';
+  document.getElementById('ac-btn-retake').style.display = 'none';
+  document.getElementById('ac-gps-badge').style.display = 'block';
+  document.getElementById('ac-gps-badge').textContent = 'GPS: —';
+  document.getElementById('ac-lat').textContent = '—';
+  document.getElementById('ac-lng').textContent = '—';
+  document.getElementById('ac-gps-status').textContent = 'Mencari lokasi GPS...';
+
+  document.getElementById('modal-absen-cepat').classList.add('active');
+  startAbsenCepatGPS();
+};
+
+window.tutupAbsenCepat = function() {
+  if (acStream) { acStream.getTracks().forEach(t => t.stop()); acStream = null; }
+  document.getElementById('modal-absen-cepat').classList.remove('active');
+  acOnSuccess = null;
+};
+
+function startAbsenCepatGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('ac-gps-status').textContent = 'GPS tidak tersedia di browser ini';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition((pos) => {
+    acPos = pos;
+    const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
+    document.getElementById('ac-lat').textContent = lat.toFixed(6);
+    document.getElementById('ac-lng').textContent = lng.toFixed(6);
+    document.getElementById('ac-gps-status').textContent =
+      '✓ Akurasi ' + Math.round(acc) + ' m · ' + (acc < 30 ? 'Baik' : 'Rendah, coba di area terbuka');
+    document.getElementById('ac-gps-badge').textContent = 'GPS: ' + lat.toFixed(4) + ', ' + lng.toFixed(4);
+  }, (err) => {
+    document.getElementById('ac-gps-status').textContent = 'Gagal ambil GPS: ' + err.message;
+  }, { enableHighAccuracy: true, timeout: 15000 });
+}
+
+window.bukaKameraCepat = async function() {
+  try {
+    acStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    const video = document.getElementById('ac-video');
+    video.srcObject = acStream;
+    video.style.display = 'block';
+    document.getElementById('ac-cam-placeholder').style.display = 'none';
+    document.getElementById('ac-photo-preview').style.display = 'none';
+    document.getElementById('ac-btn-cam').style.display = 'none';
+    document.getElementById('ac-btn-shoot').style.display = 'block';
+    document.getElementById('ac-btn-retake').style.display = 'none';
+  } catch (e) {
+    addLog('Gagal akses kamera: ' + e.message, 'err');
+    document.getElementById('ac-cam-placeholder').innerHTML = '<span class="cam-icon">⚠️</span>Kamera tidak bisa diakses<br><span style="font-size:10px">' + e.message + '</span>';
+  }
+};
+
+window.ambilFotoCepat = function() {
+  const video = document.getElementById('ac-video');
+  const canvas = document.getElementById('ac-canvas');
+  canvas.width = video.videoWidth || 480;
+  canvas.height = video.videoHeight || 640;
+  const ctx = canvas.getContext('2d');
+  ctx.translate(canvas.width, 0); ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  acFotoDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+  const img = document.getElementById('ac-photo-preview');
+  img.src = acFotoDataUrl;
+  img.style.display = 'block';
+  video.style.display = 'none';
+
+  if (acStream) { acStream.getTracks().forEach(t => t.stop()); acStream = null; }
+
+  document.getElementById('ac-btn-shoot').style.display = 'none';
+  document.getElementById('ac-btn-retake').style.display = 'block';
+  addLog('Selfie absen (' + AC_CONFIG[acPurpose].label + ') diambil', 'ok');
+};
+
+window.ulangFotoCepat = function() {
+  acFotoDataUrl = null;
+  document.getElementById('ac-photo-preview').style.display = 'none';
+  document.getElementById('ac-btn-retake').style.display = 'none';
+  bukaKameraCepat();
+};
+
+window.submitAbsenCepat = async function() {
+  const errEl = document.getElementById('ac-err');
+  const btn   = document.getElementById('ac-btn-submit');
+  if (!acPos) {
+    errEl.textContent = 'GPS belum terkunci. Mohon tunggu atau coba di area terbuka.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!acFotoDataUrl) {
+    errEl.textContent = 'Selfie wajib diambil sebelum melanjutkan.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const waktu = Date.now();
+  const origLabel = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Mengompres & menyimpan foto...'; }
+
+  let fotoBase64 = null;
+  try {
+    fotoBase64 = await compressToBase64(acFotoDataUrl, 800, 0.65);
+  } catch (e) {
+    addLog('Gagal kompres foto absen cepat: ' + e.message, 'err');
+    errEl.textContent = 'Gagal memproses foto. Coba lagi.';
+    errEl.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
+    return;
+  }
+
+  const entry = {
+    lat: acPos.coords.latitude,
+    lng: acPos.coords.longitude,
+    acc: Math.round(acPos.coords.accuracy),
+    waktu,
+    fotoBase64
+  };
+
+  let tersinkron = false;
+  if (currentUser) {
+    tersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
+      nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
+      jenis: AC_CONFIG[acPurpose].label,
+      lat: entry.lat, lng: entry.lng, acc: entry.acc,
+      waktu, fotoBase64
+    }, 'Absensi');
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
+  addLog('Absen ' + AC_CONFIG[acPurpose].label + ' berhasil', 'ok');
+  addAbsensiEntry(entry, tersinkron, AC_CONFIG[acPurpose].label);
+
+  document.getElementById('modal-absen-cepat').classList.remove('active');
+  const callback = acOnSuccess;
+  acOnSuccess = null;
+  if (callback) callback();
+};
+
+
 // ════════════════════════════════════════════════════════
 let laporTugasList = [];
 let laporFotoBefore = null, laporFotoAfter = null;
