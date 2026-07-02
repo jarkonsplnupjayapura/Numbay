@@ -428,6 +428,13 @@ body {
 .photo-slot.filled { border-color:var(--green); border-style:solid; }
 .photo-slot.filled .slot-label { position:absolute; bottom:6px; color:var(--green); }
 .photo-slot .slot-icon { font-size:22px; color:var(--text-muted); position:relative; z-index:1; }
+.slot-gallery-btn {
+  position:absolute; top:6px; right:6px; z-index:2;
+  background:rgba(0,61,130,0.85); color:#fff; border:none;
+  border-radius:8px; padding:5px 7px; font-size:11px; cursor:pointer;
+  display:flex; align-items:center; gap:3px; backdrop-filter:blur(3px);
+}
+.slot-gallery-btn:active { transform:scale(0.94); }
 
 /* ── TASK ITEMS ── */
 .task-item {
@@ -693,6 +700,19 @@ body {
     </div>
   </div>
 
+  <div class="card" id="absensi-terakhir-card">
+    <div class="card-title">Absensi Terakhir</div>
+    <div style="display:flex; gap:12px; align-items:center">
+      <img id="at-foto" src="" style="display:none; width:56px; height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--border-str); flex-shrink:0">
+      <div style="flex:1; min-width:0">
+        <div style="font-size:13px; font-weight:700; color:var(--text)" id="at-lokasi">—</div>
+        <div style="font-size:11.5px; color:var(--text-sec); margin-top:2px" id="at-waktu">Belum ada data absensi</div>
+        <div style="font-size:10.5px; color:var(--text-muted); margin-top:2px; font-family:'SF Mono','Fira Code',monospace" id="at-gps">—</div>
+      </div>
+      <div id="at-sync-badge" style="font-size:10px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; background:var(--green-dim); color:#1A7A38; border:1px solid var(--green-border)">✓ Tersimpan</div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-title">Progres Tugas Hari Ini</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
@@ -810,17 +830,22 @@ body {
       <div class="field"><label>Target Volume</label><input type="number" id="lapor-target" placeholder="0" inputmode="numeric"></div>
       <div class="field"><label>Realisasi Volume</label><input type="number" id="lapor-realisasi" placeholder="0" inputmode="numeric"></div>
     </div>
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--pln-blue);margin-bottom:10px">Foto Before / After</div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--pln-blue);margin-bottom:6px">Foto Before / After</div>
+    <div style="font-size:10.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.5">Ambil langsung dengan kamera, atau ketuk ikon 🖼️ untuk pilih dari galeri. Foto yang sudah diambil otomatis tersimpan di HP walau aplikasi ditutup, jadi tidak hilang saat lanjut kerja sebelum ambil foto After.</div>
     <div class="photo-pair">
       <div class="photo-slot" id="slot-before" onclick="bukaKameraLapor('before')">
+        <button type="button" class="slot-gallery-btn" onclick="event.stopPropagation(); document.getElementById('file-before').click()">🖼️</button>
         <span class="slot-icon">📷</span>
         <span class="slot-label">Sebelum (Before)</span>
       </div>
       <div class="photo-slot" id="slot-after" onclick="bukaKameraLapor('after')">
+        <button type="button" class="slot-gallery-btn" onclick="event.stopPropagation(); document.getElementById('file-after').click()">🖼️</button>
         <span class="slot-icon">📷</span>
         <span class="slot-label">Sesudah (After)</span>
       </div>
     </div>
+    <input type="file" id="file-before" accept="image/*" style="display:none" onchange="pilihFileLapor('before', this)">
+    <input type="file" id="file-after"  accept="image/*" style="display:none" onchange="pilihFileLapor('after', this)">
     <div class="error-box" id="lapor-err" style="margin-bottom:12px"></div>
     <div id="lapor-progress" style="font-size:11px;color:var(--text-sec);text-align:center;margin-bottom:10px;display:none"></div>
     <button class="btn btn-success" id="lapor-btn-submit" onclick="submitLaporan()"><span>✓</span> Kirim Laporan</button>
@@ -854,14 +879,14 @@ import { getDatabase, ref, set, get, onDisconnect, serverTimestamp } from 'https
 // Firebase Storage tidak digunakan (Spark plan) — foto disimpan sebagai Base64 di Realtime Database
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDZRDMn-gvbVQhcyTCxx83i5czwiU8hAJU",
-  authDomain: "ffm-pln.firebaseapp.com",
-  databaseURL: "https://ffm-pln-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ffm-pln",
-  storageBucket: "ffm-pln.firebasestorage.app",
-  messagingSenderId: "461016001656",
-  appId: "1:461016001656:web:76181eaa68e996b649918d",
-  measurementId: "G-ZTNQ49GK9W"
+  apiKey: "AIzaSyBGOuBBug0x-yHWlp6KuFBkc8YaFDnWH5M",
+  authDomain: "ffm-pln-1b75c.firebaseapp.com",
+  databaseURL: "https://ffm-pln-1b75c-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ffm-pln-1b75c",
+  storageBucket: "ffm-pln-1b75c.firebasestorage.app",
+  messagingSenderId: "1044691512722",
+  appId: "1:1044691512722:web:3638c4e44bdf7b612e254b",
+  measurementId: "G-L3WGKSVG2L"
 };
 
 let app, db;
@@ -949,7 +974,10 @@ async function flushOfflineQueue() {
     }
   }
   flushingQueue = false;
-  if (sent > 0) addLog(`✓ ${sent} data tersimpan offline berhasil disinkronkan ke server`, 'ok');
+  if (sent > 0) {
+    addLog(`✓ ${sent} data tersimpan offline berhasil disinkronkan ke server`, 'ok');
+    if (currentUser && currentUser.absensi) renderAbsensiTerakhir(true);
+  }
   updateConnUI();
 }
 // Helper umum: kirim data penting (absensi/laporan) — kalau offline atau gagal,
@@ -1036,6 +1064,10 @@ window.doLogout = function() {
     tugasTarget = 0;
     tugasSelesai = 0;
     laporTugasList = [];
+    document.getElementById('at-lokasi').textContent = '—';
+    document.getElementById('at-waktu').textContent = 'Belum ada data absensi';
+    document.getElementById('at-gps').textContent = '—';
+    document.getElementById('at-foto').style.display = 'none';
     document.getElementById('send-count').textContent = '0';
     document.getElementById('bottom-nav').style.display = 'none';
     showScreen('login');
@@ -1056,6 +1088,28 @@ window.showScreen = showScreen;
 // atau kendala teknis lain (kirim data gagal terus-menerus). Lihat
 // applyOfflineOverride() di bawah. Petugas hanya bisa memilih:
 // Aktif Bekerja, Perjalanan, atau Standby.
+// ── Kartu ringkasan "Absensi Terakhir" ──────────────────
+// Menampilkan lokasi/waktu/foto absensi terbaru petugas, plus status apakah
+// datanya sudah tersinkron ke server atau masih tersimpan lokal (offline).
+function renderAbsensiTerakhir(tersinkron) {
+  if (!currentUser || !currentUser.absensi) return;
+  const a = currentUser.absensi;
+  const fotoEl = document.getElementById('at-foto');
+  if (a.fotoBase64) { fotoEl.src = a.fotoBase64; fotoEl.style.display = 'block'; }
+  document.getElementById('at-lokasi').textContent = a.lokasi || '—';
+  document.getElementById('at-waktu').textContent = new Date(a.waktu).toLocaleString('id-ID', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short' });
+  document.getElementById('at-gps').textContent = a.lat.toFixed(5) + ', ' + a.lng.toFixed(5) + ' · ±' + a.acc + 'm';
+  const badge = document.getElementById('at-sync-badge');
+  if (tersinkron) {
+    badge.textContent = '✓ Tersimpan';
+    badge.style.background = 'var(--green-dim)'; badge.style.color = '#1A7A38'; badge.style.borderColor = 'var(--green-border)';
+  } else {
+    badge.textContent = '⏳ Lokal';
+    badge.style.background = 'var(--amber-dim)'; badge.style.color = 'var(--amber)'; badge.style.borderColor = 'var(--amber-border)';
+  }
+}
+window.renderAbsensiTerakhir = renderAbsensiTerakhir;
+
 function renderStatusUI(s) {
   document.getElementById('status-label').textContent = s;
   const map = {'Aktif Bekerja':'aktif','Perjalanan':'perjalanan','Standby':'standby','Offline':'offline'};
@@ -1342,8 +1396,9 @@ window.submitAbsensi = async function() {
     fotoBase64
   };
 
+  let absensiTersinkron = false;
   if (currentUser) {
-    await safeSet('absensi/' + currentUser.id + '_' + waktu, {
+    absensiTersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
       nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
       lokasi: absenLokasi,
       lat: currentUser.absensi.lat, lng: currentUser.absensi.lng, acc: currentUser.absensi.acc,
@@ -1354,6 +1409,7 @@ window.submitAbsensi = async function() {
   if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
   addLog('Absensi berhasil di ' + absenLokasi, 'ok');
   showScreen('tracking');
+  renderAbsensiTerakhir(absensiTersinkron);
   manualStatus = 'Standby';
   currentStatus = isOnline ? 'Standby' : 'Offline';
   renderStatusUI(currentStatus);
@@ -1379,6 +1435,7 @@ window.bukaModalLapor = function() {
   document.getElementById('lapor-realisasi').value = '';
   laporFotoBefore = null; laporFotoAfter = null;
   resetSlotFoto('before'); resetSlotFoto('after');
+  restoreLaporDraft(); // pulihkan foto Before/After yang tersimpan sebelumnya, kalau ada
   document.getElementById('lapor-err').style.display = 'none';
   document.getElementById('modal-lapor').classList.add('active');
 };
@@ -1413,10 +1470,13 @@ window.cariTiket = async function() {
   }
 };
 
+function galleryBtnHTML(target) {
+  return '<button type="button" class="slot-gallery-btn" onclick="event.stopPropagation(); document.getElementById(\'file-' + target + '\').click()">🖼️</button>';
+}
 function resetSlotFoto(target) {
   const slot = document.getElementById('slot-' + target);
   slot.classList.remove('filled');
-  slot.innerHTML = '<span class="slot-icon">📷</span><span class="slot-label">' + (target === 'before' ? 'Sebelum (Before)' : 'Sesudah (After)') + '</span>';
+  slot.innerHTML = galleryBtnHTML(target) + '<span class="slot-icon">📷</span><span class="slot-label">' + (target === 'before' ? 'Sebelum (Before)' : 'Sesudah (After)') + '</span>';
 }
 
 window.bukaKameraLapor = async function(target) {
@@ -1475,11 +1535,66 @@ window.pakaiFotoLapor = function() {
 
   const slot = document.getElementById('slot-' + laporKameraTarget);
   slot.classList.add('filled');
-  slot.innerHTML = '<img src="' + laporFotoSementara + '"><span class="slot-label">' +
+  slot.innerHTML = galleryBtnHTML(laporKameraTarget) + '<img src="' + laporFotoSementara + '"><span class="slot-label">' +
     (laporKameraTarget === 'before' ? 'Sebelum ✓' : 'Sesudah ✓') + '</span>';
 
   document.getElementById('modal-kamera-lapor').classList.remove('active');
+  saveLaporDraft();
 };
+
+// Ambil foto dari galeri HP sebagai alternatif kamera langsung — berguna
+// kalau petugas mau lanjut kerja dulu baru upload foto Before/After belakangan.
+window.pilihFileLapor = function(target, inputEl) {
+  const file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function() {
+    const dataUrl = reader.result;
+    if (target === 'before') laporFotoBefore = dataUrl;
+    else laporFotoAfter = dataUrl;
+
+    const slot = document.getElementById('slot-' + target);
+    slot.classList.add('filled');
+    slot.innerHTML = galleryBtnHTML(target) + '<img src="' + dataUrl + '"><span class="slot-label">' +
+      (target === 'before' ? 'Sebelum ✓' : 'Sesudah ✓') + '</span>';
+    saveLaporDraft();
+    addLog('Foto ' + (target === 'before' ? 'Before' : 'After') + ' dipilih dari galeri', 'ok');
+  };
+  reader.onerror = function() { addLog('Gagal membaca foto dari galeri', 'err'); };
+  reader.readAsDataURL(file);
+  inputEl.value = ''; // reset supaya bisa pilih file yang sama lagi kalau perlu
+};
+
+// ── Draft foto laporan (before/after) — simpan ke localStorage supaya TIDAK
+// hilang walau aplikasi/HP ditutup di antara ambil foto Before dan After
+// (mis. petugas ambil Before, lalu kerja berjam-jam, baru sempat ambil After) ──
+const LAPOR_DRAFT_KEY = 'ffm_lapor_draft_v1';
+function saveLaporDraft() {
+  try {
+    localStorage.setItem(LAPOR_DRAFT_KEY, JSON.stringify({ before: laporFotoBefore, after: laporFotoAfter, ts: Date.now() }));
+  } catch (e) { /* storage penuh, abaikan */ }
+}
+function clearLaporDraft() {
+  try { localStorage.removeItem(LAPOR_DRAFT_KEY); } catch (e) {}
+}
+function restoreLaporDraft() {
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(LAPOR_DRAFT_KEY) || 'null'); } catch (e) {}
+  if (!draft) return;
+  if (draft.before) {
+    laporFotoBefore = draft.before;
+    const slot = document.getElementById('slot-before');
+    slot.classList.add('filled');
+    slot.innerHTML = galleryBtnHTML('before') + '<img src="' + draft.before + '"><span class="slot-label">Sebelum ✓</span>';
+  }
+  if (draft.after) {
+    laporFotoAfter = draft.after;
+    const slot = document.getElementById('slot-after');
+    slot.classList.add('filled');
+    slot.innerHTML = galleryBtnHTML('after') + '<img src="' + draft.after + '"><span class="slot-label">Sesudah ✓</span>';
+  }
+  if (draft.before || draft.after) addLog('Foto laporan tersimpan sebelumnya berhasil dipulihkan', 'info');
+}
 
 window.submitLaporan = async function() {
   const errEl  = document.getElementById('lapor-err');
@@ -1548,6 +1663,7 @@ window.submitLaporan = async function() {
   laporan.fotoBefore = fotoBeforeB64;
   laporan.fotoAfter  = fotoAfterB64;
   laporTugasList.unshift(laporan);
+  clearLaporDraft();
   updateProgres();
   renderTaskList();
   document.getElementById('modal-lapor').classList.remove('active');
