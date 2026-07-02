@@ -298,6 +298,18 @@ body {
 .camera-actions { display:flex; gap:8px; }
 .camera-actions .btn { flex:1; }
 
+/* ── Kompak: dipakai di modal absen cepat (Perjalanan/Aktif Bekerja/Selesai) — box
+   penuh 3:4 terlalu tinggi untuk modal sheet, jadi dibuat lebih pendek ── */
+.camera-box-compact { aspect-ratio: 4/3; }
+.ac-gps-chip {
+  display:inline-flex; align-items:center; gap:6px;
+  background: var(--surface2); border: 1px solid var(--border-str);
+  border-radius: 99px; padding: 6px 12px;
+  font-size: 11px; font-weight: 600; color: var(--text-sec);
+  font-family: 'SF Mono','Fira Code',monospace;
+  margin-bottom: 10px;
+}
+
 /* ── GPS PANEL ── */
 .gps-panel {
   background: var(--surface2); border-radius: 12px;
@@ -947,14 +959,14 @@ body {
       <h3 id="ac-title">Absen</h3>
       <button class="modal-close" onclick="tutupAbsenCepat()">✕</button>
     </div>
-    <div style="font-size:11.5px; color:var(--text-sec); margin-bottom:12px; line-height:1.5" id="ac-desc"></div>
-    <div class="camera-box" id="ac-camera-box">
+    <div style="font-size:11.5px; color:var(--text-sec); margin-bottom:10px; line-height:1.5" id="ac-desc"></div>
+    <div class="ac-gps-chip" id="ac-gps-chip">📍 Mencari lokasi GPS...</div>
+    <div class="camera-box camera-box-compact" id="ac-camera-box">
       <div class="cam-placeholder" id="ac-cam-placeholder">
-        <span class="cam-icon">📷</span>Ketuk untuk buka kamera selfie
+        <span class="cam-icon">📷</span>Ketuk tombol di bawah untuk buka kamera selfie
       </div>
       <video id="ac-video" playsinline autoplay muted style="display:none"></video>
       <img id="ac-photo-preview" style="display:none">
-      <div class="cam-badge" id="ac-gps-badge">GPS: —</div>
     </div>
     <div class="camera-actions">
       <button class="btn btn-ghost btn-sm"   id="ac-btn-cam"    onclick="bukaKameraCepat()">📷 Buka Kamera</button>
@@ -1038,7 +1050,8 @@ let sendTimer = null;
 let tugasTarget = 0;   // bisa diisi otomatis dari data tiket
 let tugasSelesai = 0;
 let lastPos = null;
-let absenAktifBekerjaDone = false; // reset tiap login — absen selfie "Mulai Kerja Aktif" cukup sekali per shift
+let absenAktifBekerjaDone = false; // reset tiap login — absen selfie "Aktif Bekerja" cukup sekali per shift
+let absenPerjalananDone = false;   // reset tiap login — absen selfie "Perjalanan" cukup sekali per shift
 
 // ── Offline queue (blank spot / sinyal jelek) ────────────
 // Titik GPS & event status yang gagal terkirim disimpan di localStorage,
@@ -1256,6 +1269,7 @@ function finalizeLogout() {
   tugasSelesai = 0;
   laporTugasList = [];
   absenAktifBekerjaDone = false;
+  absenPerjalananDone = false;
   resetAbsensiTerakhir();
   document.getElementById('send-count').textContent = '0';
   document.getElementById('bottom-nav').style.display = 'none';
@@ -1353,9 +1367,13 @@ function pushStatus(s) {
 // Dipanggil dari tap kartu status oleh petugas (Aktif Bekerja / Perjalanan / Standby saja)
 window.setStatus = function(s) {
   if (s === 'Offline') return; // dijaga: offline tidak bisa dipilih manual
-  // Transisi PERTAMA ke "Aktif Bekerja" dalam satu shift wajib absen selfie +
-  // GPS sebagai bukti mulai kerja. Transisi berikutnya (mis. balik dari
-  // Perjalanan/Standby ke Aktif Bekerja lagi) tidak perlu selfie ulang.
+  // Transisi PERTAMA ke "Perjalanan" atau "Aktif Bekerja" dalam satu shift wajib
+  // absen selfie + GPS sebagai bukti tiap fase. Transisi berikutnya ke fase yang
+  // sama (mis. balik lagi ke Aktif Bekerja) tidak perlu selfie ulang.
+  if (s === 'Perjalanan' && !absenPerjalananDone) {
+    bukaAbsenCepat('perjalanan', () => { absenPerjalananDone = true; applyStatusChange(s); });
+    return;
+  }
   if (s === 'Aktif Bekerja' && !absenAktifBekerjaDone) {
     bukaAbsenCepat('aktif', () => { absenAktifBekerjaDone = true; applyStatusChange(s); });
     return;
@@ -1627,7 +1645,7 @@ window.submitAbsensi = async function() {
   if (currentUser) {
     absensiTersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
       nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
-      lokasi: absenLokasi,
+      fase: 'Standby', lokasi: absenLokasi,
       lat: currentUser.absensi.lat, lng: currentUser.absensi.lng, acc: currentUser.absensi.acc,
       waktu, fotoBase64
     }, 'Absensi');
@@ -1636,7 +1654,8 @@ window.submitAbsensi = async function() {
   if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
   addLog('Absensi berhasil di ' + absenLokasi, 'ok');
   showScreen('tracking');
-  absenAktifBekerjaDone = false; // shift baru dimulai — absen "Mulai Kerja Aktif" wajib lagi
+  absenAktifBekerjaDone = false; // shift baru dimulai — absen ulang wajib tiap fase
+  absenPerjalananDone = false;
   addAbsensiEntry(currentUser.absensi, absensiTersinkron, absenLokasi);
   manualStatus = 'Standby';
   currentStatus = isOnline ? 'Standby' : 'Offline';
@@ -1648,18 +1667,22 @@ window.submitAbsensi = async function() {
 
 // ════════════════════════════════════════════════════════
 // ABSEN CEPAT — checkpoint selfie+GPS di tengah shift, dipakai untuk
-// "Mulai Kerja Aktif" (sekali per shift) dan "Selesai Bertugas" (tiap logout).
-// Tidak ada pilihan lokasi seperti absen awal — cukup selfie + GPS.
+// "Perjalanan", "Aktif Bekerja" (sekali per shift masing-masing), dan
+// "Selesai Bertugas" (tiap logout). Tidak ada pilihan lokasi seperti absen
+// awal — cukup selfie + GPS. Nilai `label` di bawah HARUS sama persis dengan
+// nama fase di dashboard supervisor (index.html: FASE_ORDER), supaya log
+// per-fase (waktu + foto) muncul benar di sana.
 // ════════════════════════════════════════════════════════
-let acPurpose = null;      // 'aktif' | 'selesai'
+let acPurpose = null;      // 'perjalanan' | 'aktif' | 'selesai'
 let acOnSuccess = null;    // callback dijalankan setelah absen berhasil disimpan
 let acStream = null;
 let acPos = null;
 let acFotoDataUrl = null;
 
 const AC_CONFIG = {
-  aktif:   { title: 'Absen Mulai Kerja Aktif', desc: 'Ambil selfie + kunci GPS untuk menandai kamu mulai mengeksekusi penugasan.', label: 'Mulai Kerja Aktif' },
-  selesai: { title: 'Absen Selesai Bertugas',  desc: 'Ambil selfie + kunci GPS sebagai bukti penutupan tugas hari ini.',         label: 'Selesai Bertugas' }
+  perjalanan: { title: 'Absen Perjalanan',        desc: 'Ambil selfie + kunci GPS untuk menandai kamu berangkat menuju lokasi tugas.',   label: 'Perjalanan' },
+  aktif:      { title: 'Absen Mulai Kerja Aktif', desc: 'Ambil selfie + kunci GPS untuk menandai kamu mulai mengeksekusi penugasan.',     label: 'Aktif Bekerja' },
+  selesai:    { title: 'Absen Selesai Bertugas',  desc: 'Ambil selfie + kunci GPS sebagai bukti penutupan tugas hari ini.',               label: 'Selesai' }
 };
 
 window.bukaAbsenCepat = function(purpose, onSuccess) {
@@ -1679,8 +1702,7 @@ window.bukaAbsenCepat = function(purpose, onSuccess) {
   document.getElementById('ac-btn-cam').style.display = 'block';
   document.getElementById('ac-btn-shoot').style.display = 'none';
   document.getElementById('ac-btn-retake').style.display = 'none';
-  document.getElementById('ac-gps-badge').style.display = 'block';
-  document.getElementById('ac-gps-badge').textContent = 'GPS: —';
+  document.getElementById('ac-gps-chip').textContent = '📍 Mencari lokasi GPS...';
   document.getElementById('ac-lat').textContent = '—';
   document.getElementById('ac-lng').textContent = '—';
   document.getElementById('ac-gps-status').textContent = 'Mencari lokasi GPS...';
@@ -1707,7 +1729,7 @@ function startAbsenCepatGPS() {
     document.getElementById('ac-lng').textContent = lng.toFixed(6);
     document.getElementById('ac-gps-status').textContent =
       '✓ Akurasi ' + Math.round(acc) + ' m · ' + (acc < 30 ? 'Baik' : 'Rendah, coba di area terbuka');
-    document.getElementById('ac-gps-badge').textContent = 'GPS: ' + lat.toFixed(4) + ', ' + lng.toFixed(4);
+    document.getElementById('ac-gps-chip').textContent = '📍 ' + lat.toFixed(4) + ', ' + lng.toFixed(4) + ' · ±' + Math.round(acc) + 'm';
   }, (err) => {
     document.getElementById('ac-gps-status').textContent = 'Gagal ambil GPS: ' + err.message;
   }, { enableHighAccuracy: true, timeout: 15000 });
@@ -1801,7 +1823,7 @@ window.submitAbsenCepat = async function() {
   if (currentUser) {
     tersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
       nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
-      jenis: AC_CONFIG[acPurpose].label,
+      fase: AC_CONFIG[acPurpose].label,
       lat: entry.lat, lng: entry.lng, acc: entry.acc,
       waktu, fotoBase64
     }, 'Absensi');
