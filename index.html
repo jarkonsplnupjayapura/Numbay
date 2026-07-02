@@ -404,6 +404,44 @@ body {
   font-family: var(--mono);
 }
 
+/* ══════════════════════════════════════
+   PAGINATION — tabel Data Inspeksi Lengkap
+══════════════════════════════════════ */
+.pagination-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.pagination-info { font-size: 12px; color: var(--text-2); }
+.pagination-info b { color: var(--text-1); font-family: var(--mono); font-weight: 700; }
+.pagination-controls { display: flex; align-items: center; gap: 6px; }
+.pg-btn {
+  border: 1px solid var(--line); background: var(--surface);
+  border-radius: var(--radius-xs); width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--text-2);
+  cursor: pointer; transition: all 0.15s var(--ease); font-family: var(--font);
+}
+.pg-btn:hover:not(:disabled) { border-color: var(--pln-blue); color: var(--pln-blue); background: var(--info-bg); }
+.pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.pg-btn.active { background: var(--pln-blue); color: #fff; border-color: var(--pln-blue); }
+.pg-jump {
+  display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2);
+  margin-left: 6px; padding-left: 10px; border-left: 1px solid var(--line);
+}
+.pg-jump input {
+  width: 46px; height: 30px; text-align: center; font-size: 12px;
+  border: 1px solid var(--line); border-radius: var(--radius-xs); outline: none;
+  font-family: var(--mono); background: var(--surface-2);
+}
+.pg-jump input:focus { border-color: var(--pln-blue-light); background: var(--surface); }
+.pg-size {
+  height: 30px; border: 1px solid var(--line); border-radius: var(--radius-xs);
+  padding: 0 8px; font-size: 12px; color: var(--text-2); background: var(--surface);
+  font-family: var(--font); cursor: pointer;
+}
+
 .beranda-hint {
   color: var(--text-2); font-size: 14px;
   padding: 22px; background: var(--surface); border: 1px solid var(--line);
@@ -622,6 +660,13 @@ tbody tr:hover td { background: var(--surface-2); }
 .confirm-icon.warn   { background: var(--warn-bg); color: var(--warn); }
 .confirm-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-1); margin-bottom: 6px; }
 .confirm-msg   { font-size: 13px; color: var(--text-2); line-height: 1.55; margin-bottom: 22px; }
+.confirm-input {
+  width: 100%; box-sizing: border-box; margin: -10px 0 22px;
+  border: 1.5px solid var(--line-strong); border-radius: var(--radius-xs);
+  padding: 11px 13px; font-size: 15px; letter-spacing: 3px; text-align: center;
+  font-family: var(--mono); outline: none; transition: border-color 0.18s var(--ease);
+}
+.confirm-input:focus { border-color: var(--pln-blue-light); }
 .confirm-actions { display: flex; gap: 10px; }
 .confirm-actions button {
   flex: 1; padding: 11px; border-radius: var(--radius-xs); font-size: 13px; font-weight: 700;
@@ -767,6 +812,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
     <div class="confirm-icon" id="confirm-icon">⚠️</div>
     <div class="confirm-title" id="confirm-title">Konfirmasi</div>
     <div class="confirm-msg" id="confirm-msg"></div>
+    <input type="text" id="confirm-input" class="confirm-input" style="display:none" autocomplete="off">
     <div class="confirm-actions">
       <button class="confirm-btn-cancel" id="confirm-btn-cancel">Batal</button>
       <button class="confirm-btn-ok" id="confirm-btn-ok">Ya, Lanjutkan</button>
@@ -1000,6 +1046,27 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               </thead>
               <tbody id="tableBody"></tbody>
             </table>
+          </div>
+        </div>
+        <div class="pagination-bar" id="tablePagination">
+          <div class="pagination-info" id="pgInfo">—</div>
+          <div class="pagination-controls">
+            <select class="pg-size" id="pgSize" onchange="onPageSizeChange()">
+              <option value="50">50 / halaman</option>
+              <option value="100" selected>100 / halaman</option>
+              <option value="250">250 / halaman</option>
+              <option value="500">500 / halaman</option>
+            </select>
+            <button class="pg-btn" id="pgFirst" onclick="goToPage(1)" title="Halaman pertama">«</button>
+            <button class="pg-btn" id="pgPrev" onclick="goToPage(tablePage-1)" title="Sebelumnya">‹</button>
+            <span id="pgNumbers" style="display:flex;gap:6px"></span>
+            <button class="pg-btn" id="pgNext" onclick="goToPage(tablePage+1)" title="Berikutnya">›</button>
+            <button class="pg-btn" id="pgLast" onclick="goToPage(tableTotalPages)" title="Halaman terakhir">»</button>
+            <div class="pg-jump">
+              Ke hal.
+              <input type="number" id="pgJumpInput" min="1" onkeydown="if(event.key==='Enter') jumpToPage()">
+              <button class="pg-btn" onclick="jumpToPage()" title="Pergi">→</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1495,6 +1562,7 @@ function confirmDialog(message, { title = 'Konfirmasi', okLabel = 'Ya, Lanjutkan
 
     titleEl.textContent = title;
     msgEl.textContent = message;
+    document.getElementById('confirm-input').style.display = 'none';
     icon.textContent = danger ? '⚠️' : 'ℹ️';
     icon.className = 'confirm-icon ' + (danger ? 'danger' : 'warn');
     btnOk.textContent = okLabel;
@@ -1513,6 +1581,50 @@ function confirmDialog(message, { title = 'Konfirmasi', okLabel = 'Ya, Lanjutkan
     document.addEventListener('keydown', onKey);
 
     overlay.style.display = 'flex';
+  });
+}
+
+// Modal input berbasis Promise, menggantikan prompt() bawaan browser.
+// Pemakaian: const pin = await promptDialog('Masukkan PIN Admin:'); if (pin === null) return; // dibatalkan
+function promptDialog(message, { title = 'Masukkan Data', okLabel = 'OK', inputType = 'password', placeholder = '' } = {}) {
+  return new Promise((resolve) => {
+    const overlay  = document.getElementById('confirm-overlay');
+    const icon     = document.getElementById('confirm-icon');
+    const titleEl  = document.getElementById('confirm-title');
+    const msgEl    = document.getElementById('confirm-msg');
+    const inputEl  = document.getElementById('confirm-input');
+    const btnOk    = document.getElementById('confirm-btn-ok');
+    const btnCancel= document.getElementById('confirm-btn-cancel');
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    icon.textContent = '🔒';
+    icon.className = 'confirm-icon warn';
+    btnOk.textContent = okLabel;
+    btnOk.className = 'confirm-btn-ok warn';
+    inputEl.type = inputType;
+    inputEl.placeholder = placeholder;
+    inputEl.value = '';
+    inputEl.style.display = 'block';
+
+    const cleanup = (result) => {
+      overlay.style.display = 'none';
+      inputEl.style.display = 'none';
+      btnOk.onclick = null; btnCancel.onclick = null;
+      inputEl.onkeydown = null;
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    };
+    const submit = () => cleanup(inputEl.value);
+    const onKey = (e) => { if (e.key === 'Escape') cleanup(null); };
+    btnOk.onclick = submit;
+    btnCancel.onclick = () => cleanup(null);
+    inputEl.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+    overlay.onclick = (e) => { if (e.target === overlay) cleanup(null); };
+    document.addEventListener('keydown', onKey);
+
+    overlay.style.display = 'flex';
+    setTimeout(() => inputEl.focus(), 50);
   });
 }
 
@@ -1864,21 +1976,40 @@ function updateCharts() {
   });
 }
 
-function updateTable() {
-  const tbody = document.getElementById('tableBody');
+let tableSorted = [];      // hasil filter yang sudah diurutkan, dipakai ulang tiap ganti halaman
+let tablePage = 1;
+let tablePageSize = 100;
+let tableTotalPages = 1;
+
+function updateTable(resetPage = true) {
   document.getElementById('tableCount').textContent = filteredData.length.toLocaleString('id-ID') + ' baris';
 
-  if (filteredData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty">Tidak ada data sesuai filter</td></tr>';
-    return;
-  }
-
-  const sorted = filteredData.slice().sort((a, b) => {
+  tableSorted = filteredData.slice().sort((a, b) => {
     const da = a['Tanggal'] ? new Date(String(a['Tanggal']).slice(0,10)) : new Date(0);
     const db = b['Tanggal'] ? new Date(String(b['Tanggal']).slice(0,10)) : new Date(0);
     return db - da;
   });
-  const shown = sorted.slice(0, 500);
+
+  if (resetPage) tablePage = 1;
+  renderTablePage();
+}
+
+function renderTablePage() {
+  const tbody = document.getElementById('tableBody');
+
+  if (tableSorted.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">Tidak ada data sesuai filter</td></tr>';
+    document.getElementById('tablePagination').style.display = 'none';
+    return;
+  }
+  document.getElementById('tablePagination').style.display = 'flex';
+
+  tableTotalPages = Math.max(1, Math.ceil(tableSorted.length / tablePageSize));
+  tablePage = Math.min(Math.max(1, tablePage), tableTotalPages);
+
+  const start = (tablePage - 1) * tablePageSize;
+  const shown = tableSorted.slice(start, start + tablePageSize);
+
   tbody.innerHTML = shown.map(r => {
     const tanggal  = r['Tanggal'] ? String(r['Tanggal']).slice(0,10) : '—';
     const jenis    = r._jenis === 'Inspeksi JTM' ? '<span class="badge badge-blue"><span class="badge-dot"></span>JTM</span>' : '<span class="badge badge-gray"><span class="badge-dot"></span>Gardu</span>';
@@ -1901,10 +2032,58 @@ function updateTable() {
     </tr>`;
   }).join('');
 
-  if (filteredData.length > 500) {
-    tbody.innerHTML += `<tr><td colspan="9" style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px">Menampilkan 500 dari ${filteredData.length} baris. Gunakan filter untuk mempersempit.</td></tr>`;
-  }
+  document.getElementById('tableBody').closest('.table-container').scrollTop = 0;
+  renderPaginationControls();
 }
+
+function renderPaginationControls() {
+  const start = (tablePage - 1) * tablePageSize + 1;
+  const end   = Math.min(tablePage * tablePageSize, tableSorted.length);
+  document.getElementById('pgInfo').innerHTML =
+    `Menampilkan <b>${start.toLocaleString('id-ID')}–${end.toLocaleString('id-ID')}</b> dari <b>${tableSorted.length.toLocaleString('id-ID')}</b> baris`;
+
+  document.getElementById('pgFirst').disabled = tablePage <= 1;
+  document.getElementById('pgPrev').disabled  = tablePage <= 1;
+  document.getElementById('pgNext').disabled  = tablePage >= tableTotalPages;
+  document.getElementById('pgLast').disabled  = tablePage >= tableTotalPages;
+
+  // Nomor halaman: current ± 2, plus halaman pertama/terakhir dengan "…" kalau ada jarak.
+  const nums = [];
+  const addNum = (n) => nums.push(n);
+  const windowStart = Math.max(1, tablePage - 2);
+  const windowEnd   = Math.min(tableTotalPages, tablePage + 2);
+  if (windowStart > 1) { addNum(1); if (windowStart > 2) nums.push('…'); }
+  for (let n = windowStart; n <= windowEnd; n++) addNum(n);
+  if (windowEnd < tableTotalPages) { if (windowEnd < tableTotalPages - 1) nums.push('…'); addNum(tableTotalPages); }
+
+  document.getElementById('pgNumbers').innerHTML = nums.map(n =>
+    n === '…'
+      ? `<span style="padding:0 4px;color:var(--text-3);font-size:12px">…</span>`
+      : `<button class="pg-btn${n===tablePage?' active':''}" onclick="goToPage(${n})">${n}</button>`
+  ).join('');
+
+  document.getElementById('pgJumpInput').value = '';
+  document.getElementById('pgJumpInput').placeholder = String(tablePage);
+}
+
+window.goToPage = function(n) {
+  n = Math.min(Math.max(1, n), tableTotalPages);
+  if (n === tablePage) return;
+  tablePage = n;
+  renderTablePage();
+};
+
+window.jumpToPage = function() {
+  const val = parseInt(document.getElementById('pgJumpInput').value, 10);
+  if (!val || val < 1) return;
+  goToPage(val);
+};
+
+window.onPageSizeChange = function() {
+  tablePageSize = parseInt(document.getElementById('pgSize').value, 10);
+  tablePage = 1;
+  renderTablePage();
+};
 
 function switchView(view) {
   const allViews = ['viewBeranda','viewMap','viewTable','viewPetugas','viewAbsensi','viewLaporan','viewTiket','viewVerifikasi','viewRekap','viewProgres'];
@@ -1998,7 +2177,7 @@ async function toggleAdminMode() {
     isAdminMode = false;
     sessionStorage.removeItem('ffm_admin');
   } else {
-    const pin = prompt('Masukkan PIN Admin untuk mengaktifkan tombol hapus data:');
+    const pin = await promptDialog('Masukkan PIN Admin untuk mengaktifkan tombol hapus data:', { title: 'Mode Admin', okLabel: 'Masuk', placeholder: '••••' });
     if (pin === null) return; // dibatalkan
     if (pin !== ADMIN_PIN) { showToast('PIN salah.', 'err'); return; }
     isAdminMode = true;
