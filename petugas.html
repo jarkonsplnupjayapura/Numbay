@@ -173,7 +173,7 @@ body {
   display: block; font-size: 12px; font-weight: 600;
   color: var(--text-sec); margin-bottom: 7px; letter-spacing: 0.1px;
 }
-.field input, .field select {
+.field input, .field select, .field textarea {
   width: 100%;
   background: var(--surface2);
   border: 1.5px solid rgba(0,61,130,0.11);
@@ -183,13 +183,26 @@ body {
   font-family: inherit; outline: none;
   -webkit-appearance: none; transition: border-color 0.2s, box-shadow 0.2s;
 }
-.field input::placeholder { color: var(--text-muted); }
-.field input:focus, .field select:focus {
+.field textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+.field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+.field input:focus, .field select:focus, .field textarea:focus {
   border-color: var(--pln-blue);
   box-shadow: 0 0 0 3px rgba(0,61,130,0.09);
   background: #fff;
 }
 .field select option { background: #fff; }
+.field input[disabled], .field select[disabled] {
+  background: var(--surface3); color: var(--text-sec); cursor: not-allowed; opacity: 0.9;
+}
+
+/* status kecil di bawah field akun (belum/berhasil verifikasi) */
+.akun-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; margin-top: 10px;
+  padding: 8px 12px; border-radius: 9px;
+}
+.akun-status.ok   { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+.akun-status.wait { background: var(--surface3); color: var(--text-muted); border: 1px solid var(--border-str); }
 
 /* ── BUTTONS ── */
 .btn {
@@ -629,9 +642,26 @@ body {
     </div>
   </div>
 
-  <!-- Identitas -->
+  <!-- 1. Akun Regu (username & password) -->
   <div class="card">
-    <div class="card-title">Identitas Petugas</div>
+    <div class="card-title">Akun Regu</div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="in-username" placeholder="Username regu..." autocomplete="username" autocapitalize="none">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="in-password" placeholder="Password..." autocomplete="current-password">
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" id="btn-verifikasi-akun" onclick="verifikasiAkun()">
+      <span>🔑</span> Masuk
+    </button>
+    <div class="akun-status wait" id="akun-status">Belum masuk — isi username &amp; password lalu tekan Masuk.</div>
+  </div>
+
+  <!-- 2. Identitas Petugas Hari Ini -->
+  <div class="card">
+    <div class="card-title">Identitas Petugas Hari Ini</div>
     <div class="field">
       <label>Nama Petugas</label>
       <input type="text" id="in-nama" placeholder="Nama petugas..." autocomplete="name">
@@ -640,28 +670,30 @@ body {
       <label>ID Petugas</label>
       <input type="text" id="in-nip" placeholder="NIP atau nomor ID..." inputmode="numeric">
     </div>
+    <div class="field">
+      <label>Anggota Regu Hari Ini</label>
+      <textarea id="in-anggota" rows="2" placeholder="Nama A, Nama B, Nama C"></textarea>
+    </div>
   </div>
 
-  <!-- Penempatan -->
+  <!-- 3. Penempatan -->
   <div class="card">
     <div class="card-title">Penempatan</div>
     <div class="field">
       <label>Regu / Tim</label>
-      <select id="in-regu">
-        <option value="">— Pilih regu —</option>
-        <option>Yantek 1</option><option>Yantek 2</option><option>Yantek 3</option>
-        <option>PDKB 1</option><option>PDKB 2</option>
-        <option>HAR 1</option><option>HAR 2</option>
-        <option>Tim ROW</option><option>Tim Gangguan</option>
-      </select>
+      <input type="text" id="in-regu" placeholder="— otomatis setelah masuk akun —" disabled>
     </div>
     <div class="field">
-      <label>ULP / Posko</label>
+      <label>Unit Kerja</label>
       <select id="in-ulp">
-        <option value="">— Pilih ULP —</option>
-        <option>ULP JAYAPURA</option><option>ULP ABEPURA</option>
-        <option>ULP SENTANI</option><option>ULP ARSO</option>
-        <option>ULP SARMI</option><option>ULP GENYEM</option>
+        <option value="">— Pilih unit kerja —</option>
+        <option>UP3 Jayapura</option>
+        <option>ULP Jayapura</option>
+        <option>ULP Abepura</option>
+        <option>ULP Sentani</option>
+        <option>ULP Arso</option>
+        <option>ULP Sarmi</option>
+        <option>ULP Genyem</option>
       </select>
     </div>
   </div>
@@ -1048,6 +1080,7 @@ let app, db;
 let watchId = null;
 let sendCount = 0;
 let currentUser = null;
+let akunTerverifikasi = null; // { username, regu } — hasil verifikasi username/password, di-set oleh verifikasiAkun()
 let currentStatus = 'Standby';   // status efektif yang tampil/terkirim (bisa 'Offline' otomatis)
 let manualStatus  = 'Standby';   // status terakhir yang dipilih petugas sendiri (bukan Offline)
 let sendTimer = null;
@@ -1056,6 +1089,45 @@ let tugasSelesai = 0;
 let lastPos = null;
 let absenAktifBekerjaDone = false; // reset tiap login — absen selfie "Aktif Bekerja" cukup sekali per shift
 let absenPerjalananDone = false;   // reset tiap login — absen selfie "Perjalanan" cukup sekali per shift
+let absensiTerakhirList = []; // riwayat kartu "Absensi Terakhir" hari ini — disimpan supaya bisa dipulihkan kalau app ditutup/di-kill
+
+// ══════════════════════════════════════════════════════════════
+// SESI TERSIMPAN (session persistence) — anti "app dibunuh sistem"
+// Masalah: sebelum ini, currentUser/status/progres/riwayat cuma ada di
+// memori JS. Begitu Android mematikan app (baterai/RAM/HP direstart),
+// semuanya kembali kosong walau data sudah terkirim ke server — petugas
+// harus login ulang dan progres kelihatan hilang total. Ini memperbaikinya:
+// setiap kali status penting berubah, seluruh state ditulis ke localStorage
+// (persisten di HP, bertahan walau app di-kill/di-swipe — beda dari
+// sessionStorage/variabel JS biasa). Saat app dibuka lagi, restoreSessionIfAny()
+// membaca kembali lalu melanjutkan tepat dari titik terakhir, TANPA login ulang.
+// Sesi otomatis kadaluarsa kalau beda hari (supaya tidak ada shift "hari ini"
+// yang nyangkut dari kemarin kalau petugas lupa logout).
+// ══════════════════════════════════════════════════════════════
+const SESSION_KEY = 'ffm_session_v1';
+
+function persistSession() {
+  if (!currentUser) { clearSession(); return; }
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      tanggal: new Date().toDateString(),
+      currentUser, currentStatus, manualStatus,
+      tugasTarget, tugasSelesai, laporTugasList,
+      absenAktifBekerjaDone, absenPerjalananDone,
+      sendCount, absensiTerakhirList, bgWatcherId
+    }));
+  } catch (e) { /* storage penuh/gagal — tidak fatal, sesi tetap jalan normal di memori */ }
+}
+function clearSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+}
+function loadSession() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) { s = null; }
+  if (!s || !s.currentUser) return null;
+  if (s.tanggal !== new Date().toDateString()) { clearSession(); return null; } // beda hari — jangan lanjutkan shift kemarin
+  return s;
+}
 
 // ── Offline queue (blank spot / sinyal jelek) ────────────
 // Titik GPS & event status yang gagal terkirim disimpan di localStorage,
@@ -1162,9 +1234,68 @@ try {
   addLog('Firebase terhubung', 'ok');
   updateConnUI();
   flushOfflineQueue();
+  seedUsersIfEmpty();
 } catch(e) {
   addLog('Firebase: ' + e.message, 'err');
   addLog('Mode demo — GPS tetap berjalan', 'info');
+}
+
+// ══════════════════════════════════════════════════════════════
+// AKUN REGU — 1 regu/tim = 1 akun login (username + password).
+// Data akun disimpan di Firebase path users/{username}, password
+// TIDAK disimpan plain text — hanya hash SHA-256-nya.
+// ══════════════════════════════════════════════════════════════
+
+// Daftar awal akun regu — dipakai HANYA sekali untuk mengisi Firebase
+// kalau node "users" masih kosong (instalasi pertama kali). Setelah itu,
+// perubahan/reset password dilakukan Supervisor langsung lewat Firebase,
+// bukan lewat kode ini lagi.
+const SEED_USERS = [
+  { username: 'row1',       password: '1234', regu: 'Tim ROW' },
+  { username: 'gangguan1',  password: '1234', regu: 'Tim Gangguan' },
+  { username: 'har1',       password: '1234', regu: 'HAR 1' },
+  { username: 'har2',       password: '1234', regu: 'HAR 2' },
+  { username: 'pdkb1',      password: '1234', regu: 'PDKB 1' },
+  { username: 'pdkb2',      password: '1234', regu: 'PDKB 2' },
+  { username: 'yantek1',    password: '1234', regu: 'Yantek 1' },
+  { username: 'yantek2',    password: '1234', regu: 'Yantek 2' },
+  { username: 'yantek3',    password: '1234', regu: 'Yantek 3' },
+];
+
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function seedUsersIfEmpty() {
+  if (!db) return;
+  try {
+    const snap = await get(ref(db, 'users'));
+    if (snap.exists()) return; // sudah ada data akun — jangan timpa
+    const writes = {};
+    for (const u of SEED_USERS) {
+      writes[u.username] = { username: u.username, passwordHash: await sha256Hex(u.password), regu: u.regu, aktif: true };
+    }
+    await update(ref(db, 'users'), writes);
+    addLog('Daftar akun regu awal berhasil dibuat di Firebase', 'ok');
+  } catch (e) {
+    addLog('Gagal membuat daftar akun awal: ' + e.message, 'warn');
+  }
+}
+
+// Verifikasi username/password terhadap users/{username}. Pesan error
+// sengaja SAMA untuk "username tidak ada" maupun "password salah" supaya
+// tidak membocorkan username mana yang valid.
+async function verifyAkunRegu(username, password) {
+  const uname = username.trim().toLowerCase();
+  if (!db) throw new Error('Tidak ada koneksi ke server. Coba lagi saat online.');
+  const snap = await get(ref(db, 'users/' + uname));
+  if (!snap.exists()) return null;
+  const data = snap.val();
+  if (!data.aktif) return null;
+  const hash = await sha256Hex(password);
+  if (hash !== data.passwordHash) return null;
+  return { username: uname, regu: data.regu };
 }
 
 // Kompres foto ke Base64 kecil agar muat & hemat kuota Realtime Database (plan gratis:
@@ -1356,22 +1487,71 @@ async function uploadFotoAman(dataUrl, folder, publicIdHint, opts = {}) {
   }
 }
 
+// ── VERIFIKASI AKUN REGU (username + password) ──────────
+window.verifikasiAkun = async function() {
+  const username = document.getElementById('in-username').value.trim();
+  const password = document.getElementById('in-password').value;
+  const statusEl = document.getElementById('akun-status');
+  const btn = document.getElementById('btn-verifikasi-akun');
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+
+  if (!username || !password) {
+    statusEl.className = 'akun-status wait';
+    statusEl.textContent = 'Username dan password wajib diisi.';
+    return;
+  }
+
+  const origLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Memeriksa...';
+  statusEl.className = 'akun-status wait';
+  statusEl.textContent = 'Memeriksa akun...';
+
+  try {
+    const akun = await verifyAkunRegu(username, password);
+    if (!akun) {
+      akunTerverifikasi = null;
+      document.getElementById('in-regu').value = '';
+      statusEl.className = 'akun-status wait';
+      statusEl.textContent = 'Username atau password salah.';
+      return;
+    }
+    akunTerverifikasi = akun;
+    document.getElementById('in-regu').value = akun.regu;
+    statusEl.className = 'akun-status ok';
+    statusEl.textContent = '✓ Terverifikasi sebagai ' + akun.regu;
+  } catch (e) {
+    statusEl.className = 'akun-status wait';
+    statusEl.textContent = 'Gagal memeriksa akun: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origLabel;
+  }
+};
+
 // ── LOGIN ──────────────────────────────────────────────
 window.doLogin = function() {
-  const nama = document.getElementById('in-nama').value.trim();
-  const nip  = document.getElementById('in-nip').value.trim();
-  const regu = document.getElementById('in-regu').value;
-  const ulp  = document.getElementById('in-ulp').value;
-  const errEl = document.getElementById('login-err');
+  const nama     = document.getElementById('in-nama').value.trim();
+  const nip      = document.getElementById('in-nip').value.trim();
+  const anggota  = document.getElementById('in-anggota').value.trim();
+  const ulp      = document.getElementById('in-ulp').value;
+  const errEl    = document.getElementById('login-err');
 
-  if (!nama || !nip || !regu || !ulp) {
+  if (!akunTerverifikasi) {
+    errEl.textContent = 'Masuk dengan username & password akun regu terlebih dahulu.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!nama || !nip || !ulp) {
     errEl.textContent = 'Semua field wajib diisi.';
     errEl.style.display = 'block';
     return;
   }
   errEl.style.display = 'none';
 
-  currentUser = { nama, nip, regu, ulp,
+  const regu = akunTerverifikasi.regu;
+  currentUser = { nama, nip, regu, ulp, anggotaHadir: anggota, username: akunTerverifikasi.username,
     id: nip.replace(/\W/g,'') + '_' + Date.now().toString(36) };
 
   document.getElementById('prof-nama').textContent = nama;
@@ -1379,6 +1559,7 @@ window.doLogin = function() {
 
   showScreen('absensi');
   addLog('Login: ' + nama + ' (' + regu + ')', 'ok');
+  persistSession(); // simpan identitas sekarang juga — kalau app ke-kill di tengah absen awal, tidak perlu isi ulang nama/NIP/regu/ULP
   startAbsensiGPS();
 };
 
@@ -1396,6 +1577,7 @@ function finalizeLogout() {
   currentStatus = 'Offline';
   pushStatus('Offline');
   currentUser = null;
+  akunTerverifikasi = null;
   sendCount = 0;
   tugasTarget = 0;
   tugasSelesai = 0;
@@ -1403,8 +1585,19 @@ function finalizeLogout() {
   absenAktifBekerjaDone = false;
   absenPerjalananDone = false;
   resetAbsensiTerakhir();
+  clearSession(); // shift resmi selesai — hapus sesi tersimpan supaya TIDAK auto-login lagi saat app dibuka berikutnya
   document.getElementById('send-count').textContent = '0';
   document.getElementById('bottom-nav').style.display = 'none';
+  // reset form login supaya akun/sesi shift berikutnya wajib verifikasi ulang
+  document.getElementById('in-username').value = '';
+  document.getElementById('in-password').value = '';
+  document.getElementById('in-nama').value = '';
+  document.getElementById('in-nip').value = '';
+  document.getElementById('in-anggota').value = '';
+  document.getElementById('in-regu').value = '';
+  document.getElementById('in-ulp').value = '';
+  document.getElementById('akun-status').className = 'akun-status wait';
+  document.getElementById('akun-status').textContent = 'Belum masuk — isi username & password lalu tekan Masuk.';
   showScreen('login');
   addLog('Logout — tracking dihentikan', 'info');
 }
@@ -1427,11 +1620,11 @@ window.showScreen = showScreen;
 // Aktif, lalu Selesai Bertugas), ditambahkan berurutan ke bawah — bukan
 // menimpa entri sebelumnya. Tiap entri: foto, label, waktu, GPS, status sinkron.
 let lastAbsensiBadgeEl = null;
-function addAbsensiEntry(a, tersinkron, label) {
+// Membangun elemen DOM satu baris riwayat absen — dipakai baik saat entri BARU
+// ditambahkan langsung (addAbsensiEntry) maupun saat memulihkan riwayat lama
+// dari sesi tersimpan (restoreAbsensiTerakhirUI), supaya tampilannya identik.
+function buatEntriAbsensiDOM(a, tersinkron, label) {
   const list = document.getElementById('at-list');
-  const empty = document.getElementById('at-empty');
-  if (empty) empty.style.display = 'none';
-
   const item = document.createElement('div');
   item.style.cssText = 'display:flex; gap:12px; align-items:center; padding-top:12px; border-top:1px solid var(--border-str)';
   if (!list.querySelector('.at-item')) item.style.borderTop = 'none'; // entri pertama tanpa garis pembatas
@@ -1457,8 +1650,17 @@ function addAbsensiEntry(a, tersinkron, label) {
       ? 'background:var(--green-dim); color:#1A7A38; border:1px solid var(--green-border)'
       : 'background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber-border)'}">${badgeOk ? '✓ Tersimpan' : '⏳ Lokal'}</div>
   `;
+  return item;
+}
+function addAbsensiEntry(a, tersinkron, label) {
+  const list = document.getElementById('at-list');
+  const empty = document.getElementById('at-empty');
+  if (empty) empty.style.display = 'none';
+  const item = buatEntriAbsensiDOM(a, tersinkron, label);
   list.appendChild(item);
   lastAbsensiBadgeEl = item.querySelector('.at-item-badge');
+  absensiTerakhirList.push({ a, tersinkron, label }); // simpan datanya, bukan cuma tampilkan — supaya bisa dipulihkan
+  persistSession();
 }
 function markLastAbsensiTersinkron() {
   if (!lastAbsensiBadgeEl) return;
@@ -1466,11 +1668,28 @@ function markLastAbsensiTersinkron() {
   lastAbsensiBadgeEl.style.background = 'var(--green-dim)';
   lastAbsensiBadgeEl.style.color = '#1A7A38';
   lastAbsensiBadgeEl.style.borderColor = 'var(--green-border)';
+  const lastEntry = absensiTerakhirList[absensiTerakhirList.length - 1];
+  if (lastEntry) lastEntry.tersinkron = true;
+  persistSession();
 }
 function resetAbsensiTerakhir() {
   const list = document.getElementById('at-list');
   list.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:6px 0" id="at-empty">Belum ada data absensi</div>';
   lastAbsensiBadgeEl = null;
+  absensiTerakhirList = [];
+}
+// Menggambar ulang seluruh riwayat "Absensi Terakhir" dari data tersimpan —
+// dipakai saat sesi dipulihkan setelah app dibuka lagi.
+function restoreAbsensiTerakhirUI(list) {
+  if (!list || list.length === 0) return;
+  const empty = document.getElementById('at-empty');
+  if (empty) empty.style.display = 'none';
+  const wrap = document.getElementById('at-list');
+  list.forEach(entry => {
+    const item = buatEntriAbsensiDOM(entry.a, entry.tersinkron, entry.label);
+    wrap.appendChild(item);
+    lastAbsensiBadgeEl = item.querySelector('.at-item-badge');
+  });
 }
 
 function renderStatusUI(s) {
@@ -1521,6 +1740,7 @@ function applyStatusChange(s) {
   if (!isOnline) {
     addLog('Status dipilih: ' + s + ' (akan aktif setelah koneksi pulih)', 'warn');
     enqueueOffline({ type:'status', uid: currentUser ? currentUser.id : 'anon', payload:{ status:s } });
+    persistSession();
     return;
   }
   currentStatus = s;
@@ -1528,6 +1748,7 @@ function applyStatusChange(s) {
   pushStatus(s);
   addLog('Status: ' + s, 'info');
   if (lastPos) pushLocation(lastPos);
+  persistSession();
 };
 
 // Dipanggil otomatis saat koneksi/teknis berubah — BUKAN aksi petugas.
@@ -1545,6 +1766,7 @@ function applyOfflineOverride(isOff) {
     addLog('Status kembali otomatis: ' + manualStatus, 'ok');
     if (lastPos) pushLocation(lastPos);
   }
+  persistSession();
 }
 
 // ── GPS ───────────────────────────────────────────────
@@ -1587,6 +1809,7 @@ async function startGPS() {
           onPosNative(location);
         }
       );
+      persistSession(); // simpan id watcher — supaya kalau app reload, watcher lama ini bisa dibersihkan dulu (anti dobel jalan)
       addLog('GPS tracking (background service) dimulai', 'ok');
     } catch (e) {
       addLog('Gagal mulai background GPS: ' + e.message, 'err');
@@ -1617,6 +1840,7 @@ async function stopGPS() {
   }
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
   if (sendTimer) { clearInterval(sendTimer); sendTimer = null; }
+  persistSession();
 }
 
 // Menyamakan bentuk data dari plugin native (location.latitude, dst)
@@ -1662,6 +1886,7 @@ function pushLocation(pos) {
     nip: currentUser.nip,
     regu: currentUser.regu,
     ulp: currentUser.ulp,
+    anggotaHadir: currentUser.anggotaHadir || '',
     ts: Date.now()
   };
 
@@ -1845,6 +2070,7 @@ window.submitAbsensi = async function() {
   if (currentUser) {
     absensiTersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
       nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
+      anggotaHadir: currentUser.anggotaHadir || '',
       fase: 'Standby', lokasi: absenLokasi,
       lat: currentUser.absensi.lat, lng: currentUser.absensi.lng, acc: currentUser.absensi.acc,
       waktu, ...fotoResult
@@ -1861,6 +2087,7 @@ window.submitAbsensi = async function() {
   currentStatus = isOnline ? 'Standby' : 'Offline';
   renderStatusUI(currentStatus);
   pushStatus('Standby');
+  persistSession(); // absen awal resmi selesai — dari titik ini sesi lengkap tersimpan & bisa dipulihkan kalau app ke-kill
   startGPS();
   listenRevisiDanTugas();
 };
@@ -2023,6 +2250,7 @@ window.submitAbsenCepat = async function() {
   if (currentUser) {
     tersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
       nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
+      anggotaHadir: currentUser.anggotaHadir || '',
       fase: AC_CONFIG[acPurpose].label,
       lat: entry.lat, lng: entry.lng, acc: entry.acc,
       waktu, ...fotoResult
@@ -2146,7 +2374,7 @@ window.cariTiket = async function() {
       infoBox.innerHTML = '✅ <b>' + (found.jenis || '—') + '</b> · ' + (found.ulp || '—') + '<br>Target: ' + (found.target || '—');
       if (found.jenis && !document.getElementById('lapor-rincian').value) document.getElementById('lapor-rincian').value = found.jenis;
       if (found.target && !document.getElementById('lapor-target').value) document.getElementById('lapor-target').value = found.target;
-      if (found.target) tugasTarget = (+found.target) || 0;
+      if (found.target) { tugasTarget = (+found.target) || 0; persistSession(); }
     }
   } catch (e) {
     infoBox.textContent = '⚠️ Error: ' + e.message;
@@ -2332,6 +2560,7 @@ window.submitLaporan = async function() {
     nip:  currentUser ? currentUser.nip  : '—',
     regu: currentUser ? currentUser.regu : '—',
     ulp:  currentUser ? currentUser.ulp  : '—',
+    anggotaHadir: currentUser ? (currentUser.anggotaHadir || '') : '',
     rincian, material,
     target: target || null, realisasi: realisasi || null,
     nomorTiket: nomorTiket || null,
@@ -2372,6 +2601,7 @@ window.submitLaporan = async function() {
   clearLaporDraft();
   updateProgres();
   renderTaskList();
+  persistSession();
   document.getElementById('modal-lapor').classList.remove('active');
 };
 
@@ -2429,6 +2659,64 @@ window.navTab = function(el, tab) {
     document.getElementById('screen-tracking').scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
+
+// ══════════════════════════════════════════════════════════════
+// PULIHKAN SESI — dipanggil sekali saat app dibuka. Kalau ada sesi
+// tersimpan dari sebelumnya (hari yang sama, belum logout), lanjutkan
+// TANPA minta login ulang. Kalau petugas login tapi belum sempat
+// menyelesaikan absen awal (mis. app ke-kill di tengah ambil selfie
+// pertama), dilempar ke layar absen — bukan langsung ke tracking,
+// karena absen awal itu wajib dan belum ada buktinya di server.
+// ══════════════════════════════════════════════════════════════
+async function restoreSessionIfAny() {
+  const s = loadSession();
+  if (!s) return false;
+
+  currentUser            = s.currentUser;
+  akunTerverifikasi       = currentUser ? { username: currentUser.username, regu: currentUser.regu } : null;
+  currentStatus           = s.currentStatus || 'Standby';
+  manualStatus            = s.manualStatus  || 'Standby';
+  tugasTarget             = s.tugasTarget   || 0;
+  tugasSelesai            = s.tugasSelesai  || 0;
+  laporTugasList          = s.laporTugasList || [];
+  absenAktifBekerjaDone   = !!s.absenAktifBekerjaDone;
+  absenPerjalananDone     = !!s.absenPerjalananDone;
+  sendCount               = s.sendCount || 0;
+  absensiTerakhirList     = s.absensiTerakhirList || [];
+
+  document.getElementById('prof-nama').textContent = currentUser.nama;
+  document.getElementById('prof-sub').textContent  = currentUser.regu + ' · ' + currentUser.ulp;
+
+  if (!currentUser.absensi) {
+    // Login sudah tersimpan, tapi absen awal (selfie+GPS pertama) belum
+    // pernah berhasil terkirim — lanjutkan persis di langkah itu, jangan
+    // langsung ke tracking supaya tidak ada shift tanpa bukti absen awal.
+    showScreen('absensi');
+    addLog('Sesi dipulihkan — silakan lanjutkan absen awal, ' + currentUser.nama, 'info');
+    startAbsensiGPS();
+    return true;
+  }
+
+  document.getElementById('send-count').textContent = sendCount;
+  restoreAbsensiTerakhirUI(absensiTerakhirList);
+  renderStatusUI(currentStatus);
+  updateProgres();
+  renderTaskList();
+  showScreen('tracking');
+  addLog('Sesi dipulihkan otomatis — selamat kembali, ' + currentUser.nama, 'ok');
+
+  // Bersihkan watcher GPS background lama (kalau ada, dari sebelum app
+  // reload/di-kill) supaya tidak jalan dobel begitu watcher baru dibuat.
+  if (isNativeApp() && window.Capacitor.Plugins && window.Capacitor.Plugins.BackgroundGeolocation && s.bgWatcherId) {
+    try { await window.Capacitor.Plugins.BackgroundGeolocation.removeWatcher({ id: s.bgWatcherId }); }
+    catch (e) { /* abaikan — kemungkinan watcher lama memang sudah tidak ada */ }
+  }
+
+  startGPS();
+  listenRevisiDanTugas();
+  return true;
+}
+restoreSessionIfAny();
 
 // ── Service Worker: supaya aplikasi tetap bisa DIBUKA walau HP sedang
 //    tanpa sinyal (file sw.js wajib ada di folder yang sama dengan petugas.html) ──
