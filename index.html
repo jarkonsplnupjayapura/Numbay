@@ -856,7 +856,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 ══════════════════════════════════════ -->
 <aside class="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-mark"><img src="./icon-ffm-192.png" alt="Logo FFM" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%230057B8%27/%3E%3Ctext x=%2750%27 y=%2763%27 font-size=%2742%27 font-family=%27Arial,sans-serif%27 fill=%27white%27 text-anchor=%27middle%27 font-weight=%27bold%27%3EFFM%3C/text%3E%3C/svg%3E'"></div>
+    <div class="brand-mark"><img src="./icon-192.png" alt="Logo FFM"></div>
     <div>
       <div class="brand-name">PLN UP3 Jayapura</div>
       <div class="brand-sub">Field Force Management</div>
@@ -2561,6 +2561,22 @@ function renderPetugasList(entries) {
   }).join('');
 }
 
+function popupPetugasHtml(p) {
+  const statusColors = { 'Standby':'#0057B8','Perjalanan':'#d97706','Aktif Bekerja':'#1A8C3C','Offline':'#C0392B' };
+  const c = statusColors[p.status] || '#1A8C3C';
+  return `
+    <div class="popup-card">
+      <div class="popup-head">
+        <div class="popup-title">👷 ${p.regu||'—'}</div>
+        <span class="popup-jenis jtm">${p.ulp||'—'}</span>
+      </div>
+      <div class="popup-row"><span class="popup-key">Anggota Hadir</span><span class="popup-val">${p.anggotaHadir||'—'}</span></div>
+      <div class="popup-row"><span class="popup-key">Status</span><span class="popup-val"><span class="popup-urgensi" style="background:${c}">${p.status||'—'}</span></span></div>
+      <div class="popup-row"><span class="popup-key">Akurasi</span><span class="popup-val">${p.acc||'—'} m</span></div>
+    </div>
+  `;
+}
+
 function listenPetugas() {
   if (fbListeners.petugas) return;
   const ref = window._fbRef(fbDb, 'petugas');
@@ -2580,19 +2596,14 @@ function listenPetugas() {
       if (petugasMarkers[id]) {
         petugasMarkers[id].setLatLng([p.lat, p.lng]);
         petugasMarkers[id].setIcon(createPetugasIcon(p.status));
+        // FIX: sebelumnya popup cuma dibuat sekali saat marker pertama
+        // muncul, jadi kalau status berubah (mis. Standby -> Aktif Bekerja)
+        // isi popup di peta nyangkut ke status lama. Sekarang kita update
+        // isi popup-nya juga setiap ada data baru.
+        petugasMarkers[id].setPopupContent(popupPetugasHtml(p));
       } else {
         const m = L.marker([p.lat, p.lng], { icon: createPetugasIcon(p.status) }).addTo(mapPetugas);
-        m.bindPopup(`
-          <div class="popup-card">
-            <div class="popup-head">
-              <div class="popup-title">👷 ${p.regu||'—'}</div>
-              <span class="popup-jenis jtm">${p.ulp||'—'}</span>
-            </div>
-            <div class="popup-row"><span class="popup-key">Anggota Hadir</span><span class="popup-val">${p.anggotaHadir||'—'}</span></div>
-            <div class="popup-row"><span class="popup-key">Status</span><span class="popup-val"><span class="popup-urgensi" style="background:#1A8C3C">${p.status||'—'}</span></span></div>
-            <div class="popup-row"><span class="popup-key">Akurasi</span><span class="popup-val">${p.acc||'—'} m</span></div>
-          </div>
-        `, { maxWidth: 250 });
+        m.bindPopup(popupPetugasHtml(p), { maxWidth: 250 });
         petugasMarkers[id] = m;
       }
     });
