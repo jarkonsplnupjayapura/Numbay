@@ -905,6 +905,9 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
         <span class="nav-icon">✅</span> Verifikasi Laporan
         <span class="nav-badge" id="nav-badge-verifikasi" style="background:var(--warn);display:none">0</span>
       </a>
+      <a class="nav-item" id="nav-akun" href="#" onclick="switchView('akun');return false;" style="display:none">
+        <span class="nav-icon">🔑</span> Akun Regu
+      </a>
     </div>
     <div class="nav-group">
       <div class="nav-group-label">Akses</div>
@@ -1156,9 +1159,9 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               <thead>
                 <tr>
                   <th>Waktu</th>
-                  <th>Nama</th>
                   <th>Regu</th>
                   <th>ULP</th>
+                  <th>Anggota Hadir</th>
                   <th>Fase</th>
                   <th>GPS</th>
                   <th>Foto</th>
@@ -1316,7 +1319,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
         <div class="table-container">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Waktu</th><th>Petugas</th><th>Regu</th><th>ULP</th><th>Tiket</th><th>Pekerjaan</th><th>Target</th><th>Realisasi</th><th>Status</th></tr></thead>
+              <thead><tr><th>Waktu</th><th>Anggota Hadir</th><th>Regu</th><th>ULP</th><th>Tiket</th><th>Pekerjaan</th><th>Target</th><th>Realisasi</th><th>Status</th></tr></thead>
               <tbody id="rekap-detail-body"><tr><td colspan="9" class="empty">Menunggu data...</td></tr></tbody>
             </table>
           </div>
@@ -1543,6 +1546,79 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
       <div id="verifikasiGrid" style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;">
         <div style="text-align:center;color:var(--text-muted);padding:40px;font-size:13px;grid-column:1/-1">Menunggu data Firebase...</div>
+      </div>
+    </div>
+
+    <!-- ══ AKUN REGU (KELOLA LOGIN) VIEW — hanya Mode Admin ══ -->
+    <div id="viewAkun" style="display:none;" class="firebase-view">
+      <div class="fb-header">
+        <div>
+          <div class="card-title" style="font-size:16px">🔑 Akun Regu (Login)</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">1 regu/tim = 1 akun login · password disimpan dalam bentuk hash, tidak bisa dilihat ulang</div>
+        </div>
+        <button class="topbar-btn-yellow" onclick="bukaModalAkun()" style="font-size:13px;padding:9px 18px">+ Tambah Akun</button>
+      </div>
+
+      <!-- Modal Tambah/Edit Akun -->
+      <div id="modal-akun" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
+        <div style="background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:440px;box-shadow:var(--shadow-lg);margin:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+            <div id="akun-modal-title" style="font-family:var(--font-display);font-size:16px;font-weight:800">Tambah Akun Regu</div>
+            <button onclick="tutupModalAkun()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px">✕</button>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Username *</label>
+            <input id="akun-username" type="text" placeholder="cth: row1" autocapitalize="none" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Regu / Tim *</label>
+            <input id="akun-regu" type="text" list="akun-regu-list" placeholder="cth: Tim ROW" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+            <datalist id="akun-regu-list">
+              <option value="Tim ROW"><option value="Tim Gangguan">
+              <option value="HAR 1"><option value="HAR 2">
+              <option value="PDKB 1"><option value="PDKB 2">
+              <option value="Yantek 1"><option value="Yantek 2"><option value="Yantek 3">
+            </datalist>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px" id="akun-password-label">Password *</label>
+            <input id="akun-password" type="text" placeholder="Password awal untuk akun ini" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+            <div id="akun-password-hint" style="font-size:11px;color:var(--text-3);margin-top:5px;display:none">Kosongkan kalau tidak ingin mengubah password.</div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:16px">
+            <input type="checkbox" id="akun-aktif" checked style="width:16px;height:16px">
+            <span style="font-size:13px;font-weight:600;color:var(--text-2)">Akun aktif (bisa dipakai login)</span>
+          </label>
+          <div id="akun-err" style="display:none;background:var(--crit-bg);color:var(--crit);padding:9px 13px;border-radius:var(--radius-xs);font-size:12px;margin-bottom:12px;border:1px solid rgba(220,53,69,0.2)"></div>
+          <div style="display:flex;gap:10px">
+            <button onclick="tutupModalAkun()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:var(--radius-xs);background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-2)">Batal</button>
+            <button onclick="simpanAkun()" style="flex:2;padding:11px;border:none;border-radius:var(--radius-xs);background:linear-gradient(135deg,var(--pln-yellow),var(--pln-yellow-deep));color:var(--ink-900);font-size:13px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-glow-yellow)">✓ Simpan Akun</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Daftar Akun Regu</div>
+          <span class="card-count" id="akunCount">0 akun</span>
+        </div>
+        <div class="table-container" style="max-height:none;">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Regu / Tim</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="akunBody">
+                <tr><td colspan="4" class="empty">Menunggu data Firebase...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2130,11 +2206,11 @@ window.onPageSizeChange = function() {
 };
 
 function switchView(view) {
-  const allViews = ['viewBeranda','viewMap','viewTable','viewPetugas','viewAbsensi','viewLaporan','viewTiket','viewVerifikasi','viewRekap','viewProgres'];
+  const allViews = ['viewBeranda','viewMap','viewTable','viewPetugas','viewAbsensi','viewLaporan','viewTiket','viewVerifikasi','viewRekap','viewProgres','viewAkun'];
   allViews.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   document.getElementById('filterBar').style.display = 'none';
 
-  const allNavIds = ['nav-beranda','nav-map','nav-table','nav-petugas','nav-absensi','nav-laporan','nav-tiket','nav-verifikasi','nav-rekap','nav-progres'];
+  const allNavIds = ['nav-beranda','nav-map','nav-table','nav-petugas','nav-absensi','nav-laporan','nav-tiket','nav-verifikasi','nav-rekap','nav-progres','nav-akun'];
   allNavIds.forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('active'); });
 
   if (view === 'beranda') {
@@ -2181,6 +2257,11 @@ function switchView(view) {
     document.getElementById('viewVerifikasi').style.display = '';
     document.getElementById('nav-verifikasi').classList.add('active');
     initFirebase().then(ok => { if (ok) listenVerifikasi(); });
+  } else if (view === 'akun') {
+    if (!isAdminMode) { showToast('Kelola Akun Regu hanya bisa diakses dalam Mode Admin.', 'warn'); switchView('beranda'); return; }
+    document.getElementById('viewAkun').style.display = '';
+    document.getElementById('nav-akun').classList.add('active');
+    initFirebase().then(ok => { if (ok) listenAkunRegu(); });
   }
 }
 
@@ -2235,12 +2316,140 @@ function applyAdminUI() {
   document.getElementById('user-chip').classList.toggle('is-admin', isAdminMode);
   document.getElementById('user-role').textContent = isAdminMode ? 'Mode Admin Aktif' : 'UP3 Jayapura';
   document.getElementById('th-aksi-absensi').style.display = isAdminMode ? '' : 'none';
+  document.getElementById('nav-akun').style.display = isAdminMode ? '' : 'none';
+  if (!isAdminMode && document.getElementById('viewAkun').style.display !== 'none') {
+    switchView('beranda');
+  }
 
   // render ulang daftar yang sudah ada di memori, supaya tombol hapus langsung
   // muncul/hilang saat ini juga, tanpa perlu menunggu data Firebase berubah
   if (lastPetugasEntries) renderPetugasList(lastPetugasEntries);
   if (lastAbsensiEntries) renderAbsensiTable(lastAbsensiEntries);
   if (lastLaporanEntries) renderLaporanGrid(lastLaporanEntries);
+}
+
+// ══════════════════════════════════════
+// AKUN REGU — panel Kelola Akun (users/{username})
+// Password TIDAK pernah dibaca ulang dalam bentuk asli — hanya hash SHA-256
+// yang disimpan/dibandingkan. Reset password = tulis hash baru.
+// ══════════════════════════════════════
+let lastAkunEntries = null;
+let currentEditAkunUsername = null;
+
+async function sha256HexDash(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+window.bukaModalAkun = function(username, data) {
+  currentEditAkunUsername = username || null;
+  document.getElementById('akun-modal-title').textContent = username ? 'Edit Akun Regu' : 'Tambah Akun Regu';
+  document.getElementById('akun-username').value = username || '';
+  document.getElementById('akun-username').disabled = !!username;
+  document.getElementById('akun-regu').value = data?.regu || '';
+  document.getElementById('akun-password').value = '';
+  document.getElementById('akun-password').placeholder = username ? 'Isi untuk ganti password...' : 'Password awal untuk akun ini';
+  document.getElementById('akun-password-label').textContent = username ? 'Password Baru' : 'Password *';
+  document.getElementById('akun-password-hint').style.display = username ? 'block' : 'none';
+  document.getElementById('akun-aktif').checked = data ? data.aktif !== false : true;
+  document.getElementById('akun-err').style.display = 'none';
+  document.getElementById('modal-akun').style.display = 'flex';
+};
+
+window.tutupModalAkun = function() {
+  document.getElementById('modal-akun').style.display = 'none';
+  currentEditAkunUsername = null;
+};
+
+window.simpanAkun = async function() {
+  if (!isAdminMode) return;
+  const usernameRaw = document.getElementById('akun-username').value.trim();
+  const username = usernameRaw.toLowerCase();
+  const regu     = document.getElementById('akun-regu').value.trim();
+  const password = document.getElementById('akun-password').value;
+  const aktif    = document.getElementById('akun-aktif').checked;
+  const errEl    = document.getElementById('akun-err');
+
+  if (!username || !regu) { errEl.textContent = 'Username dan Regu/Tim wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!/^[a-z0-9_.-]+$/.test(username)) { errEl.textContent = 'Username hanya boleh huruf kecil, angka, titik, underscore, atau strip (tanpa spasi).'; errEl.style.display = 'block'; return; }
+  if (!currentEditAkunUsername && !password) { errEl.textContent = 'Password wajib diisi untuk akun baru.'; errEl.style.display = 'block'; return; }
+  if (password && password.length < 4) { errEl.textContent = 'Password minimal 4 karakter.'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+
+  if (!fbDb) { showToast('Firebase belum terhubung.', 'err'); return; }
+
+  try {
+    const { set, get } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    if (!currentEditAkunUsername) {
+      const snap = await get(window._fbRef(fbDb, 'users/' + username));
+      if (snap.exists()) { errEl.textContent = 'Username sudah dipakai akun lain.'; errEl.style.display = 'block'; return; }
+      const passwordHash = await sha256HexDash(password);
+      await set(window._fbRef(fbDb, 'users/' + username), { username, passwordHash, regu, aktif });
+      showToast('Akun ' + username + ' berhasil dibuat.', 'ok');
+    } else {
+      const upd = { regu, aktif };
+      if (password) upd.passwordHash = await sha256HexDash(password);
+      await window._fbUpdate(window._fbRef(fbDb, 'users/' + currentEditAkunUsername), upd);
+      showToast('Akun ' + currentEditAkunUsername + ' berhasil diperbarui.', 'ok');
+    }
+    tutupModalAkun();
+  } catch (e) {
+    errEl.textContent = 'Gagal menyimpan: ' + e.message;
+    errEl.style.display = 'block';
+  }
+};
+
+window.toggleAktifAkun = async function(username, aktifBaru) {
+  if (!isAdminMode || !fbDb) return;
+  try {
+    await window._fbUpdate(window._fbRef(fbDb, 'users/' + username), { aktif: aktifBaru });
+    showToast('Akun ' + username + (aktifBaru ? ' diaktifkan.' : ' dinonaktifkan.'), 'ok');
+  } catch (e) { showToast('Gagal mengubah status: ' + e.message, 'err'); }
+};
+
+window.hapusAkun = async function(username) {
+  if (!isAdminMode) return;
+  if (!(await confirmDialog('Hapus akun "' + username + '" secara permanen? Regu ini tidak akan bisa login lagi sampai akunnya dibuat ulang.', { title: 'Hapus Akun Regu' }))) return;
+  try {
+    await window._fbRemove(window._fbRef(fbDb, 'users/' + username));
+    showToast('Akun dihapus.', 'ok');
+  } catch (e) { showToast('Gagal menghapus: ' + e.message, 'err'); }
+};
+
+function renderAkunTable(entries) {
+  lastAkunEntries = entries;
+  document.getElementById('akunCount').textContent = entries.length + ' akun';
+  const tbody = document.getElementById('akunBody');
+  if (entries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">Belum ada akun regu. Tambah akun baru di atas.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = entries.sort((a, b) => (a[1].regu || '').localeCompare(b[1].regu || '')).map(([username, u]) => {
+    const isAktif = u.aktif !== false;
+    const statusBadge = isAktif
+      ? '<span class="badge badge-green"><span class="badge-dot"></span>Aktif</span>'
+      : '<span class="badge badge-gray"><span class="badge-dot"></span>Nonaktif</span>';
+    const dataAttr = JSON.stringify({ regu: u.regu, aktif: u.aktif }).replace(/"/g, '&quot;');
+    return `<tr>
+      <td style="font-family:var(--mono);font-weight:600">${username}</td>
+      <td>${u.regu || '—'}</td>
+      <td>${statusBadge}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-edit" title="Edit akun" onclick='bukaModalAkun("${username}", ${dataAttr})'>✏️</button>
+        <button class="btn-edit" title="${isAktif ? 'Nonaktifkan' : 'Aktifkan'}" onclick="toggleAktifAkun('${username}', ${!isAktif})">${isAktif ? '⏻' : '✅'}</button>
+        <button class="btn-del" title="Hapus akun" onclick="hapusAkun('${username}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function listenAkunRegu() {
+  if (fbListeners.akun) return;
+  const r = window._fbRef(fbDb, 'users');
+  fbListeners.akun = window._fbOnValue(r, snap => {
+    const data = snap.val() || {};
+    renderAkunTable(Object.entries(data));
+  });
 }
 
 async function hapusPetugas(id) {
@@ -2341,8 +2550,8 @@ function renderPetugasList(entries) {
     return `<div class="petugas-card">
       <div class="petugas-avatar">👷</div>
       <div style="flex:1;min-width:0">
-        <div class="petugas-name">${p.nama||'—'}</div>
-        <div class="petugas-meta">${p.regu||'—'} · ${p.ulp||'—'}</div>
+        <div class="petugas-name">${p.regu||'—'}</div>
+        <div class="petugas-meta">${p.ulp||'—'}${p.anggotaHadir ? ' · ' + p.anggotaHadir : ''}</div>
         <div class="petugas-meta" style="margin-top:3px">📡 ${ago} · ${p.lat ? p.lat.toFixed(4)+', '+p.lng.toFixed(4) : 'GPS —'}</div>
         ${peringatan}
       </div>
@@ -2376,11 +2585,10 @@ function listenPetugas() {
         m.bindPopup(`
           <div class="popup-card">
             <div class="popup-head">
-              <div class="popup-title">👷 ${p.nama||'—'}</div>
-              <span class="popup-jenis jtm">${p.regu||'—'}</span>
+              <div class="popup-title">👷 ${p.regu||'—'}</div>
+              <span class="popup-jenis jtm">${p.ulp||'—'}</span>
             </div>
-            <div class="popup-row"><span class="popup-key">ID Petugas</span><span class="popup-val">${p.nip||'—'}</span></div>
-            <div class="popup-row"><span class="popup-key">ULP</span><span class="popup-val">${p.ulp||'—'}</span></div>
+            <div class="popup-row"><span class="popup-key">Anggota Hadir</span><span class="popup-val">${p.anggotaHadir||'—'}</span></div>
             <div class="popup-row"><span class="popup-key">Status</span><span class="popup-val"><span class="popup-urgensi" style="background:#1A8C3C">${p.status||'—'}</span></span></div>
             <div class="popup-row"><span class="popup-key">Akurasi</span><span class="popup-val">${p.acc||'—'} m</span></div>
           </div>
@@ -2436,9 +2644,9 @@ function renderAbsensiTable(todayEntries) {
         : '';
       return `<tr>
         <td style="font-family:var(--mono);font-size:11px;white-space:nowrap">${waktu}</td>
-        <td style="font-weight:600">${a.nama||'—'}</td>
-        <td>${a.regu||'—'}</td>
+        <td style="font-weight:600">${a.regu||'—'}</td>
         <td>${a.ulp||'—'}</td>
+        <td>${a.anggotaHadir||'—'}</td>
         <td>${faseBadge}</td>
         <td style="font-family:var(--mono);font-size:10px;color:var(--text-secondary)">${gps}</td>
         <td>${foto}</td>
@@ -2448,11 +2656,11 @@ function renderAbsensiTable(todayEntries) {
   }
 
   // ── Per-petugas phase log cards ───────────────────
-  // Kelompokkan by petugas (nip)
+  // Kelompokkan by regu (1 akun login = 1 regu, sesuai skema login baru)
   const byPetugas = {};
   todayEntries.forEach(([id, a]) => {
-    const key = a.nip || a.nama || id;
-    if (!byPetugas[key]) byPetugas[key] = { nama: a.nama||'—', nip: a.nip||'—', regu: a.regu||'—', ulp: a.ulp||'—', fases: {}, lastWaktu: 0 };
+    const key = a.regu || id;
+    if (!byPetugas[key]) byPetugas[key] = { regu: a.regu||'—', ulp: a.ulp||'—', anggotaHadir: a.anggotaHadir||'—', fases: {}, lastWaktu: 0 };
     const fase = a.fase || a.lokasi || 'Standby';
     if (!byPetugas[key].fases[fase] || (byPetugas[key].fases[fase].waktu||0) < (a.waktu||0)) {
       byPetugas[key].fases[fase] = a;
@@ -2495,8 +2703,8 @@ function renderAbsensiTable(todayEntries) {
       <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);background:${lc.bg}">
         <div style="width:36px;height:36px;border-radius:var(--radius-xs);background:linear-gradient(150deg,var(--pln-blue),var(--pln-blue-mid));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👷</div>
         <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:var(--text-1)">${p.nama}</div>
-          <div style="font-size:11px;color:var(--text-2);margin-top:1px">${p.regu} · ${p.ulp} · ID Petugas ${p.nip}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-1)">${p.regu}</div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:1px">${p.ulp}${p.anggotaHadir && p.anggotaHadir !== '—' ? ' · Anggota: ' + p.anggotaHadir : ''}</div>
         </div>
         <span class="badge" style="background:${lc.bg};color:${lc.color};border:1px solid ${lc.border}">${lc.icon} ${lastFase}</span>
       </div>
@@ -2556,7 +2764,7 @@ function renderLaporanGrid(entries) {
     return `<div class="laporan-card">
       <div class="laporan-card-header">
         <div>
-          <div class="laporan-card-name">👷 ${l.nama||'—'} <span style="font-weight:400;color:var(--text-secondary);font-size:11px">${l.regu||''} · ${l.ulp||''}</span></div>
+          <div class="laporan-card-name">👷 ${l.regu||'—'} <span style="font-weight:400;color:var(--text-secondary);font-size:11px">${l.ulp||''}${l.anggotaHadir ? ' · ' + l.anggotaHadir : ''}</span></div>
           <div class="laporan-card-meta">${waktu}</div>
           ${editedBadge}
         </div>
@@ -2608,10 +2816,9 @@ function buildLaporanRows(entries) {
   return entries.map(([, l], i) => ({
     'No': i + 1,
     'Waktu': fmtWaktuFull(l.waktu),
-    'Nama Petugas': l.nama || '—',
-    'NIP': l.nip || '—',
     'Regu': l.regu || '—',
     'ULP': l.ulp || '—',
+    'Anggota Hadir': l.anggotaHadir || '—',
     'No Tiket': l.nomorTiket || '—',
     'Rincian Pekerjaan': l.rincian || '—',
     'Material': l.material || '—',
@@ -2635,7 +2842,7 @@ window.exportLaporanExcel = function() {
     const rows = buildLaporanRows(entries);
     const ws = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = [
-      {wch:4},{wch:16},{wch:20},{wch:12},{wch:10},{wch:10},{wch:14},{wch:35},{wch:20},
+      {wch:4},{wch:16},{wch:10},{wch:10},{wch:22},{wch:14},{wch:35},{wch:20},
       {wch:9},{wch:9},{wch:11},{wch:16},{wch:14},{wch:16},{wch:24},{wch:30},{wch:30}
     ];
     const wb = XLSX.utils.book_new();
@@ -2663,9 +2870,9 @@ window.exportLaporanPDF = function() {
     const body = entries.map(([, l], i) => [
       i + 1,
       fmtWaktuFull(l.waktu),
-      l.nama || '—',
       l.regu || '—',
       l.ulp || '—',
+      l.anggotaHadir || '—',
       l.nomorTiket || '—',
       l.rincian || '—',
       l.target || '—',
@@ -2676,7 +2883,7 @@ window.exportLaporanPDF = function() {
 
     doc.autoTable({
       startY: 58,
-      head: [['No','Waktu','Nama','Regu','ULP','No Tiket','Rincian Pekerjaan','Target','Realisasi','%','Status']],
+      head: [['No','Waktu','Regu','ULP','Anggota Hadir','No Tiket','Rincian Pekerjaan','Target','Realisasi','%','Status']],
       body,
       styles: { fontSize: 7.5, cellPadding: 4, overflow: 'linebreak' },
       headStyles: { fillColor: [0, 71, 133], textColor: 255, fontStyle: 'bold' },
@@ -2704,7 +2911,7 @@ window.bukaModalEditLaporan = function(id) {
   editLaporanWasVerified = data.statusVerifikasi === 'Terverifikasi';
 
   document.getElementById('el-info').textContent =
-    `👷 ${data?.nama || '—'}  ·  ${data?.regu || ''} · ${data?.ulp || ''}  ·  ${data?.waktu ? new Date(data.waktu).toLocaleString('id-ID') : '—'}`;
+    `👷 ${data?.regu || '—'}  ·  ${data?.ulp || ''}${data?.anggotaHadir ? ' · ' + data.anggotaHadir : ''}  ·  ${data?.waktu ? new Date(data.waktu).toLocaleString('id-ID') : '—'}`;
   document.getElementById('el-warn-verified').style.display = editLaporanWasVerified ? 'block' : 'none';
   document.getElementById('el-rincian').value   = data?.rincian   || '';
   document.getElementById('el-material').value  = data?.material  || '';
@@ -2778,7 +2985,7 @@ window.simpanEditLaporan = async function() {
 let currentEditTiketId = null;
 let lastTiketEntries = null;
 
-let currentAssignNip = null, currentAssignNama = null;
+let currentAssignRegu = null;
 
 window.bukaModalTiket = function(id, data) {
   currentEditTiketId = id || null;
@@ -2791,8 +2998,7 @@ window.bukaModalTiket = function(id, data) {
   document.getElementById('tiket-target').value   = data?.target   || '';
   document.getElementById('tiket-err').style.display = 'none';
 
-  currentAssignNip  = data?.assignedNip  || null;
-  currentAssignNama = data?.assignedNama || null;
+  currentAssignRegu = data?.assignedRegu || null;
   updateAssignedChip();
 
   document.getElementById('modal-tiket').style.display = 'flex';
@@ -2801,22 +3007,20 @@ window.bukaModalTiket = function(id, data) {
 
 function updateAssignedChip() {
   const chip = document.getElementById('tiket-assigned-chip');
-  if (currentAssignNip) {
+  if (currentAssignRegu) {
     chip.style.display = 'flex';
-    document.getElementById('tiket-assigned-nama').textContent = currentAssignNama || currentAssignNip;
+    document.getElementById('tiket-assigned-nama').textContent = currentAssignRegu;
   } else {
     chip.style.display = 'none';
   }
 }
 
-window.assignTiket = function(nip, nama) {
-  currentAssignNip = nip;
-  currentAssignNama = nama;
+window.assignTiket = function(regu) {
+  currentAssignRegu = regu;
   updateAssignedChip();
 };
 window.clearAssignTiket = function() {
-  currentAssignNip = null;
-  currentAssignNama = null;
+  currentAssignRegu = null;
   updateAssignedChip();
 };
 
@@ -2856,15 +3060,14 @@ window.renderTimTerdekat = function() {
   }
   const statusIcon = { 'Aktif Bekerja':'🟢', 'Perjalanan':'🟡', 'Standby':'🔵', 'Offline':'🔴' };
   listEl.innerHTML = withJarak.map(({p, jarak}, i) => {
-    const nip = p.nip || '';
-    const nama = (p.nama||'—').replace(/'/g, "\\'");
-    const isAssigned = currentAssignNip && nip && currentAssignNip === nip;
+    const regu = p.regu || '';
+    const isAssigned = currentAssignRegu && regu && currentAssignRegu === regu;
     return `
     <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:var(--radius-xs);padding:7px 10px;font-size:12px;${i===0?'border:1px solid var(--pln-blue-light)':''}">
-      <span>${i===0?'⭐ ':''}${statusIcon[p.status]||'⚪'} <b>${p.nama||'—'}</b> <span style="color:var(--text-3)">· ${p.regu||''}</span></span>
+      <span>${i===0?'⭐ ':''}${statusIcon[p.status]||'⚪'} <b>${p.regu||'—'}</b> <span style="color:var(--text-3)">· ${p.ulp||''}</span></span>
       <span style="display:flex;align-items:center;gap:8px">
         <span style="font-family:var(--mono);font-weight:700;color:${i===0?'var(--pln-blue-light)':'var(--text-2)'}">${jarak.toFixed(1)} km</span>
-        ${nip ? `<button type="button" onclick="assignTiket('${nip}','${nama}')" style="background:${isAssigned?'var(--ok)':'var(--info-bg)'};color:${isAssigned?'#fff':'var(--info)'};border:none;border-radius:6px;padding:3px 8px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">${isAssigned?'✓ Ditugaskan':'📌 Assign'}</button>` : ''}
+        ${regu ? `<button type="button" onclick="assignTiket('${regu.replace(/'/g, "\\'")}')" style="background:${isAssigned?'var(--ok)':'var(--info-bg)'};color:${isAssigned?'#fff':'var(--info)'};border:none;border-radius:6px;padding:3px 8px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">${isAssigned?'✓ Ditugaskan':'📌 Assign'}</button>` : ''}
       </span>
     </div>`;
   }).join('');
@@ -2893,7 +3096,7 @@ window.simpanTiket = async function() {
 
   if (!fbDb) { showToast('Firebase belum terhubung.', 'err'); return; }
   const id = currentEditTiketId || ('tiket_' + nomor.replace(/[^a-zA-Z0-9]/g,'_') + '_' + Date.now().toString(36));
-  const payload = { nomor, prioritas, jenis, lokasi, ulp, koordinat, target: target||null, waktu: Date.now(), statusTiket: 'Aktif', assignedNip: currentAssignNip || null, assignedNama: currentAssignNama || null };
+  const payload = { nomor, prioritas, jenis, lokasi, ulp, koordinat, target: target||null, waktu: Date.now(), statusTiket: 'Aktif', assignedRegu: currentAssignRegu || null };
   try {
     await window._fbSet(window._fbRef(fbDb, 'tiket/' + id), payload);
     tutupModalTiket();
@@ -2933,7 +3136,7 @@ function renderTiketTable(entries) {
       <td style="font-weight:600">${t.jenis||'—'}</td>
       <td style="font-size:12px;color:var(--text-2)">${t.lokasi||'—'}</td>
       <td>${t.ulp||'—'}</td>
-      <td style="font-size:12px">${t.assignedNama ? `📌 ${t.assignedNama}` : '<span style="color:var(--text-3)">Belum ditugaskan</span>'}</td>
+      <td style="font-size:12px">${t.assignedRegu ? `📌 ${t.assignedRegu}` : '<span style="color:var(--text-3)">Belum ditugaskan</span>'}</td>
       <td style="font-family:var(--mono);font-size:11px">${t.target||'—'}</td>
       <td><span class="badge ${statusCls}"><span class="badge-dot"></span>${t.statusTiket||'Aktif'}</span></td>
       <td style="font-size:11px;color:var(--text-3)">${waktu}</td>
@@ -2975,7 +3178,7 @@ window.bukaModalVerifikasi = function(id, laporan) {
 
   document.getElementById('verif-detail-body').innerHTML = `
     <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;border:1px solid var(--line)">
-      <div style="font-size:13px;font-weight:700;margin-bottom:8px">👷 ${laporan.nama||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${laporan.regu||''} · ${laporan.ulp||''}</span></div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">👷 ${laporan.regu||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${laporan.ulp||''}${laporan.anggotaHadir ? ' · ' + laporan.anggotaHadir : ''}</span></div>
       <div style="font-size:12px;color:var(--text-2);line-height:1.8">
         <b>Tiket:</b> ${laporan.nomorTiket ? '<span style="font-family:var(--mono);color:var(--pln-blue);font-weight:700">'+laporan.nomorTiket+'</span>' : '—'}<br>
         <b>Pekerjaan:</b> ${laporan.rincian||'—'}<br>
@@ -3118,7 +3321,7 @@ function renderVerifikasiGrid(entries) {
     return `<div class="laporan-card">
       <div class="laporan-card-header">
         <div style="flex:1;min-width:0">
-          <div class="laporan-card-name">👷 ${l.nama||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${l.regu||''} · ${l.ulp||''}</span></div>
+          <div class="laporan-card-name">👷 ${l.regu||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${l.ulp||''}${l.anggotaHadir ? ' · ' + l.anggotaHadir : ''}</span></div>
           <div class="laporan-card-meta" style="margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">${tiketBadge} ${statusBadge}</div>
           <div class="laporan-card-meta">${waktu}</div>
         </div>
@@ -3286,7 +3489,7 @@ function renderRekap(entries) {
         const pct = l.target && l.realisasi && +l.target > 0 ? Math.round(+l.realisasi / +l.target * 100) + '%' : '—';
         return `<tr>
           <td style="font-size:11px;white-space:nowrap">${waktu}</td>
-          <td style="font-weight:600;font-size:12px">${l.nama||'—'}</td>
+          <td style="font-weight:600;font-size:12px">${l.anggotaHadir||'—'}</td>
           <td style="font-size:12px">${l.regu||'—'}</td>
           <td style="font-size:12px">${l.ulp||'—'}</td>
           <td style="font-family:var(--mono);font-size:11px">${l.nomorTiket||'—'}</td>
@@ -3430,9 +3633,9 @@ window.exportRekapPDF = function() {
 
     doc.autoTable({
       startY: Math.max(timEndY, ulpEndY) + 20,
-      head: [['Waktu','Petugas','Regu','ULP','No Tiket','Pekerjaan','Target','Realisasi','%','Status']],
+      head: [['Waktu','Anggota Hadir','Regu','ULP','No Tiket','Pekerjaan','Target','Realisasi','%','Status']],
       body: filtered.sort((a,b)=>(b[1].waktu||0)-(a[1].waktu||0)).map(([,l]) => [
-        fmtWaktuFull(l.waktu), l.nama||'—', l.regu||'—', l.ulp||'—', l.nomorTiket||'—',
+        fmtWaktuFull(l.waktu), l.anggotaHadir||'—', l.regu||'—', l.ulp||'—', l.nomorTiket||'—',
         l.rincian||'—', l.target||'—', l.realisasi||'—',
         laporanCapaianPct(l) !== null ? laporanCapaianPct(l)+'%' : '—', laporanStatusLabel(l)
       ]),
