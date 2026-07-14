@@ -760,6 +760,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 .ps-perjalanan { background: var(--warn-bg); color: var(--warn); }
 .ps-standby    { background: var(--info-bg);  color: var(--info); }
 .ps-offline    { background: var(--crit-bg);   color: var(--crit); }
+.ps-terputus   { background: var(--done-bg);   color: var(--done); }
 
 /* laporan card */
 .laporan-card {
@@ -1109,7 +1110,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       <div class="fb-header">
         <div>
           <div class="card-title" style="font-size:16px">👷 Petugas Aktif — GPS Realtime</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Update otomatis dari Firebase · Setiap petugas yang sedang bertugas</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Update otomatis dari Firebase · Setiap petugas yang sedang bertugas · 📋 checkpoint muncul tiap ada laporan pekerjaan masuk</div>
         </div>
         <span class="tag tag-green" style="font-size:11px;padding:5px 12px">● LIVE</span>
       </div>
@@ -2232,6 +2233,7 @@ function switchView(view) {
       if (!ok) return;
       initMapPetugas();
       listenPetugas();
+      listenLaporanCheckpoints();
     });
   } else if (view === 'absensi') {
     document.getElementById('viewAbsensi').style.display = '';
@@ -2285,6 +2287,8 @@ let fbApp = null, fbDb = null;
 let petugasMarkers = {}; // id -> leaflet marker
 let mapPetugas = null;
 let fbListeners = {};
+let checkpointLayerGroup = null;   // grup layer checkpoint laporan di peta petugas
+let checkpointMarkers = {};        // laporanId -> leaflet marker checkpoint
 
 // ══════════════════════════════════════
 // MODE ADMIN
@@ -2509,17 +2513,24 @@ function initMapPetugas() {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap', maxZoom: 19, subdomains: 'abc'
   }).addTo(mapPetugas);
+  checkpointLayerGroup = L.layerGroup().addTo(mapPetugas);
+  L.control.layers(null, { '📋 Checkpoint Laporan': checkpointLayerGroup }, { collapsed: false, position: 'topright' }).addTo(mapPetugas);
   setTimeout(() => mapPetugas.invalidateSize(), 300);
 }
 
 function createPetugasIcon(status) {
-  const colors = { 'Aktif Bekerja':'#1A8C3C','Perjalanan':'#d97706','Standby':'#0057B8','Offline':'#C0392B' };
-  const c = colors[status] || '#94a3b8';
+  const c = statusColor(status);
+  const emoji = status === 'Tidak Terhubung' ? '📴' : '👷';
   return L.divIcon({
     className: '',
-    html: `<div style="width:32px;height:32px;border-radius:50%;background:${c};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:14px">👷</div>`,
+    html: `<div style="width:32px;height:32px;border-radius:50%;background:${c};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:14px">${emoji}</div>`,
     iconSize: [32,32], iconAnchor: [16,16]
   });
+}
+
+function statusColor(status) {
+  const colors = { 'Aktif Bekerja':'#1A8C3C','Perjalanan':'#d97706','Standby':'#0057B8','Tidak Terhubung':'#6B7A93','Offline':'#C0392B' };
+  return colors[status] || '#94a3b8';
 }
 
 function statusClass(s) {
@@ -2527,6 +2538,7 @@ function statusClass(s) {
   if (s.includes('Aktif')) return 'ps-aktif';
   if (s.includes('Perjalanan')) return 'ps-perjalanan';
   if (s.includes('Standby')) return 'ps-standby';
+  if (s.includes('Tidak Terhubung')) return 'ps-terputus';
   return 'ps-offline';
 }
 
@@ -2543,12 +2555,18 @@ function renderPetugasList(entries) {
     const minsAgo = p.ts ? Math.round((Date.now()-p.ts)/60000) : null;
     const ago = minsAgo === null ? '—' : minsAgo < 1 ? 'baru saja' : minsAgo + ' menit lalu';
     const delBtn = isAdminMode ? `<button class="btn-del" title="Hapus data petugas ini" onclick="hapusPetugas('${id}')">🗑</button>` : '';
-    // Pengganti batas jam paksa: kalau status bukan Offline tapi update GPS sudah lama mati (>4 jam),
-    // tandai sebagai "Sesi Tidak Aktif" — supervisor yang menilai, bukan sistem yang memaksa logout.
-    const tidakAktif = p.status !== 'Offline' && minsAgo !== null && minsAgo > 240;
-    const peringatan = tidakAktif ? `<div style="font-size:10.5px;color:var(--warn);font-weight:700;margin-top:3px">⚠ Sesi tidak aktif — GPS terakhir ${ago}, mohon dicek</div>` : '';
+    const isTerputus = p.status === 'Tidak Terhubung';
+    // "Tidak Terhubung" berarti koneksi realtime terputus otomatis (app ditutup/
+    // di-kill, HP mati, atau lama tidak dibuka) — BUKAN petugas sengaja selesai
+    // tugas (itu baru jadi 'Offline'). Jadi pesannya dibedakan supaya supervisor
+    // tidak salah kira "sudah selesai" padahal cuma HP-nya yang tidak merespons.
+    const peringatan = isTerputus
+      ? `<div style="font-size:10.5px;color:var(--done);font-weight:700;margin-top:3px">📴 Tidak terhubung — terakhir terlihat ${ago}, belum tentu selesai tugas</div>`
+      : (p.status !== 'Offline' && minsAgo !== null && minsAgo > 240
+          ? `<div style="font-size:10.5px;color:var(--warn);font-weight:700;margin-top:3px">⚠ Sesi tidak aktif — GPS terakhir ${ago}, mohon dicek</div>`
+          : '');
     return `<div class="petugas-card">
-      <div class="petugas-avatar">👷</div>
+      <div class="petugas-avatar">${isTerputus ? '📴' : '👷'}</div>
       <div style="flex:1;min-width:0">
         <div class="petugas-name">${p.regu||'—'}</div>
         <div class="petugas-meta">${p.ulp||'—'}${p.anggotaHadir ? ' · ' + p.anggotaHadir : ''}</div>
@@ -2561,9 +2579,7 @@ function renderPetugasList(entries) {
   }).join('');
 }
 
-function popupPetugasHtml(p) {
-  const statusColors = { 'Standby':'#0057B8','Perjalanan':'#d97706','Aktif Bekerja':'#1A8C3C','Offline':'#C0392B' };
-  const c = statusColors[p.status] || '#1A8C3C';
+function buildPetugasPopup(p) {
   return `
     <div class="popup-card">
       <div class="popup-head">
@@ -2571,8 +2587,9 @@ function popupPetugasHtml(p) {
         <span class="popup-jenis jtm">${p.ulp||'—'}</span>
       </div>
       <div class="popup-row"><span class="popup-key">Anggota Hadir</span><span class="popup-val">${p.anggotaHadir||'—'}</span></div>
-      <div class="popup-row"><span class="popup-key">Status</span><span class="popup-val"><span class="popup-urgensi" style="background:${c}">${p.status||'—'}</span></span></div>
+      <div class="popup-row"><span class="popup-key">Status</span><span class="popup-val"><span class="popup-urgensi" style="background:${statusColor(p.status)}">${p.status||'—'}</span></span></div>
       <div class="popup-row"><span class="popup-key">Akurasi</span><span class="popup-val">${p.acc||'—'} m</span></div>
+      <div class="popup-row"><span class="popup-key">Update Terakhir</span><span class="popup-val">${p.ts ? new Date(p.ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '—'}</span></div>
     </div>
   `;
 }
@@ -2596,14 +2613,10 @@ function listenPetugas() {
       if (petugasMarkers[id]) {
         petugasMarkers[id].setLatLng([p.lat, p.lng]);
         petugasMarkers[id].setIcon(createPetugasIcon(p.status));
-        // FIX: sebelumnya popup cuma dibuat sekali saat marker pertama
-        // muncul, jadi kalau status berubah (mis. Standby -> Aktif Bekerja)
-        // isi popup di peta nyangkut ke status lama. Sekarang kita update
-        // isi popup-nya juga setiap ada data baru.
-        petugasMarkers[id].setPopupContent(popupPetugasHtml(p));
+        petugasMarkers[id].setPopupContent(buildPetugasPopup(p));
       } else {
         const m = L.marker([p.lat, p.lng], { icon: createPetugasIcon(p.status) }).addTo(mapPetugas);
-        m.bindPopup(popupPetugasHtml(p), { maxWidth: 250 });
+        m.bindPopup(buildPetugasPopup(p), { maxWidth: 250 });
         petugasMarkers[id] = m;
       }
     });
@@ -2617,6 +2630,82 @@ function listenPetugas() {
 
     // update list
     renderPetugasList(entries);
+  });
+}
+
+// ── Checkpoint Laporan di Peta Petugas ─────────────────
+// Setiap kali petugas mengirim laporan pekerjaan (yang membawa lat/lng),
+// muncul sebagai titik checkpoint terpisah di peta "Petugas Aktif" —
+// beda dari marker posisi petugas (yang bergerak real-time). Checkpoint
+// ini statis di lokasi laporan dibuat, dan popup-nya menunjukkan sedang/
+// sudah mengerjakan apa di titik tersebut.
+function checkpointColor(l) {
+  if (l.statusVerifikasi === 'Terverifikasi') return '#1A8C3C';
+  if (l.statusVerifikasi === 'Perlu Revisi')  return '#C0392B';
+  return '#2563EB'; // menunggu verifikasi
+}
+
+function createCheckpointIcon(l) {
+  const c = checkpointColor(l);
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:26px;height:26px;border-radius:6px 6px 6px 0;transform:rotate(45deg);background:${c};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>
+           <div style="position:relative;top:-23px;left:0;width:26px;text-align:center;font-size:12px">📋</div>`,
+    iconSize: [26,26], iconAnchor: [13,26], popupAnchor: [0,-24]
+  });
+}
+
+function buildCheckpointPopup(l) {
+  const waktu = l.waktu ? new Date(l.waktu).toLocaleString('id-ID') : '—';
+  const before = l.fotoBeforeBase64 || l.fotoBeforeUrl || l.fotoBefore || '';
+  const after  = l.fotoAfterBase64  || l.fotoAfterUrl  || l.fotoAfter  || '';
+  const thumbs = (before || after) ? `
+    <div style="display:flex;gap:6px;margin-top:8px">
+      ${before ? `<img src="${before}" onclick="bukaFotoFullscreen(this)" style="width:50%;aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:pointer">` : ''}
+      ${after  ? `<img src="${after}"  onclick="bukaFotoFullscreen(this)" style="width:50%;aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:pointer">` : ''}
+    </div>` : '';
+  const statusLabel = l.statusVerifikasi || 'Menunggu Verifikasi';
+  return `
+    <div class="popup-card">
+      <div class="popup-head">
+        <div class="popup-title">📋 ${l.regu||'—'}</div>
+        <span class="popup-jenis jtm">${l.ulp||'—'}</span>
+      </div>
+      <div class="popup-row"><span class="popup-key">Waktu</span><span class="popup-val">${waktu}</span></div>
+      <div class="popup-row"><span class="popup-key">Pekerjaan</span><span class="popup-val">${l.rincian||'—'}</span></div>
+      <div class="popup-row"><span class="popup-key">Material</span><span class="popup-val">${l.material||'—'}</span></div>
+      <div class="popup-row"><span class="popup-key">Target/Realisasi</span><span class="popup-val">${l.target||'—'} / ${l.realisasi||'—'}</span></div>
+      <div class="popup-row"><span class="popup-key">Status</span><span class="popup-val"><span class="popup-urgensi" style="background:${checkpointColor(l)}">${statusLabel}</span></span></div>
+      ${thumbs}
+    </div>
+  `;
+}
+
+function listenLaporanCheckpoints() {
+  if (fbListeners.laporanCheckpoint) return;
+  const ref = window._fbRef(fbDb, 'laporan');
+  fbListeners.laporanCheckpoint = window._fbOnValue(ref, snap => {
+    if (!checkpointLayerGroup) return;
+    const data = snap.val() || {};
+    const entries = Object.entries(data).filter(([, l]) => l.lat && l.lng);
+
+    const seen = new Set();
+    entries.forEach(([id, l]) => {
+      seen.add(id);
+      if (checkpointMarkers[id]) {
+        checkpointMarkers[id].setIcon(createCheckpointIcon(l));
+        checkpointMarkers[id].setPopupContent(buildCheckpointPopup(l));
+      } else {
+        const m = L.marker([l.lat, l.lng], { icon: createCheckpointIcon(l) });
+        m.bindPopup(buildCheckpointPopup(l), { maxWidth: 260 });
+        m.addTo(checkpointLayerGroup);
+        checkpointMarkers[id] = m;
+      }
+    });
+    // buang checkpoint yang laporannya sudah dihapus
+    Object.keys(checkpointMarkers).forEach(id => {
+      if (!seen.has(id)) { checkpointLayerGroup.removeLayer(checkpointMarkers[id]); delete checkpointMarkers[id]; }
+    });
   });
 }
 

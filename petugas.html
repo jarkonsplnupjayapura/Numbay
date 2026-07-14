@@ -195,15 +195,6 @@ body {
   background: var(--surface3); color: var(--text-sec); cursor: not-allowed; opacity: 0.9;
 }
 
-/* status kecil di bawah field akun (belum/berhasil verifikasi) */
-.akun-status {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 12px; font-weight: 600; margin-top: 10px;
-  padding: 8px 12px; border-radius: 9px;
-}
-.akun-status.ok   { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
-.akun-status.wait { background: var(--surface3); color: var(--text-muted); border: 1px solid var(--border-str); }
-
 /* ── BUTTONS ── */
 .btn {
   width: 100%; padding: 15px;
@@ -544,6 +535,21 @@ body {
   color:var(--text-sec); font-size:14px; cursor:pointer;
 }
 
+/* ── ONBOARDING SLIDES ── */
+.ob-slide { display:none; text-align:center; padding:4px 4px 8px; }
+.ob-slide.active { display:block; }
+.ob-icon { font-size:44px; margin-bottom:10px; }
+.ob-title { font-size:17px; font-weight:800; color:var(--pln-blue); margin-bottom:10px; }
+.ob-text { font-size:13.5px; color:var(--text-sec); line-height:1.6; }
+.ob-steps {
+  text-align:left; font-size:13px; color:var(--text-sec); line-height:1.85;
+  padding-left:20px; margin-top:2px;
+}
+.ob-steps li { margin-bottom:2px; }
+.ob-dots { display:flex; justify-content:center; gap:7px; margin-top:14px; }
+.ob-dot { width:7px; height:7px; border-radius:50%; background:var(--surface3); transition:background 0.2s, width 0.2s; }
+.ob-dot.active { background:var(--pln-blue); width:20px; border-radius:99px; }
+
 /* ══════════════════════════════════════
    TOAST — notifikasi kecil dalam aplikasi (pengganti alert() bawaan browser)
 ══════════════════════════════════════ */
@@ -590,12 +596,79 @@ body {
 .confirm-btn-ok { background:var(--red); color:#fff; }
 
 /* ── kept for compat ── */
+
+/* ── Tombol ikon di header (shortcut Pengaturan Baterai) ── */
+.header-icon-btn {
+  flex-shrink:0; width:34px; height:34px; border-radius:9px;
+  background:rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.15);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; cursor:pointer; margin-left:8px;
+}
+.header-icon-btn:active { transform:scale(0.93); }
+
+/* ── Panduan Baterai per-merek HP (tab + langkah) ── */
+.brand-tab {
+  flex-shrink:0; padding:7px 13px; border-radius:99px; font-size:12px; font-weight:700;
+  background:var(--surface2); border:1.5px solid var(--border-str); color:var(--text-sec); cursor:pointer;
+}
+.brand-tab.active { background:var(--pln-blue); border-color:var(--pln-blue); color:#fff; }
+.brand-panel { font-size:12.5px; color:var(--text-sec); line-height:1.55; }
+.brand-step { margin-bottom:12px; }
+.brand-step b { color:var(--text); display:block; margin-bottom:4px; font-size:13px; }
+.step-path {
+  display:inline-block; background:var(--surface3); border:1px solid var(--border-str);
+  border-radius:7px; padding:4px 8px; font-size:11.5px; font-family:'Courier New',monospace;
+  color:var(--pln-blue); margin:3px 0; word-break:break-word;
+}
+.step-warn { font-size:11.5px; color:var(--amber); font-style:italic; margin-top:2px; }
+
+/* ══════════════════════════════════════
+   KONFIRMASI BESAR — muncul tiap absen/laporan berhasil terkirim.
+   Beda dari toast kecil di pojok: ini SENGAJA besar & di tengah layar,
+   supaya petugas yang kerja di lapangan (sering silau matahari, buru-buru,
+   HP dipegang sambil kerja) tetap YAKIN datanya benar-benar terkirim,
+   tanpa perlu baca teks kecil. Auto-hilang sendiri, atau tap untuk tutup
+   lebih cepat. Dua varian: "ok" (kotak hijau, sudah tersinkron ke server)
+   dan "queued" (kotak kuning, tersimpan di HP dulu — akan otomatis
+   terkirim begitu sinyal kembali, BUKAN gagal permanen). ══════════════ */
+.confirm-big-overlay {
+  position:fixed; inset:0; z-index:3000;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(15,23,42,0.45);
+  opacity:0; pointer-events:none; transition:opacity 0.2s ease;
+}
+.confirm-big-overlay.active { opacity:1; pointer-events:auto; }
+.confirm-big-card {
+  background:var(--surface); border-radius:20px; padding:28px 26px 24px;
+  width:min(300px, 84vw); text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  transform:scale(0.85); transition:transform 0.25s cubic-bezier(0.22,1,0.36,1);
+}
+.confirm-big-overlay.active .confirm-big-card { transform:scale(1); }
+.confirm-big-icon {
+  width:72px; height:72px; border-radius:50%; margin:0 auto 14px;
+  display:flex; align-items:center; justify-content:center; font-size:36px;
+  animation:confirm-pop 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+.confirm-big-card.ok     .confirm-big-icon { background:var(--green-dim); color:var(--green); }
+.confirm-big-card.queued .confirm-big-icon { background:var(--amber-dim); color:var(--amber); }
+.confirm-big-title { font-size:16px; font-weight:800; color:var(--text); margin-bottom:6px; }
+.confirm-big-msg   { font-size:12.5px; color:var(--text-sec); line-height:1.5; }
+@keyframes confirm-pop { 0%{transform:scale(0.4); opacity:0;} 60%{transform:scale(1.12);} 100%{transform:scale(1); opacity:1;} }
 </style>
 </head>
 <body>
 
 <!-- TOAST NOTIFICATIONS -->
 <div class="toast-stack" id="toast-stack"></div>
+
+<!-- KONFIRMASI BESAR (absen/laporan berhasil terkirim) -->
+<div class="confirm-big-overlay" id="confirm-big-overlay" onclick="tutupKonfirmasiBesar()">
+  <div class="confirm-big-card" id="confirm-big-card">
+    <div class="confirm-big-icon" id="confirm-big-icon">✓</div>
+    <div class="confirm-big-title" id="confirm-big-title">Berhasil Terkirim</div>
+    <div class="confirm-big-msg" id="confirm-big-msg"></div>
+  </div>
+</div>
 
 <!-- CONFIRM SHEET -->
 <div class="modal-backdrop" id="confirm-backdrop">
@@ -609,9 +682,59 @@ body {
   </div>
 </div>
 
+<!-- ══════ MODAL: ONBOARDING (SEKALI DI HP BARU) ══════
+     Muncul SEKALI saja sebelum layar login pertama kali dipakai di HP
+     ini (ditandai localStorage). Tujuannya: petugas paham alur pakai
+     app dalam 3 slide singkat, TANPA perlu training/briefing panjang.
+     Tidak menyentuh logika login/GPS sama sekali — murni penjelasan. -->
+<div class="modal-backdrop" id="modal-onboarding">
+  <div class="modal-sheet" style="max-width:440px">
+    <div class="ob-slides" id="ob-slides">
+
+      <div class="ob-slide active" data-slide="0">
+        <div class="ob-icon">👷</div>
+        <h3 class="ob-title">Selamat Datang, Petugas!</h3>
+        <p class="ob-text">Aplikasi ini bantu kamu <b>absen</b>, <b>lapor kerjaan</b>, dan kirim <b>lokasi GPS</b> ke supervisor — otomatis, tanpa perlu foto & WA manual lagi.</p>
+      </div>
+
+      <div class="ob-slide" data-slide="1">
+        <div class="ob-icon">🔄</div>
+        <h3 class="ob-title">Begini Alurnya</h3>
+        <ol class="ob-steps">
+          <li>Pilih nama regu &amp; Unit Kerja</li>
+          <li>Foto selfie sebagai bukti mulai kerja</li>
+          <li>Pilih status: Standby / Perjalanan / Aktif Bekerja</li>
+          <li>Tiap selesai 1 titik kerjaan → kirim laporan + foto sebelum/sesudah</li>
+          <li>Sudah selesai semua? Tekan <b>"Selesai Bertugas"</b></li>
+        </ol>
+      </div>
+
+      <div class="ob-slide" data-slide="2">
+        <div class="ob-icon">⚠️</div>
+        <h3 class="ob-title">Biar Lancar, Perhatikan Ini</h3>
+        <ul class="ob-steps">
+          <li>Nanti muncul minta izin <b>Lokasi</b> &amp; <b>Baterai</b> — pilih <b>"Izinkan"</b> semua, supaya status kamu tidak "Offline" sendiri.</li>
+          <li>Jangan tutup paksa aplikasi (swipe dari recent apps) selama masih bertugas.</li>
+          <li>Sinyal hilang di lapangan? Tenang — data tersimpan otomatis di HP &amp; terkirim sendiri begitu sinyal balik.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="ob-dots" id="ob-dots">
+      <span class="ob-dot active" data-dot="0"></span>
+      <span class="ob-dot" data-dot="1"></span>
+      <span class="ob-dot" data-dot="2"></span>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;margin-top:16px" id="ob-btn-next" onclick="onboardingNext()">Lanjut</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="onboardingSelesai()">Lewati</button>
+  </div>
+</div>
+
 <!-- HEADER -->
 <div class="header">
-  <div class="header-logo"><img src="./icon-192.png" alt="Logo FFM"></div>
+  <div class="header-logo"><img src="./icon-ffm-192.png" alt="Logo FFM" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%230057B8%27/%3E%3Ctext x=%2750%27 y=%2763%27 font-size=%2742%27 font-family=%27Arial,sans-serif%27 fill=%27white%27 text-anchor=%27middle%27 font-weight=%27bold%27%3EFFM%3C/text%3E%3C/svg%3E'"></div>
   <div>
     <div class="header-title">FFM Petugas</div>
     <div class="header-sub">PLN UP3 Jayapura · Field Force</div>
@@ -620,6 +743,7 @@ body {
     <div class="conn-dot" id="signal-dot"></div>
     <span id="conn-label">Offline</span>
   </div>
+  <button class="header-icon-btn" onclick="bukaPengaturanBaterai()" title="Pengaturan Baterai — supaya tidak Offline sendiri">🔋</button>
 </div>
 
 <!-- ══════ SCREEN: LOGIN ══════ -->
@@ -628,7 +752,7 @@ body {
   <!-- Banner atas -->
   <div class="login-banner">
     <div class="login-brand">
-      <div class="login-brand-icon"><img src="./icon-192.png" alt="Logo FFM"></div>
+      <div class="login-brand-icon"><img src="./icon-ffm-192.png" alt="Logo FFM" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%230057B8%27/%3E%3Ctext x=%2750%27 y=%2763%27 font-size=%2742%27 font-family=%27Arial,sans-serif%27 fill=%27white%27 text-anchor=%27middle%27 font-weight=%27bold%27%3EFFM%3C/text%3E%3C/svg%3E'"></div>
       <div class="login-brand-text">
         <div class="lb-title">FFM Petugas</div>
         <div class="lb-sub">PLN UP3 Jayapura · Field Force</div>
@@ -642,46 +766,39 @@ body {
     </div>
   </div>
 
-  <!-- 1. Akun Regu (username & password) -->
+  <!-- 1. Anggota Bertugas -->
   <div class="card">
-    <div class="card-title">Akun Regu</div>
-    <div class="field">
-      <label>Username</label>
-      <input type="text" id="in-username" placeholder="Username regu..." autocomplete="username" autocapitalize="none">
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="in-password" placeholder="Password..." autocomplete="current-password">
-    </div>
-    <button type="button" class="btn btn-ghost btn-sm" id="btn-verifikasi-akun" onclick="verifikasiAkun()">
-      <span>🔑</span> Masuk
-    </button>
-    <div class="akun-status wait" id="akun-status">Belum masuk — isi username &amp; password lalu tekan Masuk.</div>
-  </div>
-
-  <!-- 2. Identitas Petugas Hari Ini -->
-  <div class="card">
-    <div class="card-title">Identitas Petugas Hari Ini</div>
-    <div class="field">
-      <label>Nama Petugas</label>
-      <input type="text" id="in-nama" placeholder="Nama petugas..." autocomplete="name">
-    </div>
-    <div class="field">
-      <label>ID Petugas</label>
-      <input type="text" id="in-nip" placeholder="NIP atau nomor ID..." inputmode="numeric">
-    </div>
+    <div class="card-title">Anggota Bertugas</div>
     <div class="field">
       <label>Anggota Regu Hari Ini</label>
       <textarea id="in-anggota" rows="2" placeholder="Nama A, Nama B, Nama C"></textarea>
     </div>
   </div>
 
-  <!-- 3. Penempatan -->
+  <!-- 2. Penempatan -->
   <div class="card">
     <div class="card-title">Penempatan</div>
     <div class="field">
       <label>Regu / Tim</label>
-      <input type="text" id="in-regu" placeholder="— otomatis setelah masuk akun —" disabled>
+      <!-- FIX: dropdown nama regu baku (bukan ketik bebas) supaya tidak ada
+           variasi ejaan ("Tim ROW" vs "row1" vs "ROW") yang bikin dashboard
+           pecah jadi banyak entitas berbeda padahal maksudnya regu yang sama.
+           Opsi "Lainnya" tetap disediakan sebagai cadangan kalau nama regu
+           belum ada di daftar, supaya petugas tidak pernah terblokir login. -->
+      <select id="in-regu-select" onchange="toggleReguManual()">
+        <option value="">— Pilih regu/tim —</option>
+        <option>Tim ROW</option>
+        <option>Tim Gangguan</option>
+        <option>HAR 1</option>
+        <option>HAR 2</option>
+        <option>PDKB 1</option>
+        <option>PDKB 2</option>
+        <option>Yantek 1</option>
+        <option>Yantek 2</option>
+        <option>Yantek 3</option>
+        <option value="__lainnya__">➕ Lainnya (ketik manual)</option>
+      </select>
+      <input type="text" id="in-regu-manual" placeholder="Ketik nama regu/tim..." autocapitalize="words" style="display:none;margin-top:8px">
     </div>
     <div class="field">
       <label>Unit Kerja</label>
@@ -806,6 +923,33 @@ body {
       <div style="font-size:22px;font-weight:800;color:var(--pln-yellow)" id="tugas-selesai-count">0</div>
     </div>
   </div>
+
+  <!-- #4b: Banner Izin Baterai — supaya GPS tidak mati saat layar dikunci lama -->
+  <div class="card" id="baterai-banner" style="display:none;background:rgba(217,123,10,0.08);border:1px solid rgba(217,123,10,0.3)">
+    <div class="card-title" style="color:#B45309">🔋 GPS Bisa Mati Saat HP Dikunci</div>
+    <div style="font-size:12px;color:var(--text-sec);margin:4px 0 10px">
+      HP kamu membatasi aplikasi ini di latar belakang (mode hemat baterai), jadi status "Petugas Aktif" bisa jadi Offline kalau layar dikunci lama. Aktifkan izin di bawah supaya aplikasi tetap kirim GPS.
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="mintaAbaikanOptimasiBaterai()">Aktifkan Sekarang</button>
+    <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="bukaPengaturanBaterai()">📋 Panduan Lengkap (sesuai merek HP)</button>
+  </div>
+
+  <!-- #4c: Banner PERINGATAN AKTIF — muncul otomatis kalau "heartbeat" mendeteksi
+       tidak ada kiriman lokasi baru selama beberapa menit padahal status masih
+       tracking. Beda dari baterai-banner di atas (yang muncul di AWAL, preventif):
+       banner ini muncul REAKTIF, saat masalah beneran kejadian, supaya petugas
+       (atau supervisor yang pinjam HP-nya) langsung sadar saat itu juga — bukan
+       baru ketahuan besok pas komplain masuk. Lihat mulaiHeartbeatMonitor(). -->
+  <div class="card" id="gps-heartbeat-banner" style="display:none;background:rgba(220,53,69,0.10);border:1.5px solid rgba(220,53,69,0.45);animation:pulseWarn 2s infinite">
+    <div class="card-title" style="color:#C0293C">⚠️ GPS Sepertinya Berhenti Mengirim Lokasi</div>
+    <div style="font-size:12px;color:var(--text-sec);margin:4px 0 10px" id="gps-heartbeat-msg">
+      Tidak ada update lokasi baru dalam beberapa menit terakhir. Status kamu mungkin sudah tampak "Offline" di dashboard walau HP masih menyala.
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="bukaWizardSetup(true)">🛠️ Cek & Perbaiki Sekarang</button>
+  </div>
+  <style>
+    @keyframes pulseWarn { 0%,100%{ opacity:1 } 50%{ opacity:0.75 } }
+  </style>
 
   <!-- #4: Banner Laporan Perlu Direvisi -->
   <div class="card" id="revisi-banner" style="display:none;background:rgba(220,53,69,0.06);border:1px solid rgba(220,53,69,0.25)">
@@ -967,6 +1111,166 @@ body {
   </div>
 </div>
 
+<!-- ══════ MODAL: PANDUAN BATERAI PER-MEREK HP ══════
+     Menjawab kasus: izin "Abaikan Optimasi Baterai" standar Android
+     sudah disetujui, tapi HP tetap membekukan app di background lewat
+     fitur tambahan milik pabrikan (Samsung "Sleeping Apps", Xiaomi
+     "Autostart", Oppo/Vivo "Power Saving Whitelist") yang tidak punya
+     API publik sehingga tidak bisa dideteksi/diaktifkan otomatis lewat
+     popup — satu-satunya jalan adalah memandu user ke menu yang tepat. -->
+<div class="modal-backdrop" id="modal-baterai-guide">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>🔋 Supaya Tidak "Offline" Sendiri</h3>
+      <button class="modal-close" onclick="tutupModalBaterai()">✕</button>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-sec);line-height:1.55;margin-bottom:14px">
+      HP Android tertentu (Samsung, Xiaomi, Oppo, Vivo, Huawei) punya pengaturan hemat baterai <b>tambahan</b> di luar pengaturan baterai standar Android. Ini yang sering diam-diam "membekukan" aplikasi kalau layar dikunci lama, walau izin baterai standar sudah kamu setujui. Ikuti langkah sesuai merek HP-mu:
+    </div>
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px" id="brand-tabs">
+      <button class="brand-tab" data-brand="samsung" onclick="pilihBrandBaterai('samsung')">Samsung</button>
+      <button class="brand-tab" data-brand="xiaomi" onclick="pilihBrandBaterai('xiaomi')">Xiaomi / POCO</button>
+      <button class="brand-tab" data-brand="oppo" onclick="pilihBrandBaterai('oppo')">Oppo / Realme</button>
+      <button class="brand-tab" data-brand="vivo" onclick="pilihBrandBaterai('vivo')">Vivo</button>
+      <button class="brand-tab" data-brand="huawei" onclick="pilihBrandBaterai('huawei')">Huawei / Honor</button>
+      <button class="brand-tab" data-brand="lain" onclick="pilihBrandBaterai('lain')">Merek Lain</button>
+    </div>
+
+    <div class="brand-panel" id="brand-panel-samsung" style="display:none">
+      <div class="brand-step"><b>Langkah 1 — Battery App Settings</b>
+        <div class="step-path">Settings → Apps → (nama aplikasi ini) → Battery → pilih "Unrestricted"</div>
+        <div class="step-warn">Jangan pilih "Optimized"/"Dioptimalkan" — itu yang bikin GPS mati saat dikunci.</div>
+      </div>
+      <div class="brand-step"><b>Langkah 2 — Hapus dari daftar "Sleeping Apps"</b>
+        <div class="step-path">Settings → Battery and device care → Battery → Background usage limits</div>
+        Pastikan aplikasi ini TIDAK ada di daftar "Sleeping apps" atau "Deep sleeping apps". Kalau ada, hapus.
+      </div>
+      <div class="brand-step"><b>Langkah 3 (kalau masih bermasalah) — Matikan fitur global</b>
+        <div class="step-path">Settings → Battery and device care → Battery → titik tiga (⋮) → Settings → matikan "Put unused apps to sleep" / "Auto disable unused apps"</div>
+      </div>
+    </div>
+
+    <div class="brand-panel" id="brand-panel-xiaomi" style="display:none">
+      <div class="brand-step"><b>Langkah 1 — Battery saver</b>
+        <div class="step-path">Settings → Apps → Manage apps → (nama aplikasi ini) → Battery saver → pilih "No restrictions"</div>
+      </div>
+      <div class="brand-step"><b>Langkah 2 — Autostart</b>
+        <div class="step-path">Settings → Apps → Permissions → Autostart → aktifkan untuk aplikasi ini</div>
+        Tanpa ini, MIUI bisa mematikan app begitu layar dikunci.
+      </div>
+      <div class="brand-step"><b>Langkah 3 — Lock dari recent apps</b>
+        Buka daftar recent apps, tahan kartu aplikasi ini, lalu tap ikon 🔒 gembok supaya tidak ikut ter-swipe/dibersihkan RAM cleaner.
+      </div>
+    </div>
+
+    <div class="brand-panel" id="brand-panel-oppo" style="display:none">
+      <div class="brand-step"><b>Langkah 1 — Battery Optimization</b>
+        <div class="step-path">Settings → Battery → App Battery Management → (nama aplikasi ini) → pilih "Allow background activity" / "Don't optimize"</div>
+      </div>
+      <div class="brand-step"><b>Langkah 2 — Startup Manager</b>
+        <div class="step-path">Settings → App Management → App Startup Manager → aktifkan izin start otomatis untuk aplikasi ini</div>
+      </div>
+      <div class="brand-step"><b>Langkah 3 — Lock dari recent apps</b>
+        Sama seperti Xiaomi, tahan kartu app di recent apps lalu kunci (🔒).
+      </div>
+    </div>
+
+    <div class="brand-panel" id="brand-panel-vivo" style="display:none">
+      <div class="brand-step"><b>Langkah 1 — Background power consumption</b>
+        <div class="step-path">Settings → Battery → Background power consumption management → (nama aplikasi ini) → "Allow"</div>
+      </div>
+      <div class="brand-step"><b>Langkah 2 — High background power consumption</b>
+        <div class="step-path">i Manager → App manager → Autostart → aktifkan untuk aplikasi ini</div>
+      </div>
+    </div>
+
+    <div class="brand-panel" id="brand-panel-huawei" style="display:none">
+      <div class="brand-step"><b>Langkah 1 — Launch (App launch management)</b>
+        <div class="step-path">Settings → Battery → App launch → cari aplikasi ini → matikan "Manage automatically", lalu aktifkan Auto-launch, Secondary launch, dan Run in background</div>
+      </div>
+      <div class="brand-step"><b>Langkah 2 — Lock dari recent apps</b>
+        Tahan kartu aplikasi di recent apps lalu kunci (🔒) supaya tidak dibersihkan sistem.
+      </div>
+    </div>
+
+    <div class="brand-panel" id="brand-panel-lain" style="display:none">
+      <div class="brand-step"><b>Langkah umum untuk semua HP Android</b>
+        <div class="step-path">Settings → Apps → (nama aplikasi ini) → Battery → pilih "Unrestricted" / "Tidak Terbatas" / "No restrictions"</div>
+      </div>
+      <div class="brand-step"><b>Cari juga menu-menu ini kalau ada</b>
+        "Autostart", "Background app management", "Power saving whitelist", atau "Protected apps" — aktifkan untuk aplikasi ini.
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="bukaPengaturanNative()">📲 Buka Pengaturan HP Sekarang</button>
+    <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px">Tombol di atas mencoba lompat langsung ke layar pengaturan yang relevan. Kalau HP kamu tidak mendukung lompatan otomatis, ikuti langkah manual di atas.</div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: WIZARD SETUP GPS (SEKALI DI AWAL) ══════
+     Tujuan: gantikan pola "pasang aplikasi -> baru ketahuan bermasalah
+     beberapa hari kemudian -> baru dibenerin satu-satu" jadi checklist
+     yang dilalui SEKALI di awal (mirip alur pendaftaran driver ojol),
+     supaya petugas tidak perlu paham "kenapa"-nya, cukup ikuti 2 langkah
+     bertanda centang. Dipanggil dari bukaWizardSetup() — baik otomatis
+     sebelum shift pertama dimulai, maupun manual lewat banner peringatan
+     kalau heartbeat mendeteksi GPS berhenti di tengah jalan. -->
+<div class="modal-backdrop" id="modal-setup-wizard">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>🛰️ Setup Awal Sekali Saja</h3>
+      <button class="modal-close" onclick="wizardTutupPaksa()">✕</button>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-sec);line-height:1.55;margin-bottom:16px">
+      Supaya lokasi &amp; kamera kamu berfungsi normal seharian, selesaikan 3 langkah di bawah. Cuma perlu dilakukan <b>sekali</b> — setelah ini tidak akan diminta lagi.
+    </div>
+
+    <!-- Langkah 1: Izin Lokasi -->
+    <div class="brand-step" id="wizard-step-lokasi" style="border-color:rgba(217,123,10,0.35)">
+      <b><span id="wizard-lokasi-icon">①</span> Izin Lokasi "Sepanjang Waktu"</b>
+      <div style="font-size:12px;color:var(--text-sec);margin:6px 0" id="wizard-lokasi-status">Belum dicek.</div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="wizardCekLokasi()" id="wizard-btn-lokasi">📍 Cek Izin Lokasi</button>
+      <div id="wizard-lokasi-panduan" style="display:none;margin-top:10px;font-size:11.5px;color:var(--text-sec)">
+        <div class="step-path">Setelan HP → Aplikasi → FFM Petugas → Izin → Lokasi → pilih "Izinkan sepanjang waktu"</div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="wizardCekLokasi()">↺ Sudah Saya Ubah, Cek Ulang</button>
+      </div>
+    </div>
+
+    <!-- Langkah 2: Kamera (FIX: sebelumnya izin kamera baru dicek/diminta saat
+         petugas pertama kali buka kamera di layar absen/lapor — kalau ditolak
+         saat itu, petugas bisa terjebak di tengah alur kerja. Sekarang dicek
+         proaktif di sini, sebelum shift dimulai, sama seperti lokasi & baterai. -->
+    <div class="brand-step" id="wizard-step-kamera" style="border-color:rgba(217,123,10,0.35);margin-top:12px">
+      <b><span id="wizard-kamera-icon">②</span> Izin Kamera</b>
+      <div style="font-size:12px;color:var(--text-sec);margin:6px 0" id="wizard-kamera-status">Belum dicek.</div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="wizardCekKamera()" id="wizard-btn-kamera">📷 Cek Izin Kamera</button>
+      <div id="wizard-kamera-panduan" style="display:none;margin-top:10px;font-size:11.5px;color:var(--text-sec)">
+        <div class="step-path">Setelan HP → Aplikasi → FFM Petugas → Izin → Kamera → pilih "Izinkan"</div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="wizardCekKamera()">↺ Sudah Saya Ubah, Cek Ulang</button>
+      </div>
+    </div>
+
+    <!-- Langkah 3: Baterai -->
+    <div class="brand-step" id="wizard-step-baterai" style="border-color:rgba(217,123,10,0.35);margin-top:12px">
+      <b><span id="wizard-baterai-icon">③</span> Matikan Pembatasan Baterai</b>
+      <div style="font-size:12px;color:var(--text-sec);margin:6px 0" id="wizard-baterai-status">Belum dicek.</div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="wizardAturBaterai()" id="wizard-btn-baterai">🔋 Aktifkan Sekarang</button>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="bukaPengaturanBaterai()">📋 Panduan Tambahan (sesuai merek HP)</button>
+      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:12px;font-size:11.5px;color:var(--text-sec);cursor:pointer">
+        <input type="checkbox" id="wizard-checkbox-manual" onchange="wizardUpdateTombolMulai()" style="margin-top:2px">
+        <span>Saya sudah cek juga menu tambahan khusus merek HP saya (Autostart / Sleeping apps / Protected apps) lewat tombol panduan di atas.</span>
+      </label>
+    </div>
+
+    <div id="wizard-ringkasan" style="margin-top:16px;padding:10px;border-radius:10px;font-size:12px;text-align:center;background:rgba(40,167,69,0.08);color:#1E7E34;display:none">
+      ✅ Semua siap! GPS &amp; kamera kamu akan berfungsi normal seharian.
+    </div>
+
+    <button class="btn btn-yellow" style="width:100%;margin-top:16px" id="wizard-btn-mulai" onclick="wizardSelesai(false)">Mulai Tugas</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;display:none" id="wizard-btn-lewati" onclick="wizardSelesai(true)">Lewati dulu (tidak disarankan)</button>
+  </div>
+</div>
+
 <!-- ══════ MODAL: KAMERA ══════ -->
 <div class="modal-backdrop" id="modal-kamera-lapor">
   <div class="modal-sheet">
@@ -1056,6 +1360,36 @@ function showToast(message, type = 'info', duration = 3800) {
   stack.appendChild(card);
 }
 
+// ── KONFIRMASI BESAR ─────────────────────────────────────
+// Dipanggil tiap absen/absen-cepat/laporan selesai diproses, baik yang
+// langsung tersinkron ke server (tersinkron=true) maupun yang untuk
+// sementara tersimpan di HP karena sinyal sedang hilang (tersinkron=false
+// — BUKAN gagal, akan otomatis terkirim lewat flushOfflineQueue()).
+// Auto-hilang sendiri; tap layar untuk tutup lebih cepat.
+let confirmBigTimer = null;
+function showKonfirmasiBesar(tersinkron, judul, pesanTersinkron, pesanOffline) {
+  const overlay = document.getElementById('confirm-big-overlay');
+  const card    = document.getElementById('confirm-big-card');
+  const icon    = document.getElementById('confirm-big-icon');
+  const title   = document.getElementById('confirm-big-title');
+  const msg     = document.getElementById('confirm-big-msg');
+
+  card.classList.toggle('ok', tersinkron);
+  card.classList.toggle('queued', !tersinkron);
+  icon.textContent = tersinkron ? '✓' : '🕓';
+  title.textContent = judul;
+  msg.textContent = tersinkron ? pesanTersinkron : pesanOffline;
+
+  overlay.classList.add('active');
+  if (navigator.vibrate) { try { navigator.vibrate(tersinkron ? 60 : [40, 60, 40]); } catch (e) {} }
+  clearTimeout(confirmBigTimer);
+  confirmBigTimer = setTimeout(tutupKonfirmasiBesar, 2200);
+}
+window.tutupKonfirmasiBesar = function() {
+  document.getElementById('confirm-big-overlay').classList.remove('active');
+  clearTimeout(confirmBigTimer);
+};
+
 function confirmDialog(message, { title = 'Konfirmasi', okLabel = 'Ya, Lanjutkan' } = {}) {
   return new Promise((resolve) => {
     const backdrop = document.getElementById('confirm-backdrop');
@@ -1080,7 +1414,6 @@ let app, db;
 let watchId = null;
 let sendCount = 0;
 let currentUser = null;
-let akunTerverifikasi = null; // { username, regu } — hasil verifikasi username/password, di-set oleh verifikasiAkun()
 let currentStatus = 'Standby';   // status efektif yang tampil/terkirim (bisa 'Offline' otomatis)
 let manualStatus  = 'Standby';   // status terakhir yang dipilih petugas sendiri (bukan Offline)
 let sendTimer = null;
@@ -1234,69 +1567,21 @@ try {
   addLog('Firebase terhubung', 'ok');
   updateConnUI();
   flushOfflineQueue();
-  seedUsersIfEmpty();
 } catch(e) {
   addLog('Firebase: ' + e.message, 'err');
   addLog('Mode demo — GPS tetap berjalan', 'info');
 }
 
 // ══════════════════════════════════════════════════════════════
-// AKUN REGU — 1 regu/tim = 1 akun login (username + password).
-// Data akun disimpan di Firebase path users/{username}, password
-// TIDAK disimpan plain text — hanya hash SHA-256-nya.
+// LOGIN SEMENTARA — TANPA username/password.
+// Sesuai permintaan: untuk sementara petugas cukup MENGETIK nama
+// regu/tim sendiri di layar login (field #in-regu), tanpa verifikasi
+// akun ke server. Ini best-effort/tidak aman dari sisi "identitas
+// terjamin" — siapa pun bisa mengetik nama regu apa saja — jadi kalau
+// nanti dibutuhkan kontrol akses yang lebih ketat, blok akun
+// username+password (verifikasi ke Firebase users/{username}) perlu
+// dipasang kembali di sini.
 // ══════════════════════════════════════════════════════════════
-
-// Daftar awal akun regu — dipakai HANYA sekali untuk mengisi Firebase
-// kalau node "users" masih kosong (instalasi pertama kali). Setelah itu,
-// perubahan/reset password dilakukan Supervisor langsung lewat Firebase,
-// bukan lewat kode ini lagi.
-const SEED_USERS = [
-  { username: 'row1',       password: '1234', regu: 'Tim ROW' },
-  { username: 'gangguan1',  password: '1234', regu: 'Tim Gangguan' },
-  { username: 'har1',       password: '1234', regu: 'HAR 1' },
-  { username: 'har2',       password: '1234', regu: 'HAR 2' },
-  { username: 'pdkb1',      password: '1234', regu: 'PDKB 1' },
-  { username: 'pdkb2',      password: '1234', regu: 'PDKB 2' },
-  { username: 'yantek1',    password: '1234', regu: 'Yantek 1' },
-  { username: 'yantek2',    password: '1234', regu: 'Yantek 2' },
-  { username: 'yantek3',    password: '1234', regu: 'Yantek 3' },
-];
-
-async function sha256Hex(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function seedUsersIfEmpty() {
-  if (!db) return;
-  try {
-    const snap = await get(ref(db, 'users'));
-    if (snap.exists()) return; // sudah ada data akun — jangan timpa
-    const writes = {};
-    for (const u of SEED_USERS) {
-      writes[u.username] = { username: u.username, passwordHash: await sha256Hex(u.password), regu: u.regu, aktif: true };
-    }
-    await update(ref(db, 'users'), writes);
-    addLog('Daftar akun regu awal berhasil dibuat di Firebase', 'ok');
-  } catch (e) {
-    addLog('Gagal membuat daftar akun awal: ' + e.message, 'warn');
-  }
-}
-
-// Verifikasi username/password terhadap users/{username}. Pesan error
-// sengaja SAMA untuk "username tidak ada" maupun "password salah" supaya
-// tidak membocorkan username mana yang valid.
-async function verifyAkunRegu(username, password) {
-  const uname = username.trim().toLowerCase();
-  if (!db) throw new Error('Tidak ada koneksi ke server. Coba lagi saat online.');
-  const snap = await get(ref(db, 'users/' + uname));
-  if (!snap.exists()) return null;
-  const data = snap.val();
-  if (!data.aktif) return null;
-  const hash = await sha256Hex(password);
-  if (hash !== data.passwordHash) return null;
-  return { username: uname, regu: data.regu };
-}
 
 // Kompres foto ke Base64 kecil agar muat & hemat kuota Realtime Database (plan gratis:
 // 1GB storage, 10GB/bulan transfer). Kompresi ADAPTIF: kalau hasil masih lebih besar dari
@@ -1323,7 +1608,7 @@ function drawWatermark(canvas) {
       ? 'GPS ' + lat.toFixed(6) + ', ' + lng.toFixed(6) + (acc ? '  (±' + Math.round(acc) + 'm)' : '')
       : 'GPS tidak tersedia';
     const timeLine = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' });
-    const who = currentUser ? (currentUser.nama + (currentUser.regu ? ' · ' + currentUser.regu : '')) : '';
+    const who = currentUser ? (currentUser.regu + (currentUser.anggotaHadir ? ' · ' + currentUser.anggotaHadir : '')) : '';
     const lines = who ? [timeLine, gpsLine, who] : [timeLine, gpsLine];
 
     const fontSize = Math.max(11, Math.round(w * 0.032));
@@ -1487,79 +1772,55 @@ async function uploadFotoAman(dataUrl, folder, publicIdHint, opts = {}) {
   }
 }
 
-// ── VERIFIKASI AKUN REGU (username + password) ──────────
-window.verifikasiAkun = async function() {
-  const username = document.getElementById('in-username').value.trim();
-  const password = document.getElementById('in-password').value;
-  const statusEl = document.getElementById('akun-status');
-  const btn = document.getElementById('btn-verifikasi-akun');
-  const errEl = document.getElementById('login-err');
-  errEl.style.display = 'none';
-
-  if (!username || !password) {
-    statusEl.className = 'akun-status wait';
-    statusEl.textContent = 'Username dan password wajib diisi.';
-    return;
-  }
-
-  const origLabel = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span> Memeriksa...';
-  statusEl.className = 'akun-status wait';
-  statusEl.textContent = 'Memeriksa akun...';
-
-  try {
-    const akun = await verifyAkunRegu(username, password);
-    if (!akun) {
-      akunTerverifikasi = null;
-      document.getElementById('in-regu').value = '';
-      statusEl.className = 'akun-status wait';
-      statusEl.textContent = 'Username atau password salah.';
-      return;
-    }
-    akunTerverifikasi = akun;
-    document.getElementById('in-regu').value = akun.regu;
-    statusEl.className = 'akun-status ok';
-    statusEl.textContent = '✓ Terverifikasi sebagai ' + akun.regu;
-  } catch (e) {
-    statusEl.className = 'akun-status wait';
-    statusEl.textContent = 'Gagal memeriksa akun: ' + e.message;
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = origLabel;
-  }
+// ── LOGIN ──────────────────────────────────────────────
+// SEMENTARA: tanpa verifikasi username/password. Regu/Tim dipilih dari
+// dropdown nama baku (FIX: sebelumnya ketik bebas, rawan typo/beda-beda
+// ejaan per petugas yang bikin dashboard mendata regu yang sama sebagai
+// banyak entitas berbeda). Opsi "Lainnya" tetap ada sebagai cadangan.
+window.toggleReguManual = function() {
+  const sel    = document.getElementById('in-regu-select');
+  const manual = document.getElementById('in-regu-manual');
+  const isLainnya = sel.value === '__lainnya__';
+  manual.style.display = isLainnya ? 'block' : 'none';
+  if (isLainnya) manual.focus();
 };
 
-// ── LOGIN ──────────────────────────────────────────────
+function getReguTerpilih() {
+  const sel = document.getElementById('in-regu-select');
+  if (sel.value === '__lainnya__') return document.getElementById('in-regu-manual').value.trim();
+  return sel.value;
+}
+
 window.doLogin = function() {
-  const nama     = document.getElementById('in-nama').value.trim();
-  const nip      = document.getElementById('in-nip').value.trim();
+  const regu     = getReguTerpilih();
   const anggota  = document.getElementById('in-anggota').value.trim();
   const ulp      = document.getElementById('in-ulp').value;
   const errEl    = document.getElementById('login-err');
 
-  if (!akunTerverifikasi) {
-    errEl.textContent = 'Masuk dengan username & password akun regu terlebih dahulu.';
+  if (!regu) {
+    errEl.textContent = 'Nama Regu / Tim wajib diisi.';
     errEl.style.display = 'block';
     return;
   }
-  if (!nama || !nip || !ulp) {
-    errEl.textContent = 'Semua field wajib diisi.';
+  if (!ulp) {
+    errEl.textContent = 'Unit Kerja wajib dipilih.';
     errEl.style.display = 'block';
     return;
   }
   errEl.style.display = 'none';
 
-  const regu = akunTerverifikasi.regu;
-  currentUser = { nama, nip, regu, ulp, anggotaHadir: anggota, username: akunTerverifikasi.username,
-    id: nip.replace(/\W/g,'') + '_' + Date.now().toString(36) };
+  // "username" internal dibuat dari slug nama regu (dipakai untuk id sesi/laporan),
+  // BUKAN akun login — cuma supaya path data tetap unik & konsisten.
+  const usernameSlug = regu.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'petugas';
+  currentUser = { regu, ulp, anggotaHadir: anggota, username: usernameSlug,
+    id: usernameSlug + '_' + Date.now().toString(36) };
 
-  document.getElementById('prof-nama').textContent = nama;
-  document.getElementById('prof-sub').textContent = regu + ' · ' + ulp;
+  document.getElementById('prof-nama').textContent = regu;
+  document.getElementById('prof-sub').textContent = ulp + (anggota ? ' · ' + anggota : '');
 
   showScreen('absensi');
-  addLog('Login: ' + nama + ' (' + regu + ')', 'ok');
-  persistSession(); // simpan identitas sekarang juga — kalau app ke-kill di tengah absen awal, tidak perlu isi ulang nama/NIP/regu/ULP
+  addLog('Login regu: ' + regu + (anggota ? ' (' + anggota + ')' : ''), 'ok');
+  persistSession(); // simpan identitas sekarang juga — kalau app ke-kill di tengah absen awal, tidak perlu isi ulang regu/unit kerja/anggota
   startAbsensiGPS();
 };
 
@@ -1577,7 +1838,6 @@ function finalizeLogout() {
   currentStatus = 'Offline';
   pushStatus('Offline');
   currentUser = null;
-  akunTerverifikasi = null;
   sendCount = 0;
   tugasTarget = 0;
   tugasSelesai = 0;
@@ -1588,16 +1848,12 @@ function finalizeLogout() {
   clearSession(); // shift resmi selesai — hapus sesi tersimpan supaya TIDAK auto-login lagi saat app dibuka berikutnya
   document.getElementById('send-count').textContent = '0';
   document.getElementById('bottom-nav').style.display = 'none';
-  // reset form login supaya akun/sesi shift berikutnya wajib verifikasi ulang
-  document.getElementById('in-username').value = '';
-  document.getElementById('in-password').value = '';
-  document.getElementById('in-nama').value = '';
-  document.getElementById('in-nip').value = '';
+  // reset form login supaya shift berikutnya mulai dari kosong lagi
   document.getElementById('in-anggota').value = '';
-  document.getElementById('in-regu').value = '';
+  document.getElementById('in-regu-select').value = '';
+  document.getElementById('in-regu-manual').value = '';
+  document.getElementById('in-regu-manual').style.display = 'none';
   document.getElementById('in-ulp').value = '';
-  document.getElementById('akun-status').className = 'akun-status wait';
-  document.getElementById('akun-status').textContent = 'Belum masuk — isi username & password lalu tekan Masuk.';
   showScreen('login');
   addLog('Logout — tracking dihentikan', 'info');
 }
@@ -1746,6 +2002,7 @@ function applyStatusChange(s) {
   currentStatus = s;
   renderStatusUI(s);
   pushStatus(s);
+  updateNativeSyncStatus(s);
   addLog('Status: ' + s, 'info');
   if (lastPos) pushLocation(lastPos);
   persistSession();
@@ -1763,6 +2020,7 @@ function applyOfflineOverride(isOff) {
     currentStatus = manualStatus;
     renderStatusUI(manualStatus);
     pushStatus(manualStatus);
+    updateNativeSyncStatus(manualStatus);
     addLog('Status kembali otomatis: ' + manualStatus, 'ok');
     if (lastPos) pushLocation(lastPos);
   }
@@ -1781,8 +2039,448 @@ function isNativeApp() {
   return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 }
 
+// ── IZIN KAMERA (FIX) ───────────────────────────────────
+// Di WebView Android, getUserMedia() TIDAK bisa memicu popup izin
+// native Android sendiri — WebView cuma bisa "meneruskan" izin yang
+// sudah ada di level aplikasi. Makanya kita minta izin CAMERA lewat
+// plugin resmi @capacitor/camera dulu (ini yang memunculkan popup
+// izin Android ke user). Setelah izin diberikan, getUserMedia() di
+// bawahnya akan langsung berfungsi normal seperti biasa.
+async function mintaIzinKamera() {
+  // Di browser biasa (bukan APK), izin ditangani otomatis oleh browser.
+  if (!isNativeApp()) return true;
+
+  const CameraPlugin = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Camera;
+  if (!CameraPlugin) {
+    // Plugin belum terpasang di project Android — lihat instruksi instalasi.
+    addLog('Plugin @capacitor/camera belum terpasang, izin kamera mungkin gagal.', 'err');
+    return true; // tetap coba getUserMedia, siapa tahu sudah pernah diizinkan
+  }
+
+  try {
+    const status = await CameraPlugin.checkPermissions();
+    if (status.camera === 'granted') return true;
+
+    const result = await CameraPlugin.requestPermissions({ permissions: ['camera'] });
+    if (result.camera === 'granted') return true;
+
+    addLog('Izin kamera ditolak oleh user.', 'err');
+    return false;
+  } catch (e) {
+    addLog('Gagal memeriksa izin kamera: ' + e.message, 'err');
+    return true; // fallback: tetap coba getUserMedia
+  }
+}
+
+function tampilkanPesanIzinDitolak(placeholderId) {
+  const el = document.getElementById(placeholderId);
+  if (el) {
+    el.innerHTML = '<span class="cam-icon">⚠️</span>Izin kamera ditolak.<br>' +
+      '<span style="font-size:10px">Buka Pengaturan HP → Aplikasi → (nama aplikasi ini) → Izin → aktifkan Kamera, lalu coba lagi.</span>';
+  }
+}
+
+// FIX: pesan error kamera generik ("Kamera tidak bisa diakses: <pesan teknis
+// browser>") sering membingungkan petugas di lapangan — mereka tidak tahu
+// harus ngapain. Fungsi ini menerjemahkan error getUserMedia yang paling
+// umum jadi instruksi yang jelas & actionable dalam Bahasa Indonesia.
+function pesanErrorKamera(err) {
+  const nama = err && (err.reason || err.name) || '';
+  if (nama === 'native-denied' || nama === 'NotAllowedError' || nama === 'PermissionDeniedError') {
+    return 'Izin kamera ditolak.';
+  }
+  if (nama === 'NotFoundError' || nama === 'DevicesNotFoundError') {
+    return 'Kamera tidak ditemukan di HP ini.';
+  }
+  if (nama === 'NotReadableError' || nama === 'TrackStartError') {
+    return 'Kamera sedang dipakai aplikasi lain — tutup aplikasi kamera/video call lain lalu coba lagi.';
+  }
+  if (nama === 'OverconstrainedError' || nama === 'ConstraintNotSatisfiedError') {
+    return 'Kamera HP ini tidak mendukung pengaturan yang diminta.';
+  }
+  return 'Kamera tidak bisa diakses.';
+}
+
+// ── IZIN "ABAIKAN OPTIMASI BATERAI" ──────────────────────
+// Banyak HP Android (terutama Xiaomi/Oppo/Vivo/Samsung) otomatis
+// "membekukan" aplikasi yang lama di latar belakang untuk hemat baterai
+// (Doze mode). Ini bikin GPS tracking berhenti diam-diam saat layar
+// dikunci lama, sehingga status petugas jadi Offline di dashboard
+// walau app tidak ditutup. Solusinya: minta user mengizinkan aplikasi
+// ini dikecualikan dari optimasi baterai (mirip WhatsApp/Gojek yang
+// selalu bisa terima notifikasi walau HP dikunci lama).
+async function cekOptimasiBaterai() {
+  if (!isNativeApp()) return;
+  const BatteryOpt = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.BatteryOptimization;
+  if (!BatteryOpt) return; // plugin belum terpasang, lihat instruksi instalasi
+
+  try {
+    const { enabled } = await BatteryOpt.isBatteryOptimizationEnabled();
+    const banner = document.getElementById('baterai-banner');
+    if (banner) banner.style.display = enabled ? 'block' : 'none';
+  } catch (e) {
+    addLog('Gagal cek status optimasi baterai: ' + e.message, 'warn');
+  }
+}
+
+window.mintaAbaikanOptimasiBaterai = async function() {
+  const BatteryOpt = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.BatteryOptimization;
+  if (!BatteryOpt) return;
+  try {
+    await BatteryOpt.requestIgnoreBatteryOptimization();
+  } catch (e) {
+    addLog('Gagal minta izin baterai: ' + e.message, 'warn');
+  }
+  // cek ulang setelah user kembali dari dialog sistem
+  setTimeout(cekOptimasiBaterai, 1500);
+};
+
+// ── PANDUAN & SHORTCUT PENGATURAN BATERAI PER-MEREK HP ──────────
+// Kasus: izin "Abaikan Optimasi Baterai" STANDAR Android sudah
+// disetujui user (lihat fungsi di atas), tapi HP tetap "membekukan"
+// aplikasi di background lewat fitur TAMBAHAN milik pabrikan sendiri
+// (Samsung "Sleeping Apps", Xiaomi "Autostart", Oppo/Vivo "Power Saving
+// Whitelist", dst). Fitur-fitur ini TIDAK PUNYA API PUBLIK — tidak ada
+// popup yang bisa dipicu dari dalam aplikasi manapun untuk mengaktifkannya,
+// dan statusnya juga tidak bisa dibaca lewat kode. Karena itu solusinya
+// dua lapis:
+//   1) Coba lompat langsung ke layar pengaturan HP yang relevan lewat
+//      plugin native "PowerSettings" (lihat file PowerSettingsPlugin.java
+//      yang dikirim terpisah) — ini yang mendekati "otomatis".
+//   2) SELALU tampilkan panduan visual sesuai merek HP, karena poin (1)
+//      tidak dijamin berhasil di semua HP/versi UI, dan beberapa langkah
+//      (mis. daftar "Sleeping apps" Samsung) memang harus di-cek manual.
+// Tombol pintasan ini SELALU ada di header (ikon 🔋) — tidak bergantung
+// pada deteksi otomatis — karena kondisi di atas memang tidak bisa
+// dideteksi dari kode sama sekali.
+function deteksiMerekHP() {
+  const ua = navigator.userAgent || '';
+  if (/SM-|Samsung/i.test(ua)) return 'samsung';
+  if (/Redmi|POCO|Xiaomi|MIUI/i.test(ua)) return 'xiaomi';
+  if (/OPPO|CPH\d|Realme|RMX/i.test(ua)) return 'oppo';
+  if (/vivo|V\d{4}/i.test(ua)) return 'vivo';
+  if (/HUAWEI|HONOR/i.test(ua)) return 'huawei';
+  return 'lain';
+}
+
+window.pilihBrandBaterai = function(brand) {
+  document.querySelectorAll('.brand-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.brand-tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('brand-panel-' + brand);
+  const tab = document.querySelector('.brand-tab[data-brand="' + brand + '"]');
+  if (panel) panel.style.display = 'block';
+  if (tab) tab.classList.add('active');
+};
+
+window.tutupModalBaterai = function() {
+  document.getElementById('modal-baterai-guide').classList.remove('active');
+};
+
+window.bukaPengaturanBaterai = async function() {
+  const BatteryOpt = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.BatteryOptimization;
+  if (isNativeApp() && BatteryOpt) {
+    try {
+      const { enabled } = await BatteryOpt.isBatteryOptimizationEnabled();
+      if (enabled) await BatteryOpt.requestIgnoreBatteryOptimization();
+    } catch (e) {
+      addLog('Cek optimasi baterai gagal: ' + e.message, 'warn');
+    }
+  }
+  pilihBrandBaterai(deteksiMerekHP());
+  document.getElementById('modal-baterai-guide').classList.add('active');
+};
+
+window.bukaPengaturanNative = async function() {
+  if (!isNativeApp()) {
+    showToast('Fitur buka-otomatis hanya jalan di aplikasi APK Android. Di browser, ikuti langkah manual di atas.', 'info', 5000);
+    return;
+  }
+  const PowerSettings = window.Capacitor.Plugins && window.Capacitor.Plugins.PowerSettings;
+  if (!PowerSettings) {
+    showToast('Fitur buka-otomatis belum ada di versi APK ini (perlu update-apk.bat ulang). Ikuti langkah manual di atas ya.', 'warn', 5500);
+    return;
+  }
+  try {
+    await PowerSettings.openBatterySettings();
+    showToast('Pengaturan HP dibuka — ikuti langkah sesuai merek HP di atas.', 'ok');
+  } catch (e) {
+    showToast('Tidak bisa membuka otomatis: ' + e.message + '. Ikuti langkah manual di atas.', 'err', 5500);
+  }
+};
+
+// ════════════════════════════════════════════════════════
+// WIZARD SETUP GPS (SEKALI DI AWAL) + HEARTBEAT MONITOR
+// ────────────────────────────────────────────────────────
+// Alasan dua mekanisme ini ditambahkan: Android tidak punya cara resmi
+// untuk membuat aplikasi pihak ketiga "kebal" dari pembatasan latar
+// belakang (lihat catatan di cekOptimasiBaterai/deteksiMerekHP di atas).
+// Karena itu strateginya diubah, meniru pola aplikasi seperti Gojek
+// Driver: (1) paksa izin & baterai dibereskan SEKALI di awal lewat
+// wizard, dan (2) pantau terus-menerus selama shift — kalau tidak ada
+// update lokasi masuk dalam beberapa menit, langsung munculkan
+// peringatan besar, supaya masalah ketahuan dalam hitungan menit,
+// bukan baru besok pas ada komplain dari dashboard.
+// ════════════════════════════════════════════════════════
+
+let lastGpsFixAt = null;      // kapan terakhir kali callback GPS benar-benar menerima titik baru
+let heartbeatTimer = null;
+let wizardResolve = null;     // dipanggil saat wizard selesai (lolos ATAU dilewati)
+let wizardLokasiOK = false;
+let wizardKameraOK = false;
+let wizardBateraiOK = false;
+
+const HEARTBEAT_CEK_TIAP_MS = 2 * 60 * 1000;   // cek tiap 2 menit
+const HEARTBEAT_AMBANG_MS   = 8 * 60 * 1000;   // curiga bermasalah kalau diam >8 menit
+
+function mulaiHeartbeatMonitor() {
+  lastGpsFixAt = Date.now(); // baseline, supaya tidak langsung warning begitu mulai
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(() => {
+    cekOptimasiBaterai(); // status baterai standar Android bisa berubah sendiri (mis. setelah HP restart)
+    const diamMs = Date.now() - (lastGpsFixAt || 0);
+    if (diamMs > HEARTBEAT_AMBANG_MS) {
+      tampilkanPeringatanGPSTerhenti(diamMs);
+    }
+  }, HEARTBEAT_CEK_TIAP_MS);
+}
+
+function hentikanHeartbeatMonitor() {
+  if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
+  const banner = document.getElementById('gps-heartbeat-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+function tampilkanPeringatanGPSTerhenti(diamMs) {
+  const banner = document.getElementById('gps-heartbeat-banner');
+  if (!banner) return;
+  const menit = Math.round(diamMs / 60000);
+  const msgEl = document.getElementById('gps-heartbeat-msg');
+  if (msgEl) msgEl.textContent = `Tidak ada update lokasi baru selama ~${menit} menit. Status kamu mungkin sudah tampak "Offline" di dashboard walau HP masih menyala.`;
+  if (banner.style.display === 'none') {
+    banner.style.display = 'block';
+    addLog(`Peringatan: GPS tidak update selama ~${menit} menit`, 'err');
+  }
+}
+
+// Cek izin lokasi background TANPA memulai tracking sungguhan — dipakai
+// wizard untuk validasi. Cara kerjanya: buka watcher percobaan sebentar,
+// lihat apakah callback pertama sukses atau NOT_AUTHORIZED, lalu tutup
+// lagi. Watcher asli untuk tracking beneran baru dibuat startGPS().
+function cekStatusIzinLokasi() {
+  if (!isNativeApp()) return Promise.resolve({ ok: true, mode: 'browser' });
+  const BG = window.Capacitor.Plugins && window.Capacitor.Plugins.BackgroundGeolocation;
+  if (!BG) return Promise.resolve({ ok: false, reason: 'plugin-missing' });
+
+  return new Promise((resolve) => {
+    let selesai = false;
+    let idPercobaan = null;
+    const bereskan = () => { if (idPercobaan !== null) BG.removeWatcher({ id: idPercobaan }).catch(() => {}); };
+    const finish = (result) => { if (selesai) return; selesai = true; bereskan(); resolve(result); };
+
+    BG.addWatcher(
+      { backgroundMessage: 'Mengecek izin lokasi…', backgroundTitle: 'FFM Petugas', requestPermissions: true, stale: true },
+      (location, error) => {
+        if (error) finish({ ok: false, reason: error.code === 'NOT_AUTHORIZED' ? 'not-authorized' : 'error', detail: error.message });
+        else finish({ ok: true });
+      }
+    ).then((id) => {
+      idPercobaan = id;
+      setTimeout(() => finish({ ok: false, reason: 'timeout' }), 8000);
+    }).catch((e) => finish({ ok: false, reason: 'error', detail: e.message }));
+  });
+}
+
+window.wizardCekLokasi = async function() {
+  const btn = document.getElementById('wizard-btn-lokasi');
+  const status = document.getElementById('wizard-lokasi-status');
+  const panduan = document.getElementById('wizard-lokasi-panduan');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Mengecek...'; }
+  if (status) status.textContent = 'Mengecek izin lokasi (mungkin muncul pop-up)...';
+
+  const hasil = await cekStatusIzinLokasi();
+  wizardLokasiOK = hasil.ok;
+
+  if (hasil.ok) {
+    document.getElementById('wizard-lokasi-icon').textContent = '✅';
+    if (status) { status.textContent = 'Izin lokasi sudah aktif.'; status.style.color = '#1E7E34'; }
+    if (panduan) panduan.style.display = 'none';
+    document.getElementById('wizard-step-lokasi').style.borderColor = 'rgba(40,167,69,0.4)';
+  } else {
+    document.getElementById('wizard-lokasi-icon').textContent = '⚠️';
+    if (status) { status.textContent = 'Izin "Sepanjang waktu" belum aktif. Ikuti langkah di bawah:'; status.style.color = '#C0293C'; }
+    if (panduan) panduan.style.display = 'block';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '📍 Cek Ulang Izin Lokasi'; }
+  wizardUpdateTombolMulai();
+};
+
+// Cek izin kamera secara menyeluruh: minta izin native (Capacitor) DULU
+// kalau di app APK, baru kemudian coba benar-benar buka getUserMedia
+// sebentar (langsung ditutup lagi) — karena di WebView Android, izin
+// native saja tidak cukup untuk memastikan getUserMedia bakal jalan
+// mulus nanti saat petugas benar-benar mengambil foto. Dengan mengetes
+// keduanya di sini (sekali di awal), kalau ada masalah akan ketahuan
+// SEKARANG, bukan nanti saat petugas terjebak di tengah alur absen/lapor.
+async function cekStatusIzinKamera() {
+  const izinNativeOk = await mintaIzinKamera();
+  if (!izinNativeOk) return { ok: false, reason: 'native-denied' };
+
+  try {
+    const testStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    testStream.getTracks().forEach(t => t.stop());
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: e.name || 'error', detail: e.message };
+  }
+}
+
+window.wizardCekKamera = async function() {
+  const btn = document.getElementById('wizard-btn-kamera');
+  const status = document.getElementById('wizard-kamera-status');
+  const panduan = document.getElementById('wizard-kamera-panduan');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Mengecek...'; }
+  if (status) status.textContent = 'Mengecek izin kamera (mungkin muncul pop-up)...';
+
+  const hasil = await cekStatusIzinKamera();
+  wizardKameraOK = hasil.ok;
+
+  if (hasil.ok) {
+    document.getElementById('wizard-kamera-icon').textContent = '✅';
+    if (status) { status.textContent = 'Izin kamera sudah aktif.'; status.style.color = '#1E7E34'; }
+    if (panduan) panduan.style.display = 'none';
+    document.getElementById('wizard-step-kamera').style.borderColor = 'rgba(40,167,69,0.4)';
+  } else {
+    document.getElementById('wizard-kamera-icon').textContent = '⚠️';
+    if (status) { status.textContent = pesanErrorKamera(hasil) + ' Ikuti langkah di bawah:'; status.style.color = '#C0293C'; }
+    if (panduan) panduan.style.display = 'block';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '📷 Cek Ulang Izin Kamera'; }
+  wizardUpdateTombolMulai();
+};
+
+window.wizardAturBaterai = async function() {
+  await window.mintaAbaikanOptimasiBaterai();
+  await wizardCekBaterai();
+};
+
+async function wizardCekBaterai() {
+  const BatteryOpt = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.BatteryOptimization;
+  const status = document.getElementById('wizard-baterai-status');
+  if (!isNativeApp() || !BatteryOpt) {
+    wizardBateraiOK = true; // mode browser/testing — lewati cek ini
+    if (status) status.textContent = 'Mode browser — tidak berlaku.';
+    wizardUpdateTombolMulai();
+    return;
+  }
+  try {
+    const { enabled } = await BatteryOpt.isBatteryOptimizationEnabled();
+    wizardBateraiOK = !enabled;
+    if (status) {
+      status.textContent = enabled ? 'Masih dibatasi — tap tombol di atas.' : 'Sudah "Tidak Terbatas".';
+      status.style.color = enabled ? '#C0293C' : '#1E7E34';
+    }
+    document.getElementById('wizard-baterai-icon').textContent = enabled ? '⚠️' : '✅';
+    document.getElementById('wizard-step-baterai').style.borderColor = enabled ? 'rgba(217,123,10,0.35)' : 'rgba(40,167,69,0.4)';
+  } catch (e) {
+    if (status) status.textContent = 'Gagal cek status baterai.';
+  }
+  wizardUpdateTombolMulai();
+}
+
+window.wizardUpdateTombolMulai = function() {
+  const manualDicentang = document.getElementById('wizard-checkbox-manual')?.checked;
+  const semuaBeres = wizardLokasiOK && wizardKameraOK && wizardBateraiOK && manualDicentang;
+  const ringkasan = document.getElementById('wizard-ringkasan');
+  const btnMulai = document.getElementById('wizard-btn-mulai');
+  const btnLewati = document.getElementById('wizard-btn-lewati');
+  if (ringkasan) ringkasan.style.display = semuaBeres ? 'block' : 'none';
+  if (btnMulai) btnMulai.textContent = semuaBeres ? '✅ Mulai Tugas — Siap 24 Jam' : 'Mulai Tugas';
+  if (btnLewati) btnLewati.style.display = semuaBeres ? 'none' : 'block';
+};
+
+// Dipanggil sebelum shift pertama dimulai (blocking, lewat Promise), dan
+// juga bisa dipanggil manual dari banner heartbeat (paksaTampilSaja=true,
+// tidak menyambung ke startGPS() lagi karena tracking sudah berjalan).
+window.bukaWizardSetup = function(paksaTampilSaja) {
+  return new Promise(async (resolve) => {
+    wizardResolve = paksaTampilSaja ? null : resolve;
+    document.getElementById('wizard-checkbox-manual').checked = false;
+    document.getElementById('wizard-lokasi-panduan').style.display = 'none';
+    document.getElementById('wizard-kamera-panduan').style.display = 'none';
+    document.getElementById('wizard-btn-lewati').style.display = 'none';
+    document.getElementById('wizard-ringkasan').style.display = 'none';
+    document.getElementById('modal-setup-wizard').classList.add('active');
+    await wizardCekLokasi();
+    await wizardCekKamera();
+    await wizardCekBaterai();
+    if (paksaTampilSaja) resolve(); // banner heartbeat: cukup tampilkan, tidak nunggu tombol
+  });
+};
+
+window.wizardTutupPaksa = function() {
+  // Tombol ✕ = anggap "lewati", supaya wizard tidak pernah menggantung
+  // dan mengunci petugas kalau mereka terpaksa buru-buru berangkat.
+  wizardSelesai(true);
+};
+
+window.wizardSelesai = function(dilewati) {
+  document.getElementById('modal-setup-wizard').classList.remove('active');
+  if (dilewati) addLog('Setup GPS dilewati — sebaiknya diselesaikan nanti lewat tombol 🔋 di header', 'warn');
+  else addLog('Setup GPS selesai — semua izin sudah aktif', 'ok');
+  if (wizardResolve) { const r = wizardResolve; wizardResolve = null; r(); }
+};
+
+// Dipanggil dari alur absen awal (menggantikan pemanggilan startGPS()
+// langsung) — tampilkan wizard dulu SEKALI sebelum shift pertama, baru
+// GPS beneran dimulai. Di layar browser/testing, wizard dilewati total.
+async function jalankanWizardSetupLaluGPS() {
+  if (isNativeApp()) {
+    await window.bukaWizardSetup(false);
+  }
+  startGPS();
+}
+
+// ── SINKRONISASI LOKASI NATIVE (jalur cadangan yang andal) ──────
+// Selain watcher background-geolocation di atas (yang tetap dipakai
+// untuk tampilan GPS langsung saat app dibuka), kita JUGA start
+// NativeLocationSyncService lewat plugin ini — service Android murni
+// yang kirim data langsung dari Java, tidak lewat WebView sama sekali.
+// Ini jalur yang sebenarnya menjamin lokasi tetap terkirim saat layar
+// dikunci lama (lihat NativeLocationSyncService.java untuk detail
+// kenapa ini perlu). Dua jalur ini aman jalan bersamaan — sama-sama
+// cuma "menimpa" data lokasi yang sama di Firebase.
+function mulaiNativeSync() {
+  if (!isNativeApp()) return;
+  const NLS = window.Capacitor.Plugins && window.Capacitor.Plugins.NativeLocationSync;
+  if (!NLS || !currentUser) return;
+  NLS.start({
+    petugasId: currentUser.id,
+    databaseUrl: firebaseConfig.databaseURL,
+    regu: currentUser.regu || '',
+    ulp: currentUser.ulp || '',
+    anggotaHadir: currentUser.anggotaHadir || '',
+    status: currentStatus
+  }).then(() => addLog('Sinkronisasi lokasi native (andal) aktif', 'ok'))
+    .catch((e) => addLog('Gagal mulai sinkronisasi native: ' + e.message, 'warn'));
+}
+
+function hentikanNativeSync() {
+  if (!isNativeApp()) return;
+  const NLS = window.Capacitor.Plugins && window.Capacitor.Plugins.NativeLocationSync;
+  if (!NLS) return;
+  NLS.stop().catch(() => {});
+}
+
+function updateNativeSyncStatus(status) {
+  if (!isNativeApp()) return;
+  const NLS = window.Capacitor.Plugins && window.Capacitor.Plugins.NativeLocationSync;
+  if (!NLS) return;
+  NLS.updateStatus({ status }).catch(() => {});
+}
+
 async function startGPS() {
   document.getElementById('gps-status').textContent = 'Meminta izin GPS...';
+  cekOptimasiBaterai(); // cek + tampilkan banner kalau optimasi baterai masih aktif
 
   const BG = isNativeApp() && window.Capacitor.Plugins && window.Capacitor.Plugins.BackgroundGeolocation;
 
@@ -1830,6 +2528,8 @@ async function startGPS() {
   }
 
   sendTimer = setInterval(() => { if (lastPos) pushLocation(lastPos); }, 15000);
+  mulaiHeartbeatMonitor();
+  mulaiNativeSync();
 }
 
 async function stopGPS() {
@@ -1840,6 +2540,8 @@ async function stopGPS() {
   }
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
   if (sendTimer) { clearInterval(sendTimer); sendTimer = null; }
+  hentikanHeartbeatMonitor();
+  hentikanNativeSync();
   persistSession();
 }
 
@@ -1860,6 +2562,14 @@ function onPosNative(location) {
 
 function onPos(pos) {
   lastPos = pos;
+  lastGpsFixAt = Date.now();
+  // Kalau sebelumnya banner "GPS berhenti" sempat muncul, sembunyikan lagi —
+  // berarti sudah pulih sendiri (mis. petugas baru saja membuka layar HP).
+  const heartbeatBanner = document.getElementById('gps-heartbeat-banner');
+  if (heartbeatBanner && heartbeatBanner.style.display !== 'none') {
+    heartbeatBanner.style.display = 'none';
+    addLog('GPS pulih — lokasi kembali update normal', 'ok');
+  }
   const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
   document.getElementById('gps-lat').textContent = lat.toFixed(6);
   document.getElementById('gps-lng').textContent = lng.toFixed(6);
@@ -1882,8 +2592,6 @@ function pushLocation(pos) {
     heading: heading || 0,
     speed: speed ? Math.round(speed * 3.6) : 0,
     status: currentStatus,
-    nama: currentUser.nama,
-    nip: currentUser.nip,
     regu: currentUser.regu,
     ulp: currentUser.ulp,
     anggotaHadir: currentUser.anggotaHadir || '',
@@ -1904,7 +2612,14 @@ function pushLocation(pos) {
       document.getElementById('send-count').textContent = sendCount;
       const t = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
       addLog(t + ' — Lokasi terkirim (' + lat.toFixed(4) + ', ' + lng.toFixed(4) + ')', 'ok');
-      onDisconnect(petugasRef).update({ status: 'Offline', ts: Date.now() });
+      // PENTING: onDisconnect ini terpicu Firebase secara OTOMATIS saat koneksi
+      // realtime terputus — bisa karena app ditutup/di-kill, HP mati, atau
+      // sekadar lama tidak dibuka (blank spot lama). Ini BUKAN "selesai tugas"
+      // (itu hanya terjadi lewat finalizeLogout/doLogout secara sengaja), jadi
+      // statusnya dibedakan: 'Tidak Terhubung' + lastSeenAt, supaya di peta
+      // supervisor bisa ditampilkan badge "terakhir terlihat X menit lalu"
+      // alih-alih langsung dianggap Offline/selesai tugas.
+      onDisconnect(petugasRef).update({ status: 'Tidak Terhubung', lastSeenAt: Date.now() });
     }).catch(e => {
       addLog('Gagal kirim, disimpan offline: ' + e.message, 'warn');
       enqueueOffline({ type:'location', uid: currentUser.id, payload });
@@ -1979,6 +2694,8 @@ function startAbsensiGPS() {
 }
 
 window.bukaKameraAbsen = async function() {
+  const izinOk = await mintaIzinKamera();
+  if (!izinOk) { tampilkanPesanIzinDitolak('absen-cam-placeholder'); return; }
   try {
     absenStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
     const video = document.getElementById('absen-video');
@@ -1991,7 +2708,7 @@ window.bukaKameraAbsen = async function() {
     document.getElementById('absen-btn-retake').style.display = 'none';
   } catch (e) {
     addLog('Gagal akses kamera: ' + e.message, 'err');
-    document.getElementById('absen-cam-placeholder').innerHTML = '<span class="cam-icon">⚠️</span>Kamera tidak bisa diakses<br><span style="font-size:10px">' + e.message + '</span>';
+    document.getElementById('absen-cam-placeholder').innerHTML = '<span class="cam-icon">⚠️</span>' + pesanErrorKamera(e) + '<br><span style="font-size:10px">Ketuk "Buka Kamera" lagi untuk coba ulang.</span>';
   }
 };
 
@@ -2048,7 +2765,7 @@ window.submitAbsensi = async function() {
   let fotoResult = null;
   if (btn) btn.innerHTML = '<span>⏳</span> Mengompres & mengunggah foto...';
   try {
-    fotoResult = await uploadFotoAman(absenFotoDataUrl, 'ffm/absensi', slugifyForCloudinary(currentUser?.nama) + '_' + waktu);
+    fotoResult = await uploadFotoAman(absenFotoDataUrl, 'ffm/absensi', slugifyForCloudinary(currentUser?.regu) + '_' + waktu);
   } catch (e) {
     addLog('Gagal memproses foto absen: ' + e.message, 'err');
     errEl.textContent = 'Gagal memproses foto. Coba lagi.';
@@ -2069,7 +2786,7 @@ window.submitAbsensi = async function() {
   let absensiTersinkron = false;
   if (currentUser) {
     absensiTersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
-      nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
+      regu: currentUser.regu, ulp: currentUser.ulp,
       anggotaHadir: currentUser.anggotaHadir || '',
       fase: 'Standby', lokasi: absenLokasi,
       lat: currentUser.absensi.lat, lng: currentUser.absensi.lng, acc: currentUser.absensi.acc,
@@ -2079,6 +2796,9 @@ window.submitAbsensi = async function() {
 
   if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
   addLog('Absensi berhasil di ' + absenLokasi, 'ok');
+  showKonfirmasiBesar(absensiTersinkron, 'Absensi Terkirim',
+    'Data absensi & foto sudah tersimpan di server.',
+    'Absensi tersimpan di HP — akan otomatis terkirim saat sinyal kembali.');
   showScreen('tracking');
   absenAktifBekerjaDone = false; // shift baru dimulai — absen ulang wajib tiap fase
   absenPerjalananDone = false;
@@ -2086,9 +2806,16 @@ window.submitAbsensi = async function() {
   manualStatus = 'Standby';
   currentStatus = isOnline ? 'Standby' : 'Offline';
   renderStatusUI(currentStatus);
-  pushStatus('Standby');
+  // FIX: sebelumnya node 'petugas/{id}' cuma ditulis lewat watcher GPS
+  // background (startGPS), yang kadang belum sempat dapat titik lokasi
+  // atau gagal izin — akibatnya "Petugas Aktif" kosong walau absensi
+  // sudah tersimpan. Sekarang kita langsung kirim lokasi hasil absen
+  // (absenPos) ke 'petugas/{id}' saat itu juga, jadi Petugas Aktif pasti
+  // langsung terbaca di dashboard bersamaan dengan absensi.
+  lastPos = absenPos;
+  pushLocation(absenPos);
   persistSession(); // absen awal resmi selesai — dari titik ini sesi lengkap tersimpan & bisa dipulihkan kalau app ke-kill
-  startGPS();
+  jalankanWizardSetupLaluGPS(); // tampilkan wizard cek izin lokasi+baterai dulu, baru GPS beneran dimulai
   listenRevisiDanTugas();
 };
 
@@ -2163,6 +2890,8 @@ function startAbsenCepatGPS() {
 }
 
 window.bukaKameraCepat = async function() {
+  const izinOk = await mintaIzinKamera();
+  if (!izinOk) { tampilkanPesanIzinDitolak('ac-cam-placeholder'); return; }
   try {
     acStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
     const video = document.getElementById('ac-video');
@@ -2175,7 +2904,7 @@ window.bukaKameraCepat = async function() {
     document.getElementById('ac-btn-retake').style.display = 'none';
   } catch (e) {
     addLog('Gagal akses kamera: ' + e.message, 'err');
-    document.getElementById('ac-cam-placeholder').innerHTML = '<span class="cam-icon">⚠️</span>Kamera tidak bisa diakses<br><span style="font-size:10px">' + e.message + '</span>';
+    document.getElementById('ac-cam-placeholder').innerHTML = '<span class="cam-icon">⚠️</span>' + pesanErrorKamera(e) + '<br><span style="font-size:10px">Ketuk "Buka Kamera" lagi untuk coba ulang.</span>';
   }
 };
 
@@ -2229,7 +2958,7 @@ window.submitAbsenCepat = async function() {
 
   let fotoResult = null;
   try {
-    fotoResult = await uploadFotoAman(acFotoDataUrl, 'ffm/absen-cepat', slugifyForCloudinary(currentUser?.nama) + '_' + waktu);
+    fotoResult = await uploadFotoAman(acFotoDataUrl, 'ffm/absen-cepat', slugifyForCloudinary(currentUser?.regu) + '_' + waktu);
   } catch (e) {
     addLog('Gagal memproses foto absen cepat: ' + e.message, 'err');
     errEl.textContent = 'Gagal memproses foto. Coba lagi.';
@@ -2249,7 +2978,7 @@ window.submitAbsenCepat = async function() {
   let tersinkron = false;
   if (currentUser) {
     tersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
-      nama: currentUser.nama, nip: currentUser.nip, regu: currentUser.regu, ulp: currentUser.ulp,
+      regu: currentUser.regu, ulp: currentUser.ulp,
       anggotaHadir: currentUser.anggotaHadir || '',
       fase: AC_CONFIG[acPurpose].label,
       lat: entry.lat, lng: entry.lng, acc: entry.acc,
@@ -2259,6 +2988,9 @@ window.submitAbsenCepat = async function() {
 
   if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
   addLog('Absen ' + AC_CONFIG[acPurpose].label + ' berhasil', 'ok');
+  showKonfirmasiBesar(tersinkron, 'Absen ' + AC_CONFIG[acPurpose].label + ' Terkirim',
+    'Data & foto sudah tersimpan di server.',
+    'Tersimpan di HP — akan otomatis terkirim saat sinyal kembali.');
   addAbsensiEntry(entry, tersinkron, AC_CONFIG[acPurpose].label);
 
   document.getElementById('modal-absen-cepat').classList.remove('active');
@@ -2308,7 +3040,7 @@ window.bukaModalLaporUntuk = function(nomorTiket, revisiAsalId) {
 };
 
 // #4 + #5: Listener realtime untuk laporan "Perlu Revisi" dan tiket yang
-// di-assign supervisor ke NIP petugas ini. Difilter di sisi client karena
+// di-assign supervisor ke regu ini. Difilter di sisi client karena
 // data petugas/laporan/tiket tidak besar dan tidak perlu index khusus.
 window.listenRevisiDanTugas = function() {
   if (!db || !currentUser) return;
@@ -2316,7 +3048,7 @@ window.listenRevisiDanTugas = function() {
   onValue(ref(db, 'laporan'), snap => {
     const data = snap.val() || {};
     const perluRevisi = Object.entries(data).filter(([, l]) =>
-      l.nip === currentUser.nip && l.statusVerifikasi === 'Perlu Revisi' && !l.ditindaklanjuti
+      l.regu === currentUser.regu && l.statusVerifikasi === 'Perlu Revisi' && !l.ditindaklanjuti
     );
     const banner = document.getElementById('revisi-banner');
     const list   = document.getElementById('revisi-list');
@@ -2335,7 +3067,7 @@ window.listenRevisiDanTugas = function() {
   onValue(ref(db, 'tiket'), snap => {
     const data = snap.val() || {};
     const tugasSaya = Object.entries(data).filter(([, t]) =>
-      t.assignedNip === currentUser.nip && t.statusTiket !== 'Selesai'
+      t.assignedRegu === currentUser.regu && t.statusTiket !== 'Selesai'
     );
     const card = document.getElementById('tugas-ditugaskan-card');
     const list = document.getElementById('tugas-ditugaskan-list');
@@ -2404,11 +3136,23 @@ window.bukaKameraLapor = async function(target) {
   document.getElementById('lapor-btn-pakai').style.display = 'none';
 
   document.getElementById('modal-kamera-lapor').classList.add('active');
+
+  const izinOk = await mintaIzinKamera();
+  if (!izinOk) {
+    // FIX: sebelumnya pakai alert() bawaan browser — memblokir thread & terasa
+    // asing di tengah UI custom app ini. Diganti toast + pesan actionable.
+    showToast('Izin kamera ditolak. Buka Pengaturan HP → Aplikasi → (nama aplikasi ini) → Izin → aktifkan Kamera, lalu coba lagi.', 'err', 6000);
+    document.getElementById('modal-kamera-lapor').classList.remove('active');
+    return;
+  }
+
   try {
     laporStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
     video.srcObject = laporStream;
   } catch (e) {
     addLog('Gagal akses kamera lapor: ' + e.message, 'err');
+    showToast(pesanErrorKamera(e) + ' Ketuk lagi untuk coba ulang.', 'err', 5500);
+    document.getElementById('modal-kamera-lapor').classList.remove('active');
   }
 };
 
@@ -2539,7 +3283,7 @@ window.submitLaporan = async function() {
   try {
     progEl.textContent = 'Mengunggah foto before ke cloud...';
     btn.innerHTML = '<span>⏳</span> Memproses...';
-    const namaSlug    = slugifyForCloudinary(currentUser ? currentUser.nama : uid);
+    const namaSlug    = slugifyForCloudinary(currentUser ? currentUser.regu : uid);
     const rincianSlug = slugifyForCloudinary(rincian);
     const publicIdHint = namaSlug + '_' + rincianSlug + '_' + waktu;
     fotoBeforeResult = await uploadFotoAman(laporFotoBefore, 'ffm/laporan-before', publicIdHint, { quality: 0.6 });
@@ -2556,8 +3300,6 @@ window.submitLaporan = async function() {
   }
 
   const laporan = {
-    nama: currentUser ? currentUser.nama : '—',
-    nip:  currentUser ? currentUser.nip  : '—',
     regu: currentUser ? currentUser.regu : '—',
     ulp:  currentUser ? currentUser.ulp  : '—',
     anggotaHadir: currentUser ? (currentUser.anggotaHadir || '') : '',
@@ -2572,14 +3314,15 @@ window.submitLaporan = async function() {
     fotoAfterUrl:  fotoAfterResult.fotoUrl  || null, fotoAfterBase64:  fotoAfterResult.fotoBase64  || null
   };
 
+  let laporTersinkron = false;
   if (db) {
     progEl.textContent = 'Menyimpan laporan...';
-    const ok = await safeSet('laporan/' + uid + '_' + waktu, laporan, 'Laporan');
-    if (ok) addLog('Laporan pekerjaan terkirim: ' + rincian, 'ok');
+    laporTersinkron = await safeSet('laporan/' + uid + '_' + waktu, laporan, 'Laporan');
+    if (laporTersinkron) addLog('Laporan pekerjaan terkirim: ' + rincian, 'ok');
 
     // #4: kalau ini "Lapor Ulang" dari laporan yang perlu direvisi, tandai
     // laporan lama sebagai sudah ditindaklanjuti supaya hilang dari banner revisi.
-    if (ok && window._revisiAsalId) {
+    if (laporTersinkron && window._revisiAsalId) {
       try {
         await update(ref(db, 'laporan/' + window._revisiAsalId), {
           ditindaklanjuti: true, ditindaklanjutiWaktu: Date.now()
@@ -2603,6 +3346,13 @@ window.submitLaporan = async function() {
   renderTaskList();
   persistSession();
   document.getElementById('modal-lapor').classList.remove('active');
+  // FIX: sebelumnya tidak ada konfirmasi visual sama sekali di sini (cuma
+  // addLog yang masuk ke panel log tersembunyi) — petugas tidak pernah yakin
+  // laporannya benar-benar masuk. Sekarang selalu tampil, baik tersinkron
+  // maupun (untuk sementara) tersimpan offline.
+  showKonfirmasiBesar(laporTersinkron, 'Laporan Terkirim',
+    'Laporan & foto before/after sudah tersimpan di server.',
+    'Laporan tersimpan di HP — akan otomatis terkirim saat sinyal kembali.');
 };
 
 // Update tampilan progres tugas: jumlah laporan terkirim hari ini vs target
@@ -2673,7 +3423,6 @@ async function restoreSessionIfAny() {
   if (!s) return false;
 
   currentUser            = s.currentUser;
-  akunTerverifikasi       = currentUser ? { username: currentUser.username, regu: currentUser.regu } : null;
   currentStatus           = s.currentStatus || 'Standby';
   manualStatus            = s.manualStatus  || 'Standby';
   tugasTarget             = s.tugasTarget   || 0;
@@ -2684,15 +3433,15 @@ async function restoreSessionIfAny() {
   sendCount               = s.sendCount || 0;
   absensiTerakhirList     = s.absensiTerakhirList || [];
 
-  document.getElementById('prof-nama').textContent = currentUser.nama;
-  document.getElementById('prof-sub').textContent  = currentUser.regu + ' · ' + currentUser.ulp;
+  document.getElementById('prof-nama').textContent = currentUser.regu;
+  document.getElementById('prof-sub').textContent  = currentUser.ulp + (currentUser.anggotaHadir ? ' · ' + currentUser.anggotaHadir : '');
 
   if (!currentUser.absensi) {
     // Login sudah tersimpan, tapi absen awal (selfie+GPS pertama) belum
     // pernah berhasil terkirim — lanjutkan persis di langkah itu, jangan
     // langsung ke tracking supaya tidak ada shift tanpa bukti absen awal.
     showScreen('absensi');
-    addLog('Sesi dipulihkan — silakan lanjutkan absen awal, ' + currentUser.nama, 'info');
+    addLog('Sesi dipulihkan — silakan lanjutkan absen awal, ' + currentUser.regu, 'info');
     startAbsensiGPS();
     return true;
   }
@@ -2703,7 +3452,7 @@ async function restoreSessionIfAny() {
   updateProgres();
   renderTaskList();
   showScreen('tracking');
-  addLog('Sesi dipulihkan otomatis — selamat kembali, ' + currentUser.nama, 'ok');
+  addLog('Sesi dipulihkan otomatis — selamat kembali, ' + currentUser.regu, 'ok');
 
   // Bersihkan watcher GPS background lama (kalau ada, dari sebelum app
   // reload/di-kill) supaya tidak jalan dobel begitu watcher baru dibuat.
@@ -2717,6 +3466,48 @@ async function restoreSessionIfAny() {
   return true;
 }
 restoreSessionIfAny();
+
+// ══════════════════════════════════════════════════════════════
+// ONBOARDING — tampil SEKALI saja di HP ini (ditandai localStorage),
+// murni penjelasan alur pakai app, tidak menyentuh logika login/GPS.
+// Kalau localStorage tidak tersedia (mode privat dsb.), onboarding
+// akan muncul tiap buka app — tidak fatal, cuma sedikit mengulang.
+// ══════════════════════════════════════════════════════════════
+const OB_KEY = 'ffm_onboarding_done_v1';
+const OB_TOTAL_SLIDES = 3;
+let obCurrentSlide = 0;
+
+function showOnboardingIfNeeded() {
+  try {
+    if (localStorage.getItem(OB_KEY)) return;
+  } catch (e) { /* abaikan, tampilkan saja */ }
+  document.getElementById('modal-onboarding').classList.add('active');
+}
+
+window.onboardingNext = function() {
+  const next = obCurrentSlide + 1;
+  if (next >= OB_TOTAL_SLIDES) { window.onboardingSelesai(); return; }
+  const curSlideEl = document.querySelector('.ob-slide.active');
+  const curDotEl   = document.querySelector('.ob-dot.active');
+  if (curSlideEl) curSlideEl.classList.remove('active');
+  if (curDotEl)   curDotEl.classList.remove('active');
+  document.querySelector('.ob-slide[data-slide="' + next + '"]').classList.add('active');
+  document.querySelector('.ob-dot[data-dot="' + next + '"]').classList.add('active');
+  obCurrentSlide = next;
+  document.getElementById('ob-btn-next').textContent = next === OB_TOTAL_SLIDES - 1 ? 'Siap, Mulai!' : 'Lanjut';
+};
+
+window.onboardingSelesai = function() {
+  document.getElementById('modal-onboarding').classList.remove('active');
+  try { localStorage.setItem(OB_KEY, '1'); } catch (e) { /* abaikan */ }
+  // reset ke slide awal, jaga-jaga kalau localStorage dihapus & muncul lagi nanti
+  obCurrentSlide = 0;
+  document.querySelectorAll('.ob-slide').forEach((el, i) => el.classList.toggle('active', i === 0));
+  document.querySelectorAll('.ob-dot').forEach((el, i) => el.classList.toggle('active', i === 0));
+  document.getElementById('ob-btn-next').textContent = 'Lanjut';
+};
+
+showOnboardingIfNeeded();
 
 // ── Service Worker: supaya aplikasi tetap bisa DIBUKA walau HP sedang
 //    tanpa sinyal (file sw.js wajib ada di folder yang sama dengan petugas.html) ──
