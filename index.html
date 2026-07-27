@@ -6262,6 +6262,15 @@ window.pilihTimAktif = function(regu, ulp) {
   renderTimAktif();
 };
 
+// Dipanggil dari tombol "Edit" di tabel Rencana Pekerjaan. Data diambil dari
+// cache lastTiketEntries (bukan disuntik lewat atribut HTML onclick) supaya
+// nilai apa pun yang mengandung tanda kutip (", ') tidak merusak markup.
+window.editTiketDariTabel = function(id) {
+  const entry = (lastTiketEntries || []).find(([eid]) => eid === id);
+  if (!entry) { showToast('Data penugasan tidak ditemukan (mungkin sudah dihapus/diperbarui). Coba refresh.', 'err'); return; }
+  bukaModalTiket(id, entry[1]);
+};
+
 window.bukaModalTiket = function(id, data) {
   currentEditTiketId = id || null;
   populateTiketUlpSelect();
@@ -6478,7 +6487,7 @@ function renderTiketTable(entries) {
   tbody.innerHTML = entries.sort((a,b)=>(b[1].waktu||0)-(a[1].waktu||0)).map(([id, t]) => {
     const waktu = t.waktu ? new Date(t.waktu).toLocaleDateString('id-ID') : '—';
     const statusCls = t.statusTiket === 'Selesai' ? 'badge-green' : 'badge-blue';
-    const editBtn = `<button onclick="bukaModalTiket('${id}',${JSON.stringify(t).replace(/'/g,"\\'")})" style="background:var(--info-bg);color:var(--info);border:none;border-radius:var(--radius-xs);padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:4px">Edit</button>`;
+    const editBtn = `<button onclick="editTiketDariTabel('${id}')" style="background:var(--info-bg);color:var(--info);border:none;border-radius:var(--radius-xs);padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:4px">Edit</button>`;
     const tutupBtn = t.statusTiket !== 'Selesai' ? `<button onclick="tutupTiketManual('${id}')" style="background:var(--ok-bg);color:var(--ok);border:none;border-radius:var(--radius-xs);padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:4px" title="Tandai penugasan ini selesai secara manual">✓ Tutup</button>` : '';
     const delBtn = isAdminMode ? `<button class="btn-del" onclick="hapusTiket('${id}')">🗑</button>` : '';
     return `<tr>
