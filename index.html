@@ -2248,7 +2248,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;margin-bottom:4px;align-items:flex-end">
         <div>
           <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Status</label>
-          <select id="hv-filter-status" onchange="renderHasilVerifikasiGrid()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
+          <select id="hv-filter-status" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
             <option value="">Semua Status</option>
             <option value="Terverifikasi">✓ Terverifikasi</option>
             <option value="Perlu Revisi">⚠ Perlu Revisi</option>
@@ -2257,23 +2257,23 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
         </div>
         <div>
           <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">ULP</label>
-          <select id="hv-filter-ulp" onchange="renderHasilVerifikasiGrid()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:150px">
+          <select id="hv-filter-ulp" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:150px">
             <option value="">Semua ULP</option>
           </select>
         </div>
         <div>
           <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Jenis Pekerjaan</label>
-          <select id="hv-filter-jenis" onchange="renderHasilVerifikasiGrid()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:200px">
+          <select id="hv-filter-jenis" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:200px">
             <option value="">Semua Jenis Pekerjaan</option>
           </select>
         </div>
         <div style="flex:1;min-width:180px">
           <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Cari</label>
-          <input id="hv-filter-search" type="text" placeholder="Cari regu, tiket, catatan..." oninput="renderHasilVerifikasiGrid()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none">
+          <input id="hv-filter-search" type="text" placeholder="Cari regu, tiket, catatan..." oninput="onHasilVerifikasiFilterChange()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none">
         </div>
         <div>
           <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Kelompokkan</label>
-          <select id="hv-groupby" onchange="renderHasilVerifikasiGrid()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:150px">
+          <select id="hv-groupby" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:150px">
             <option value="none">Tanpa Kelompok</option>
             <option value="ulp" selected>Per ULP</option>
             <option value="jenis">Per Jenis Pekerjaan</option>
@@ -2287,6 +2287,16 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
       <div id="hasilVerifikasiContent" style="margin-top:14px;">
         <div style="text-align:center;color:var(--text-muted);padding:40px;font-size:13px;">Menunggu data Firebase...</div>
+      </div>
+      <div class="pagination-bar" id="hasilVerifikasiPagination" style="display:none;margin-top:14px;border-top:none;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow-xs);">
+        <div class="pagination-info" id="hasilVerifikasiPgInfo">—</div>
+        <div class="pagination-controls">
+          <button class="pg-btn" id="hasilVerifikasiPgFirst" onclick="goToHasilVerifikasiPage(1)" title="Halaman pertama">«</button>
+          <button class="pg-btn" id="hasilVerifikasiPgPrev" onclick="goToHasilVerifikasiPage(hasilVerifikasiPage-1)" title="Sebelumnya">‹</button>
+          <span id="hasilVerifikasiPgNumbers" style="display:flex;gap:6px"></span>
+          <button class="pg-btn" id="hasilVerifikasiPgNext" onclick="goToHasilVerifikasiPage(hasilVerifikasiPage+1)" title="Berikutnya">›</button>
+          <button class="pg-btn" id="hasilVerifikasiPgLast" onclick="goToHasilVerifikasiPage(hasilVerifikasiPageTotalPages)" title="Halaman terakhir">»</button>
+        </div>
       </div>
     </div>
 
@@ -7089,8 +7099,21 @@ window.resetHasilVerifikasiFilter = function() {
   document.getElementById('hv-filter-jenis').value = '';
   document.getElementById('hv-filter-search').value = '';
   document.getElementById('hv-groupby').value = 'ulp';
+  hasilVerifikasiPage = 1;
   renderHasilVerifikasiGrid();
 };
+
+// Filter/kelompok berubah -> selalu kembali ke halaman 1 supaya user tidak
+// "nyasar" di halaman lama yang mungkin sudah kosong / beda datanya.
+window.onHasilVerifikasiFilterChange = function() {
+  hasilVerifikasiPage = 1;
+  renderHasilVerifikasiGrid();
+};
+
+// ── Hasil Verifikasi: state pagination ──
+let hasilVerifikasiPage = 1;
+const hasilVerifikasiPageSize = 9; // konsisten dengan halaman Verifikasi (3 kolom x 3 baris)
+let hasilVerifikasiPageTotalPages = 1;
 
 function hvStatusBadge(sv) {
   const color = sv === 'Terverifikasi' ? 'var(--ok)' : sv === 'Ditolak' ? 'var(--crit)' : 'var(--warn)';
@@ -7159,26 +7182,43 @@ function getHasilVerifikasiFilteredEntries() {
 window.renderHasilVerifikasiGrid = function() {
   const wrap = document.getElementById('hasilVerifikasiContent');
   const countEl = document.getElementById('hasilVerifikasiCount');
+  const pagBar = document.getElementById('hasilVerifikasiPagination');
   if (!wrap) return;
 
   const groupBy = document.getElementById('hv-groupby')?.value || 'ulp';
   const entries = getHasilVerifikasiFilteredEntries();
 
-  // Sama seperti di renderVerifikasiGrid(): cache laporan per id, jangan sisipkan
-  // objek laporan penuh ke atribut HTML onclick — lihat bukaModalVerifikasiById().
-  window._verifDataCache = window._verifDataCache || {};
-  entries.forEach(([id, l]) => { window._verifDataCache[id] = l; });
-
   if (countEl) countEl.textContent = entries.length + ' laporan';
 
   if (entries.length === 0) {
     wrap.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:13px;">Tidak ada laporan yang cocok dengan filter ini</div>';
+    if (pagBar) pagBar.style.display = 'none';
     return;
   }
 
+  // Pagination: hitung total halaman & jaga halaman aktif tetap valid
+  // (mis. saat filter baru bikin hasil lebih sedikit dari sebelumnya) —
+  // sama seperti renderVerifikasiGrid(). Slicing dilakukan SEBELUM
+  // pengelompokan supaya jumlah kartu per halaman konsisten.
+  hasilVerifikasiPageTotalPages = Math.max(1, Math.ceil(entries.length / hasilVerifikasiPageSize));
+  hasilVerifikasiPage = Math.min(Math.max(1, hasilVerifikasiPage), hasilVerifikasiPageTotalPages);
+  const pageStart = (hasilVerifikasiPage - 1) * hasilVerifikasiPageSize;
+  const pageEntries = entries.slice(pageStart, pageStart + hasilVerifikasiPageSize);
+
+  if (pagBar) {
+    pagBar.style.display = hasilVerifikasiPageTotalPages > 1 ? 'flex' : 'none';
+    renderHasilVerifikasiPaginationControls(entries.length);
+  }
+
+  // Sama seperti di renderVerifikasiGrid(): cache laporan per id, jangan sisipkan
+  // objek laporan penuh ke atribut HTML onclick — lihat bukaModalVerifikasiById().
+  // Cukup untuk kartu yang benar-benar ditampilkan di halaman ini.
+  window._verifDataCache = window._verifDataCache || {};
+  pageEntries.forEach(([id, l]) => { window._verifDataCache[id] = l; });
+
   if (groupBy === 'none') {
     wrap.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;">
-      ${entries.map(([id, l]) => renderHasilVerifikasiCard(id, l)).join('')}
+      ${pageEntries.map(([id, l]) => renderHasilVerifikasiCard(id, l)).join('')}
     </div>`;
     return;
   }
@@ -7188,7 +7228,7 @@ window.renderHasilVerifikasiGrid = function() {
                     : (l => l.statusVerifikasi);
 
   const groups = {};
-  entries.forEach(([id, l]) => {
+  pageEntries.forEach(([id, l]) => {
     const key = groupKeyFn(l);
     (groups[key] = groups[key] || []).push([id, l]);
   });
@@ -7204,6 +7244,39 @@ window.renderHasilVerifikasiGrid = function() {
       </div>
     </div>
   `).join('');
+};
+
+function renderHasilVerifikasiPaginationControls(totalEntries) {
+  const start = (hasilVerifikasiPage - 1) * hasilVerifikasiPageSize + 1;
+  const end   = Math.min(hasilVerifikasiPage * hasilVerifikasiPageSize, totalEntries);
+  document.getElementById('hasilVerifikasiPgInfo').innerHTML =
+    `<b>${start}–${end}</b> dari <b>${totalEntries}</b>`;
+
+  document.getElementById('hasilVerifikasiPgFirst').disabled = hasilVerifikasiPage <= 1;
+  document.getElementById('hasilVerifikasiPgPrev').disabled  = hasilVerifikasiPage <= 1;
+  document.getElementById('hasilVerifikasiPgNext').disabled  = hasilVerifikasiPage >= hasilVerifikasiPageTotalPages;
+  document.getElementById('hasilVerifikasiPgLast').disabled  = hasilVerifikasiPage >= hasilVerifikasiPageTotalPages;
+
+  const nums = [];
+  const windowStart = Math.max(1, hasilVerifikasiPage - 2);
+  const windowEnd   = Math.min(hasilVerifikasiPageTotalPages, hasilVerifikasiPage + 2);
+  if (windowStart > 1) { nums.push(1); if (windowStart > 2) nums.push('…'); }
+  for (let n = windowStart; n <= windowEnd; n++) nums.push(n);
+  if (windowEnd < hasilVerifikasiPageTotalPages) { if (windowEnd < hasilVerifikasiPageTotalPages - 1) nums.push('…'); nums.push(hasilVerifikasiPageTotalPages); }
+
+  document.getElementById('hasilVerifikasiPgNumbers').innerHTML = nums.map(n =>
+    n === '…'
+      ? `<span style="padding:0 4px;color:var(--text-3);font-size:12px">…</span>`
+      : `<button class="pg-btn${n===hasilVerifikasiPage?' active':''}" onclick="goToHasilVerifikasiPage(${n})">${n}</button>`
+  ).join('');
+}
+
+window.goToHasilVerifikasiPage = function(n) {
+  n = Math.min(Math.max(1, n), hasilVerifikasiPageTotalPages);
+  if (n === hasilVerifikasiPage) return;
+  hasilVerifikasiPage = n;
+  renderHasilVerifikasiGrid();
+  document.getElementById('hasilVerifikasiContent')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 // ══════════════════════════════════════
