@@ -3309,6 +3309,11 @@ function switchView(view) {
   const allNavIds = ['nav-beranda','nav-map','nav-table','nav-petugas','nav-absensi','nav-log-absensi','nav-laporan','nav-tiket','nav-verifikasi','nav-hasil-verifikasi','nav-riwayat-inspeksi','nav-rekap','nav-akun','nav-db-viewer'];
   allNavIds.forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('active'); });
 
+  // Tiap kali pindah/masuk (lagi) ke suatu halaman, scroll selalu dikembalikan
+  // ke paling atas — supaya tidak "nyangkut" di posisi scroll terakhir waktu
+  // user meninggalkan halaman itu sebelumnya.
+  document.querySelector('.content')?.scrollTo(0, 0);
+
   if (view === 'beranda') {
     document.getElementById('viewBeranda').style.display = '';
     document.getElementById('nav-beranda').classList.add('active');
@@ -3318,11 +3323,13 @@ function switchView(view) {
       listenTiket();        // isi targetKerjaCache (dari node 'penugasan')
     });
   } else if (view === 'map') {
+    resetFilters(); // filter Peta Inspeksi selalu mulai bersih tiap kali halaman ini dibuka
     document.getElementById('filterBar').style.display = '';
     document.getElementById('viewMap').style.display   = '';
     document.getElementById('nav-map').classList.add('active');
     setTimeout(() => { if (mapInstance) { mapInstance.invalidateSize(); fitMapToData(); } }, 150);
   } else if (view === 'table') {
+    resetFilters(); // sama sumber filter dengan Peta (fSheet/fULP/fPenyulang/fUrgensi/fSearch)
     document.getElementById('filterBar').style.display  = '';
     document.getElementById('viewTable').style.display  = '';
     document.getElementById('nav-table').classList.add('active');
@@ -3342,18 +3349,18 @@ function switchView(view) {
   } else if (view === 'log-absensi') {
     document.getElementById('viewLogAbsensi').style.display = '';
     document.getElementById('nav-log-absensi').classList.add('active');
-    if (!document.getElementById('logAbsensiRefDate').value) {
-      document.getElementById('logAbsensiRefDate').value = todayLocalKey();
-    }
+    document.getElementById('logAbsensiRefDate').value = todayLocalKey(); // selalu balik ke hari ini tiap kali halaman ini dibuka
     initFirebase().then(ok => { if (ok) loadLogAbsensiRange(); });
   } else if (view === 'laporan') {
     document.getElementById('viewLaporan').style.display = '';
     document.getElementById('nav-laporan').classList.add('active');
     initFirebase().then(ok => { if (ok) listenLaporan(); });
+    if (typeof resetLaporanFilter === 'function') resetLaporanFilter();
   } else if (view === 'rekap') {
     document.getElementById('viewRekap').style.display = '';
     document.getElementById('nav-rekap').classList.add('active');
     initFirebase().then(ok => { if (ok) listenRekap(); });
+    if (typeof resetRekapFilter === 'function') resetRekapFilter();
   } else if (view === 'tiket') {
     document.getElementById('viewTiket').style.display = '';
     document.getElementById('nav-tiket').classList.add('active');
@@ -3362,10 +3369,12 @@ function switchView(view) {
     document.getElementById('viewVerifikasi').style.display = '';
     document.getElementById('nav-verifikasi').classList.add('active');
     initFirebase().then(ok => { if (ok) listenVerifikasi(); });
+    if (typeof resetVerifikasiFilter === 'function') resetVerifikasiFilter();
   } else if (view === 'hasil-verifikasi') {
     document.getElementById('viewHasilVerifikasi').style.display = '';
     document.getElementById('nav-hasil-verifikasi').classList.add('active');
     initFirebase().then(ok => { if (ok) listenVerifikasi(); });
+    if (typeof resetHasilVerifikasiFilter === 'function') resetHasilVerifikasiFilter();
   } else if (view === 'riwayat-inspeksi') {
     document.getElementById('viewRiwayatInspeksi').style.display = '';
     document.getElementById('nav-riwayat-inspeksi').classList.add('active');
@@ -3374,6 +3383,7 @@ function switchView(view) {
       listenVerifikasi(); // reuse listener yang sama dgn Verifikasi/Hasil Verifikasi — sumber data node 'laporan' sama persis
       renderRiwayatInspeksi(); // render langsung dari cache kalau listener sudah aktif sebelumnya (data tidak hilang)
     });
+    if (typeof resetRiwayatInspeksiFilter === 'function') resetRiwayatInspeksiFilter();
     if (riViewMode === 'peta') setTimeout(() => { if (riMapInstance) { riMapInstance.invalidateSize(); riFitMapToData(); } }, 150);
   } else if (view === 'akun') {
     if (!isAdminMode) { showToast('Kelola Akun Regu hanya bisa diakses dalam Mode Admin.', 'warn'); switchView('beranda'); return; }
@@ -6533,6 +6543,7 @@ function listenTiket() {
       }));
     refreshBerandaCharts();
     renderTiketProgres();
+    populateVfNomorPenugasanSelect(); // jaga dropdown "Penugasan" di modal Verifikasi tetap sinkron kalau kebetulan sedang terbuka
   });
 }
 
@@ -6734,7 +6745,13 @@ window.bukaModalVerifikasi = function(id, laporan, mode) {
     <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;border:1px solid var(--line)">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px">👷 ${esc(laporan.regu)||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${esc(laporan.ulp)||''}${laporan.anggotaHadir ? ' · ' + esc(laporan.anggotaHadir) : ''}</span></div>
       <div style="font-size:12px;color:var(--text-2);line-height:1.8">
-        <b>Penugasan:</b> ${laporan.nomorTiket ? '<span style="font-family:var(--mono);color:var(--pln-blue);font-weight:700">'+esc(laporan.nomorTiket)+'</span>' : '—'}<br>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <b>Penugasan:</b>
+          <select id="vf-nomor-penugasan" onchange="onVfNomorPenugasanChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:4px 8px;font-size:11.5px;font-family:var(--mono);outline:none;max-width:280px;background:var(--surface)">
+            <option value="">— Tanpa Penugasan —</option>
+          </select>
+        </div>
+        <div id="vf-nomor-penugasan-hint" style="font-size:11px;color:var(--text-3);margin-top:3px;display:none"></div>
         <b>Waktu Laporan:</b> ${waktu}
       </div>
     </div>
@@ -6743,6 +6760,61 @@ window.bukaModalVerifikasi = function(id, laporan, mode) {
     </div>` : ''}
   `;
   document.getElementById('modal-verifikasi').style.display = 'flex';
+
+  // Isi dropdown Nomor Penugasan dari daftar penugasan yang lagi berjalan
+  // (node 'penugasan'), supaya TL/Admin bisa pindahkan laporan ini ke nomor
+  // penugasan lain kalau salah pilih/salah regu — lihat populateVfNomorPenugasanSelect().
+  // listenTiket() aman dipanggil berulang (idempotent, cuma daftar sekali per sesi)
+  // dan memastikan lastTiketEntries terisi walau TL/Admin belum pernah buka tab
+  // Kelola Penugasan Pekerjaan.
+  initFirebase().then(ok => {
+    if (ok) listenTiket();
+    populateVfNomorPenugasanSelect(laporan.nomorTiket || '');
+    onVfNomorPenugasanChange();
+  });
+};
+
+// Isi ulang dropdown "Penugasan" di modal Verifikasi/Ubah Hasil Verifikasi
+// dari lastTiketEntries (node 'penugasan'). selectedNomor dipakai untuk
+// memilih opsi tsb setelah dropdown diisi; kalau dipanggil tanpa argumen
+// (mis. dari listener realtime saat data penugasan berubah ketika modal
+// sedang terbuka), pilihan yang sedang aktif di layar tetap dipertahankan
+// supaya tidak menimpa perubahan yang belum disimpan.
+window.populateVfNomorPenugasanSelect = function(selectedNomor) {
+  const sel = document.getElementById('vf-nomor-penugasan');
+  if (!sel) return;
+  const current = selectedNomor !== undefined ? selectedNomor : (sel.value || currentVerifLaporan?.nomorTiket || '');
+
+  const all = (lastTiketEntries || []).map(([, t]) => t).filter(t => t.nomor);
+  // Hanya penugasan yang masih "berjalan" (belum Selesai) yang ditawarkan sebagai
+  // tujuan pindah. Nomor lama yang sudah "Selesai" atau sudah tidak ada lagi di
+  // node 'penugasan' (terhapus) TIDAK ditampilkan di dropdown ini.
+  const aktif = all.filter(t => t.statusTiket !== 'Selesai');
+  aktif.sort((a, b) => (a.ulp||'').localeCompare(b.ulp||'') || (a.nomor||'').localeCompare(b.nomor||''));
+
+  const options = ['<option value="">— Tanpa Penugasan —</option>'].concat(
+    aktif.map(t => {
+      const label = `${t.nomor} — ${t.ulp||'—'} · ${t.assignedRegu||'Belum ditugaskan'}${t.jenis ? ' · ' + t.jenis : ''}`;
+      return `<option value="${esc(t.nomor)}">${esc(label)}</option>`;
+    })
+  );
+
+  sel.innerHTML = options.join('');
+  sel.value = current || '';
+};
+
+// Tampilkan info singkat (jenis pekerjaan/ULP/regu tujuan) tiap kali pilihan
+// nomor penugasan diganti, supaya TL/Admin bisa cek dulu sebelum disimpan.
+window.onVfNomorPenugasanChange = function() {
+  const sel  = document.getElementById('vf-nomor-penugasan');
+  const hint = document.getElementById('vf-nomor-penugasan-hint');
+  if (!sel || !hint) return;
+  const nomor = sel.value;
+  if (!nomor) { hint.style.display = 'none'; return; }
+  const found = (lastTiketEntries || []).map(([, t]) => t).find(t => t.nomor === nomor);
+  if (!found) { hint.style.display = 'none'; return; }
+  hint.innerHTML = `📌 ${esc(found.jenis||'—')} · ${esc(found.ulp||'—')} · ${esc(found.assignedRegu||'Belum ditugaskan')}`;
+  hint.style.display = 'block';
 };
 
 window.tutupModalVerifikasi = function() {
@@ -6802,6 +6874,10 @@ window.submitVerifikasi = async function() {
       lapDaerahPadam: document.getElementById('vf-daerahpadam').value.trim() || null,
       lapPic: document.getElementById('vf-pic').value.trim() || null,
       lapKeterangan: document.getElementById('vf-keterangan').value.trim() || null,
+      // Nomor Penugasan — bisa dipindahkan TL/Admin lewat dropdown "Penugasan"
+      // di atas kalau laporan ternyata salah tertaut ke nomor tiket yang bukan
+      // haknya (lihat populateVfNomorPenugasanSelect).
+      nomorTiket: document.getElementById('vf-nomor-penugasan')?.value || null,
       target: target || null,
       realisasi: realisasi || null,
       realisasiSatuan: document.getElementById('vf-satuan').value.trim() || null,
@@ -6821,7 +6897,11 @@ window.submitVerifikasi = async function() {
     // ── Auto-tutup tiket terkait ──
     // Begitu laporan yang terhubung ke nomor tiket dinyatakan "Terverifikasi", tiket P0/P1
     // otomatis ditandai "Selesai" supaya tidak menumpuk "Aktif" selamanya.
-    const nomorTiket = currentVerifLaporan?.nomorTiket;
+    // Pakai nomor tiket yang BARU (dari dropdown, upd.nomorTiket) — bukan nomor lama
+    // (currentVerifLaporan.nomorTiket) — supaya kalau TL/Admin baru saja memindahkan
+    // laporan ini ke penugasan lain, yang otomatis ditutup adalah penugasan tujuan
+    // yang benar, bukan penugasan lama yang sudah tidak relevan lagi.
+    const nomorTiket = upd.nomorTiket;
     if (hasil === 'Terverifikasi' && nomorTiket) {
       try {
         const tiketSnap = await get(window._fbRef(fbDb, 'penugasan'));
@@ -8035,6 +8115,16 @@ window.setRekapPeriode = function(p, btn) {
   rekapPeriode = p;
   document.querySelectorAll('#viewRekap .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  renderRekap(allLaporanCache);
+};
+
+// Kembalikan tab periode Rekap ke default ("Hari Ini") — dipakai switchView()
+// supaya tiap kali TL/Admin masuk (lagi) ke halaman Rekap, tampilannya selalu
+// mulai dari kondisi awal, bukan melanjutkan periode terakhir yang dipilih.
+window.resetRekapFilter = function() {
+  rekapPeriode = 'hari';
+  document.querySelectorAll('#viewRekap .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('rekap-tab-hari')?.classList.add('active');
   renderRekap(allLaporanCache);
 };
 
