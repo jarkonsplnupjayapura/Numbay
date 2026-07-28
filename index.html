@@ -4712,6 +4712,7 @@ function renderPetugasCardHtml(id, p) {
         ? `<div style="font-size:10.5px;color:var(--warn);font-weight:700;margin-top:3px">⚠ Sesi tidak aktif — GPS terakhir ${ago}, mohon dicek</div>`
         : '');
   const asalNote = p.asalTimRow ? ` <span style="color:var(--text-3)">↔ asal ${esc(p.asalTimRow)}</span>` : '';
+  const mitraNote = p.ulpMitra ? ` <span style="color:var(--text-3)">🏗️ untuk ${esc(p.ulpMitra)}</span>` : '';
   return `<div class="petugas-card">
       <div class="team-avatar-wrap">
         <div class="petugas-avatar" style="background:${ulpColor};box-shadow:0 2px 8px ${hexToRgba(ulpColor,0.35)}">${avatarEmoji}</div>
@@ -4719,7 +4720,7 @@ function renderPetugasCardHtml(id, p) {
       </div>
       <div style="flex:1;min-width:0">
         <div class="petugas-name">${esc(p.regu)||'—'}</div>
-        <div class="petugas-meta">${esc(p.ulp)||'—'}${asalNote}${p.anggotaHadir ? ' · ' + esc(p.anggotaHadir) : ''}</div>
+        <div class="petugas-meta">${esc(p.ulp)||'—'}${asalNote}${mitraNote}${p.anggotaHadir ? ' · ' + esc(p.anggotaHadir) : ''}</div>
         <div class="petugas-meta" style="margin-top:3px">📡 ${ago} · ${p.lat ? p.lat.toFixed(4)+', '+p.lng.toFixed(4) : 'GPS —'}</div>
         ${peringatan}
       </div>
@@ -4863,6 +4864,9 @@ function buildPetugasPopup(p) {
   const asalTimRowHtml = p.asalTimRow
     ? `<div style="font-size:10.5px;padding:5px 10px;color:var(--text-3);border-bottom:1px solid var(--line)">↔ Tim asal <b>${esc(p.asalTimRow)}</b> — sedang bantu tugas di ${esc(p.ulp)||'ULP ini'}</div>`
     : '';
+  const ulpMitraHtml = p.ulpMitra
+    ? `<div style="font-size:10.5px;padding:5px 10px;color:var(--text-3);border-bottom:1px solid var(--line)">🏗️ PT MITRA — sedang kerja untuk <b>${esc(p.ulpMitra)}</b></div>`
+    : '';
   return `
     <div class="popup-card" style="border-left:4px solid ${ulpColor}">
       <div class="popup-head" style="background:${hexToRgba(ulpColor,0.08)}">
@@ -4870,6 +4874,7 @@ function buildPetugasPopup(p) {
         <span class="popup-jenis" style="background:${ulpColor};color:#fff">${esc(p.ulp)||'—'}</span>
       </div>
       ${asalTimRowHtml}
+      ${ulpMitraHtml}
       <div class="popup-block">
         <span class="popup-label">Anggota Hadir</span>
         <div class="popup-anggota">${anggotaHtml}</div>
@@ -5895,7 +5900,7 @@ function renderLaporanCardHtml(id, l) {
   return `<div class="laporan-card">
     <div class="laporan-card-header">
       <div>
-        <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-secondary);font-size:11px">${esc(l.ulp)||''}${l.asalTimRow ? ' · ↔ asal ' + esc(l.asalTimRow) : ''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
+        <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-secondary);font-size:11px">${esc(l.ulp)||''}${l.asalTimRow ? ' · ↔ asal ' + esc(l.asalTimRow) : ''}${l.ulpMitra ? ' · 🏗️ untuk ' + esc(l.ulpMitra) : ''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
         <div class="laporan-card-meta">${waktu}</div>
         ${editedBadge}
       </div>
