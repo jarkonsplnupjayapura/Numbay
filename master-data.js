@@ -15,37 +15,37 @@
 var ROSTER_ULP_TEAMS = {
   'ULP Jayapura': [
     'Tim Pemeliharaan PLN ND', 'Tim Inspeksi JTM Tier 1 Jayapura', 'Tim Inspeksi JTM Tier 2 Jayapura',
-    'Tim Inspeksi Gardu', 'Tim ROW PT APP Jayapura', 'Tim ROW PT Lau Daling',
+    'Tim Inspeksi Gardu', 'Tim ROW PT APP', 'Tim ROW PT Lau Daling',
     'Tim Mitra Konstruksi', 'Tim PDKB SL 1', 'Tim PDKB SL 2',
     'Tim Yantek Jayapura 11', 'Tim Yantek Jayapura 12', 'Tim Yantek Jayapura 21'
   ],
   'ULP Abepura': [
     'Tim Pemeliharaan PLN ND', 'Tim Inspeksi JTM Tier 1 Abepura', 'Tim Inspeksi Gardu',
-    'Tim ROW PT AKA Rifki Papua', 'Tim ROW PT Intrabes Abepura', 'Tim ROW PLN ND Abepura',
+    'Tim ROW PT AKA Rifki Papua', 'Tim ROW PT Intrabes', 'Tim ROW PLN ND',
     'Tim Mitra Konstruksi', 'Tim PDKB SL 1', 'Tim PDKB SL 2',
     'Tim Yantek Abepura 11', 'Tim Yantek Abepura 12', 'Tim Yantek Abepura 13', 'Tim Yantek Abepura 21'
   ],
   'ULP Sentani': [
     'Tim Pemeliharaan PLN ND', 'Tim Inspeksi JTM Tier 1 Sentani', 'Tim Inspeksi Gardu',
-    'Tim ROW PT APP Sentani', 'Tim ROW PT Dasha Gauri', 'Tim ROW PT Intrabes Sentani',
+    'Tim ROW PT APP', 'Tim ROW PT Dasha Gauri', 'Tim ROW PT Intrabes',
     'Tim Mitra Konstruksi', 'Tim PDKB SL 1', 'Tim PDKB SL 2',
     'Tim Yantek Sentani 11', 'Tim Yantek Sentani 12', 'Tim Yantek Sentani 21'
   ],
   'ULP Arso': [
     'Tim Pemeliharaan PLN ND', 'Tim Inspeksi JTM Tier 1 Arso', 'Tim Inspeksi Gardu',
-    'Tim ROW PT APP Arso', 'Tim ROW PT Intrabes Arso', 'Tim ROW PLN ND Arso',
+    'Tim ROW PT APP', 'Tim ROW PT Intrabes', 'Tim ROW PLN ND',
     'Tim Mitra Konstruksi', 'Tim PDKB SL 1', 'Tim PDKB SL 2',
     'Tim Yantek Arso 11', 'Tim Yantek Arso 21'
   ],
   'ULP Genyem': [
     'Tim Pemeliharaan PLN ND', 'Tim Inspeksi JTM Tier 1 Genyem', 'Tim Inspeksi Gardu',
-    'Tim ROW PT APP Genyem', 'Tim ROW PLN ND Genyem',
+    'Tim ROW PT APP', 'Tim ROW PLN ND',
     'Tim Mitra Konstruksi', 'Tim PDKB SL 1', 'Tim PDKB SL 2',
     'Tim Yantek Genyem 11', 'Tim Yantek Genyem 12'
   ],
   'ULP Sarmi': [
     'Tim Pemeliharaan PLN ND', 'Tim Inspeksi JTM Tier 1 Sarmi', 'Tim Inspeksi Gardu',
-    'Tim ROW PT APP Sarmi', 'Tim ROW PLN ND Sarmi',
+    'Tim ROW PT APP', 'Tim ROW PLN ND',
     'Tim Mitra Konstruksi', 'Tim PDKB SL 1', 'Tim PDKB SL 2',
     'Tim Yantek Sarmi 11', 'Tim Yantek Sarmi 12'
   ],
@@ -74,8 +74,14 @@ var RP_JENIS_PEMADAMAN_LIST = ['TM', 'TR', 'Tanpa Pemadaman'];
 
 var RP_JENIS_PEKERJAAN_LIST = [
   'Sempurna Proteksi', 'Sempurna Material', 'Sempurna Pembebanan',
-  'Sempurna Inspeksi', 'Sempurna Konstruksi', 'Sempurna ROW', 'Sempurna Gardu'
+  'Sempurna Inspeksi', 'Sempurna Konstruksi', 'Sempurna ROW', 'Sempurna Gardu',
+  'Grebek', 'Harian'
 ];
+
+// Dipakai field "Kelompok" pada Rencana Pekerjaan di index.html (sebelum
+// field Gardu) & field "Kelompok" pada form Laporan Pekerjaan di petugas.html
+// (juga sebelum field Gardu, dan auto-terisi dari Rencana Pekerjaan terkait).
+var RP_KELOMPOK_LIST = ['PHBTM', 'JTM', 'GARDU DIST', 'JTR', 'SR-APP'];
 
 var RP_RINCIAN_GROUPS = {
   'Umum / Bangunan / JTM Dasar': [
