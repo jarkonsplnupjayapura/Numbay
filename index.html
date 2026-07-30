@@ -20,6 +20,7 @@
 <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="master-data.js"></script>
@@ -6082,6 +6083,59 @@ function styleExcelSheet(ws, headerRow = 0) {
   ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: headerRow, c: range.s.c }, e: { r: range.e.r, c: range.e.c } }) };
 }
 
+// ── Helper Excel BERGAMBAR (pakai ExcelJS, bukan xlsx-js-style) ──────────
+// xlsx-js-style (SheetJS community fork) cuma bisa styling, TIDAK bisa
+// menyisipkan gambar asli ke dalam sel .xlsx. Makanya export yang punya
+// kolom foto (Laporan Pekerjaan, Hasil Verifikasi, Rekap) pakai ExcelJS,
+// yang bisa embed gambar asli — foto ditarik dari Cloudinary lalu
+// ditempel langsung ke sel, bukan cuma link URL lagi.
+function ejBorder() {
+  const thin = { style: 'thin', color: { argb: 'FFD9E0EA' } };
+  return { top: thin, bottom: thin, left: thin, right: thin };
+}
+function ejStyleHeaderRow(row) {
+  row.eachCell(cell => {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003D82' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    cell.border = ejBorder();
+  });
+  row.height = 22;
+}
+function ejStyleDataRow(row, isEven, tinggi) {
+  row.eachCell(cell => {
+    cell.font = { size: 10.5, color: { argb: 'FF1F2A37' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF2F5FA' : 'FFFFFFFF' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+    cell.border = ejBorder();
+  });
+  if (tinggi) row.height = tinggi;
+}
+// Tempel satu foto (base64/dataURL) ke posisi kolom-baris tertentu (1-based),
+// mengisi penuh sel foto (~ukuran sizePx) supaya rapi dilihat langsung di Excel.
+function ejTempelFoto(wb, ws, dataUrl, rowIdx1, colIdx1, sizePx = 96) {
+  if (!dataUrl) return;
+  const m = /^data:image\/(png|jpe?g|gif);base64,/i.exec(dataUrl);
+  const extension = m ? (m[1].toLowerCase() === 'jpg' ? 'jpeg' : m[1].toLowerCase()) : 'jpeg';
+  try {
+    const imgId = wb.addImage({ base64: dataUrl, extension });
+    ws.addImage(imgId, {
+      tl: { col: colIdx1 - 1 + 0.08, row: rowIdx1 - 1 + 0.08 },
+      ext: { width: sizePx, height: sizePx }
+    });
+  } catch (e) { /* format gambar tak dikenal — dilewati, sel tetap kosong */ }
+}
+// Unduh workbook ExcelJS sebagai file .xlsx ke browser
+async function ejUnduhWorkbook(wb, filename) {
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
 // Susun baris data laporan jadi format tabel siap pakai (dipakai bareng oleh Excel & PDF)
 function buildLaporanRows(entries) {
   return entries.map(([, l], i) => ({
@@ -6106,22 +6160,42 @@ function buildLaporanRows(entries) {
   }));
 }
 
-window.exportLaporanExcel = function() {
+window.exportLaporanExcel = async function() {
   const entries = laporanFilteredEntries || [];
   if (!entries.length) { showToast('Belum ada data laporan untuk di-export.', 'warn'); return; }
-  if (typeof XLSX === 'undefined') { showToast('Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.', 'err'); return; }
+  if (typeof ExcelJS === 'undefined') { showToast('Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.', 'err'); return; }
   try {
-    const rows = buildLaporanRows(entries);
-    const ws = XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [
-      {wch:4},{wch:16},{wch:10},{wch:10},{wch:22},{wch:14},{wch:35},{wch:20},
-      {wch:9},{wch:9},{wch:11},{wch:16},{wch:14},{wch:16},{wch:24},{wch:30},{wch:30}
-    ];
-    styleExcelSheet(ws);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Laporan Pekerjaan');
-    XLSX.writeFile(wb, `Laporan_Pekerjaan_NUMBAY_${fmtFileStamp()}.xlsx`);
-    showToast('Export Excel berhasil.', 'ok');
+    showToast(`Menyiapkan ${entries.length} laporan & mengunduh foto...`, 'ok');
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Laporan Pekerjaan');
+    const headers = ['No','Waktu','Regu','ULP','Anggota Hadir','No Penugasan','Rincian Pekerjaan','Material','Target','Realisasi','Capaian (%)','Status Verifikasi','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Before','Foto Progres','Foto After'];
+    const widths  = [5,16,10,10,22,14,35,20,9,9,11,16,14,16,24,15,15,15];
+    ws.columns = headers.map((h, i) => ({ header: h, key: 'c'+i, width: widths[i] }));
+    ejStyleHeaderRow(ws.getRow(1));
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
+
+    const gambarCache = {};
+    let i = 0;
+    for (const [, l] of entries) {
+      i++;
+      const rowIdx = i + 1;
+      ws.getRow(rowIdx).values = [
+        i, fmtWaktuFull(l.waktu), l.regu || '—', l.ulp || '—', l.anggotaHadir || '—', l.nomorTiket || '—',
+        l.rincian || '—', l.material || '—', l.target || '—', l.realisasi || '—',
+        laporanCapaianPct(l) !== null ? laporanCapaianPct(l) : '—', laporanStatusLabel(l),
+        l.verifOleh || '—', fmtWaktuFull(l.verifWaktu), l.verifCatatan || '—', '', '', ''
+      ];
+      ejStyleDataRow(ws.getRow(rowIdx), i % 2 === 0, 78);
+      const fotoSrcs = [l.fotoBeforeUrl || l.fotoBeforeBase64, l.fotoProgresUrl || l.fotoProgresBase64, l.fotoAfterUrl || l.fotoAfterBase64];
+      for (let k = 0; k < 3; k++) {
+        const src = fotoSrcs[k];
+        if (!src) continue;
+        if (!(src in gambarCache)) gambarCache[src] = await hvSiapkanGambar(src);
+        if (gambarCache[src]) ejTempelFoto(wb, ws, gambarCache[src], rowIdx, 16 + k, 100);
+      }
+    }
+    await ejUnduhWorkbook(wb, `Laporan_Pekerjaan_NUMBAY_${fmtFileStamp()}.xlsx`);
+    showToast('Export Excel berhasil. Foto sudah tertempel langsung di kolom.', 'ok');
   } catch (e) {
     showToast('Gagal export Excel: ' + e.message, 'err');
   }
@@ -8536,51 +8610,56 @@ function hvStatusWarnaRGB(sv) {
   return [217, 123, 10]; // Perlu Revisi
 }
 
-window.exportHasilVerifikasiExcel = function() {
+window.exportHasilVerifikasiExcel = async function() {
   const entries = getHasilVerifikasiFilteredEntries();
   if (!entries.length) { showToast('Tidak ada laporan Hasil Verifikasi untuk di-export (cek filter).', 'warn'); return; }
-  if (typeof XLSX === 'undefined') { showToast('Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.', 'err'); return; }
+  if (typeof ExcelJS === 'undefined') { showToast('Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.', 'err'); return; }
+
+  const progEl = document.getElementById('hv-export-progress');
+  progEl.style.display = 'block';
+  progEl.textContent = `Menyiapkan ${entries.length} laporan & mengunduh foto...`;
+
   try {
-    const rows = entries.map(([, l], i) => ({
-      'No': i + 1,
-      'Status': laporanStatusLabel(l),
-      'Regu': l.regu || '—',
-      'ULP': l.ulp || '—',
-      'No Penugasan': l.nomorTiket || '—',
-      'Rincian Pekerjaan': l.rincian || '—',
-      'Material': l.material || '—',
-      'Realisasi': l.realisasi || '—',
-      'Waktu Laporan': fmtWaktuFull(l.waktu),
-      'Diverifikasi Oleh': l.verifOleh || 'TL/Admin',
-      'Waktu Verifikasi': l.verifWaktu ? fmtWaktuFull(l.verifWaktu) : '—',
-      'Catatan Verifikasi': l.verifCatatan || '—',
-      'Link Foto Sebelum': l.fotoBeforeUrl || (l.fotoBeforeBase64 ? '(tersimpan lokal, tidak ada link)' : '—'),
-      'Link Foto Progres': l.fotoProgresUrl || (l.fotoProgresBase64 ? '(tersimpan lokal, tidak ada link)' : '—'),
-      'Link Foto Sesudah': l.fotoAfterUrl || (l.fotoAfterBase64 ? '(tersimpan lokal, tidak ada link)' : '—')
-    }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [
-      {wch:4},{wch:14},{wch:22},{wch:12},{wch:14},{wch:32},{wch:20},
-      {wch:11},{wch:18},{wch:18},{wch:18},{wch:30},{wch:34},{wch:34},{wch:34}
-    ];
-    // Jadikan kolom link foto sebagai hyperlink yang bisa langsung diklik (kalau berupa URL)
-    rows.forEach((row, i) => {
-      ['Link Foto Sebelum', 'Link Foto Progres', 'Link Foto Sesudah'].forEach(col => {
-        const val = row[col];
-        if (val && /^https?:\/\//.test(val)) {
-          const colIdx = Object.keys(row).indexOf(col);
-          const cellRef = XLSX.utils.encode_cell({ r: i + 1, c: colIdx });
-          if (ws[cellRef]) ws[cellRef].l = { Target: val };
-        }
-      });
-    });
-    styleExcelSheet(ws);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Hasil Verifikasi');
-    XLSX.writeFile(wb, `Hasil_Verifikasi_NUMBAY_${fmtFileStamp()}.xlsx`);
-    showToast('Export Excel berhasil. Kolom foto berisi link — klik untuk buka gambarnya.', 'ok');
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Hasil Verifikasi');
+    const headers = ['No','Status','Regu','ULP','No Penugasan','Rincian Pekerjaan','Material','Realisasi','Waktu Laporan','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Sebelum','Foto Progres','Foto Sesudah'];
+    const widths  = [5,14,22,12,14,32,20,11,18,18,18,30,15,15,15];
+    ws.columns = headers.map((h, i) => ({ header: h, key: 'c'+i, width: widths[i] }));
+    ejStyleHeaderRow(ws.getRow(1));
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
+
+    const gambarCache = {};
+    let i = 0;
+    for (const [, l] of entries) {
+      i++;
+      const rowIdx = i + 1;
+      ws.getRow(rowIdx).values = [
+        i, laporanStatusLabel(l), l.regu || '—', l.ulp || '—', l.nomorTiket || '—', l.rincian || '—',
+        l.material || '—', l.realisasi || '—', fmtWaktuFull(l.waktu), l.verifOleh || 'TL/Admin',
+        l.verifWaktu ? fmtWaktuFull(l.verifWaktu) : '—', l.verifCatatan || '—', '', '', ''
+      ];
+      ejStyleDataRow(ws.getRow(rowIdx), i % 2 === 0, 78);
+      const fotoSrcs = [
+        l.fotoBeforeUrl  || l.fotoBeforeBase64,
+        l.fotoProgresUrl || l.fotoProgresBase64,
+        l.fotoAfterUrl   || l.fotoAfterBase64
+      ];
+      for (let k = 0; k < 3; k++) {
+        const src = fotoSrcs[k];
+        if (!src) continue;
+        if (!(src in gambarCache)) gambarCache[src] = await hvSiapkanGambar(src);
+        if (gambarCache[src]) ejTempelFoto(wb, ws, gambarCache[src], rowIdx, 13 + k, 100);
+      }
+      progEl.textContent = `Mengunduh foto laporan ${i} dari ${entries.length}...`;
+    }
+
+    progEl.textContent = 'Menyusun file Excel...';
+    await ejUnduhWorkbook(wb, `Hasil_Verifikasi_NUMBAY_${fmtFileStamp()}.xlsx`);
+    showToast('Export Excel berhasil. Foto sudah tertempel langsung di kolom.', 'ok');
   } catch (e) {
     showToast('Gagal export Excel: ' + e.message, 'err');
+  } finally {
+    progEl.style.display = 'none';
   }
 };
 
@@ -9091,16 +9170,20 @@ function computeRekapExportData() {
   return { label, filtered, total, verif, pending, avgPct, byTim, byUlp };
 }
 
-window.exportRekapExcel = function() {
+window.exportRekapExcel = async function() {
   const { label, filtered, total, verif, pending, avgPct, byTim, byUlp } = computeRekapExportData();
   if (!total) { showToast('Belum ada data laporan pada periode ini untuk di-export.', 'warn'); return; }
-  if (typeof XLSX === 'undefined') { showToast('Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.', 'err'); return; }
+  if (typeof ExcelJS === 'undefined') { showToast('Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.', 'err'); return; }
   try {
-    const wb = XLSX.utils.book_new();
+    showToast('Menyiapkan rekap & mengunduh foto...', 'ok');
+    const wb = new ExcelJS.Workbook();
 
     // Sheet Ringkasan
-    const wsRingkasan = XLSX.utils.aoa_to_sheet([
-      ['Rekap Laporan Pekerjaan — Field Force Management PLN UP3 Jayapura'],
+    const wsRingkasan = wb.addWorksheet('Ringkasan');
+    wsRingkasan.columns = [{ width: 26 }, { width: 30 }];
+    wsRingkasan.mergeCells('A1:B1');
+    wsRingkasan.getCell('A1').value = 'Rekap Laporan Pekerjaan — Field Force Management PLN UP3 Jayapura';
+    const ringkasanData = [
       ['Periode', label],
       ['Dicetak', new Date().toLocaleString('id-ID')],
       [],
@@ -9108,50 +9191,81 @@ window.exportRekapExcel = function() {
       ['Terverifikasi', verif],
       ['Menunggu Verifikasi', pending],
       ['Rata-rata Realisasi (%)', avgPct]
-    ]);
-    wsRingkasan['!cols'] = [{wch:26},{wch:30}];
-    wsRingkasan['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
-    // Styling khusus sheet Ringkasan: baris judul biru tebal, baris label ditebalkan
-    const thin = { style: 'thin', color: { rgb: 'D9E0EA' } };
-    const border = { top: thin, bottom: thin, left: thin, right: thin };
-    ['A1','B1'].forEach(addr => { if (wsRingkasan[addr]) wsRingkasan[addr].s = { font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '003D82' } }, alignment: { vertical: 'center', horizontal: 'left' } }; });
-    for (let r = 1; r <= 7; r++) {
-      const labelAddr = XLSX.utils.encode_cell({ r, c: 0 });
-      const valAddr   = XLSX.utils.encode_cell({ r, c: 1 });
-      if (wsRingkasan[labelAddr]) wsRingkasan[labelAddr].s = { font: { bold: true, sz: 10.5, color: { rgb: '1F2A37' } }, fill: { fgColor: { rgb: r % 2 === 0 ? 'F2F5FA' : 'FFFFFF' } }, border, alignment: { vertical: 'center' } };
-      if (wsRingkasan[valAddr])   wsRingkasan[valAddr].s   = { font: { sz: 10.5, color: { rgb: '1F2A37' } }, fill: { fgColor: { rgb: r % 2 === 0 ? 'F2F5FA' : 'FFFFFF' } }, border, alignment: { vertical: 'center' } };
+    ];
+    ringkasanData.forEach((r, i) => { wsRingkasan.getRow(i + 2).values = [r[0] ?? '', r[1] ?? '']; });
+    ['A1','B1'].forEach(addr => {
+      wsRingkasan.getCell(addr).font = { bold: true, sz: 12, color: { argb: 'FFFFFFFF' } };
+      wsRingkasan.getCell(addr).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003D82' } };
+      wsRingkasan.getCell(addr).alignment = { vertical: 'middle', horizontal: 'left' };
+    });
+    for (let r = 2; r <= 8; r++) {
+      const isEven = (r - 2) % 2 === 0;
+      ['A','B'].forEach(col => {
+        const cell = wsRingkasan.getCell(col + r);
+        if (cell.value === undefined || cell.value === null) return;
+        cell.font = { bold: col === 'A', sz: 10.5, color: { argb: 'FF1F2A37' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF2F5FA' : 'FFFFFFFF' } };
+        cell.border = ejBorder();
+        cell.alignment = { vertical: 'middle' };
+      });
     }
-    XLSX.utils.book_append_sheet(wb, wsRingkasan, 'Ringkasan');
 
     // Sheet Per Tim
-    const wsTim = XLSX.utils.json_to_sheet(byTim.map(([tim,d]) => ({
-      'Tim / Regu': tim, 'Jumlah Laporan': d.count, 'Target': d.target, 'Realisasi': d.realisasi,
-      'Capaian (%)': d.target > 0 ? Math.round(d.realisasi / d.target * 100) : '—'
-    })));
-    wsTim['!cols'] = [{wch:18},{wch:14},{wch:10},{wch:10},{wch:11}];
-    styleExcelSheet(wsTim);
-    XLSX.utils.book_append_sheet(wb, wsTim, 'Per Tim-Regu');
+    const wsTim = wb.addWorksheet('Per Tim-Regu');
+    wsTim.columns = [
+      { header: 'Tim / Regu', key: 'tim', width: 18 }, { header: 'Jumlah Laporan', key: 'c', width: 14 },
+      { header: 'Target', key: 't', width: 10 }, { header: 'Realisasi', key: 'r', width: 10 }, { header: 'Capaian (%)', key: 'p', width: 11 }
+    ];
+    ejStyleHeaderRow(wsTim.getRow(1));
+    byTim.forEach(([tim,d], i) => {
+      wsTim.getRow(i+2).values = [tim, d.count, d.target, d.realisasi, d.target > 0 ? Math.round(d.realisasi / d.target * 100) : '—'];
+      ejStyleDataRow(wsTim.getRow(i+2), i % 2 === 0);
+    });
 
     // Sheet Per ULP
-    const wsUlp = XLSX.utils.json_to_sheet(byUlp.map(([ulp,d]) => ({
-      'ULP': ulp, 'Jumlah Laporan': d.count, 'Target': d.target, 'Realisasi': d.realisasi,
-      'Capaian (%)': d.target > 0 ? Math.round(d.realisasi / d.target * 100) : '—'
-    })));
-    wsUlp['!cols'] = [{wch:18},{wch:14},{wch:10},{wch:10},{wch:11}];
-    styleExcelSheet(wsUlp);
-    XLSX.utils.book_append_sheet(wb, wsUlp, 'Per ULP');
-
-    // Sheet Detail
-    const wsDetail = XLSX.utils.json_to_sheet(buildLaporanRows(filtered.sort((a,b)=>(b[1].waktu||0)-(a[1].waktu||0))));
-    wsDetail['!cols'] = [
-      {wch:4},{wch:16},{wch:20},{wch:12},{wch:10},{wch:10},{wch:14},{wch:35},{wch:20},
-      {wch:9},{wch:9},{wch:11},{wch:16},{wch:14},{wch:16},{wch:24},{wch:30},{wch:30}
+    const wsUlp = wb.addWorksheet('Per ULP');
+    wsUlp.columns = [
+      { header: 'ULP', key: 'ulp', width: 18 }, { header: 'Jumlah Laporan', key: 'c', width: 14 },
+      { header: 'Target', key: 't', width: 10 }, { header: 'Realisasi', key: 'r', width: 10 }, { header: 'Capaian (%)', key: 'p', width: 11 }
     ];
-    styleExcelSheet(wsDetail);
-    XLSX.utils.book_append_sheet(wb, wsDetail, 'Detail Laporan');
+    ejStyleHeaderRow(wsUlp.getRow(1));
+    byUlp.forEach(([ulp,d], i) => {
+      wsUlp.getRow(i+2).values = [ulp, d.count, d.target, d.realisasi, d.target > 0 ? Math.round(d.realisasi / d.target * 100) : '—'];
+      ejStyleDataRow(wsUlp.getRow(i+2), i % 2 === 0);
+    });
 
-    XLSX.writeFile(wb, `Rekap_Laporan_NUMBAY_${rekapPeriode}_${fmtFileStamp()}.xlsx`);
-    showToast('Export Excel berhasil.', 'ok');
+    // Sheet Detail — foto ditempel asli, bukan link
+    const wsDetail = wb.addWorksheet('Detail Laporan');
+    const headers = ['No','Waktu','Regu','ULP','Anggota Hadir','No Penugasan','Rincian Pekerjaan','Material','Target','Realisasi','Capaian (%)','Status Verifikasi','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Before','Foto Progres','Foto After'];
+    const widths  = [5,16,20,12,10,10,14,35,20,9,9,11,16,14,16,15,15,15];
+    wsDetail.columns = headers.map((h, i) => ({ header: h, key: 'c'+i, width: widths[i] }));
+    ejStyleHeaderRow(wsDetail.getRow(1));
+    wsDetail.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
+
+    const detailEntries = filtered.sort((a,b)=>(b[1].waktu||0)-(a[1].waktu||0));
+    const gambarCache = {};
+    let i = 0;
+    for (const [, l] of detailEntries) {
+      i++;
+      const rowIdx = i + 1;
+      wsDetail.getRow(rowIdx).values = [
+        i, fmtWaktuFull(l.waktu), l.regu || '—', l.ulp || '—', l.anggotaHadir || '—', l.nomorTiket || '—',
+        l.rincian || '—', l.material || '—', l.target || '—', l.realisasi || '—',
+        laporanCapaianPct(l) !== null ? laporanCapaianPct(l) : '—', laporanStatusLabel(l),
+        l.verifOleh || '—', fmtWaktuFull(l.verifWaktu), l.verifCatatan || '—', '', '', ''
+      ];
+      ejStyleDataRow(wsDetail.getRow(rowIdx), i % 2 === 0, 78);
+      const fotoSrcs = [l.fotoBeforeUrl || l.fotoBeforeBase64, l.fotoProgresUrl || l.fotoProgresBase64, l.fotoAfterUrl || l.fotoAfterBase64];
+      for (let k = 0; k < 3; k++) {
+        const src = fotoSrcs[k];
+        if (!src) continue;
+        if (!(src in gambarCache)) gambarCache[src] = await hvSiapkanGambar(src);
+        if (gambarCache[src]) ejTempelFoto(wb, wsDetail, gambarCache[src], rowIdx, 16 + k, 100);
+      }
+    }
+
+    await ejUnduhWorkbook(wb, `Rekap_Laporan_NUMBAY_${rekapPeriode}_${fmtFileStamp()}.xlsx`);
+    showToast('Export Excel berhasil. Foto sudah tertempel langsung di kolom.', 'ok');
   } catch (e) {
     showToast('Gagal export Excel: ' + e.message, 'err');
   }
