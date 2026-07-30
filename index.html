@@ -5008,7 +5008,7 @@ function createCheckpointIcon(l) {
   });
 }
 
-function buildCheckpointPopup(l) {
+function buildCheckpointPopup(l, id) {
   const waktu = l.waktu ? new Date(l.waktu).toLocaleString('id-ID') : '—';
   const before = l.fotoBeforeBase64 || l.fotoBeforeUrl || l.fotoBefore || '';
   const after  = l.fotoAfterBase64  || l.fotoAfterUrl  || l.fotoAfter  || '';
@@ -5018,6 +5018,7 @@ function buildCheckpointPopup(l) {
       ${after  ? `<img src="${after}"  onclick="bukaFotoFullscreen(this)" style="width:50%;aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:pointer">` : ''}
     </div>` : '';
   const statusLabel = l.statusVerifikasi || 'Menunggu Verifikasi';
+  const btnLaporan = id ? `<button onclick="bukaLaporanDariPeta('${id}')" style="background:var(--pln-blue);color:#fff;border:none;border-radius:var(--radius-xs);padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%;margin-top:10px">📄 Buka Laporan</button>` : '';
   return `
     <div class="popup-card">
       <div class="popup-head">
@@ -5026,13 +5027,27 @@ function buildCheckpointPopup(l) {
       </div>
       <div class="popup-row"><span class="popup-key">Waktu</span><span class="popup-val">${waktu}</span></div>
       <div class="popup-row"><span class="popup-key">Pekerjaan</span><span class="popup-val">${esc(l.rincian)||'—'}</span></div>
-      <div class="popup-row"><span class="popup-key">Material</span><span class="popup-val">${esc(l.material)||'—'}</span></div>
       <div class="popup-row"><span class="popup-key">Target/Realisasi</span><span class="popup-val">${l.target||'—'} / ${l.realisasi||'—'}</span></div>
       <div class="popup-row"><span class="popup-key">Status</span><span class="popup-val"><span class="popup-urgensi" style="background:${checkpointColor(l)}">${statusLabel}</span></span></div>
       ${thumbs}
+      ${btnLaporan}
     </div>
   `;
 }
+
+// Cache data laporan yang lagi ditampilkan sebagai checkpoint di peta, supaya
+// tombol "Buka Laporan" di popup bisa langsung ambil data lengkapnya tanpa
+// fetch ulang ke Firebase.
+window._checkpointDataCache = window._checkpointDataCache || {};
+
+// Dipanggil dari tombol "Buka Laporan" di popup peta — membuka modal detail
+// laporan yang sama dipakai di tab Verifikasi (mode "hasil" kalau laporan
+// sudah diverifikasi, supaya bisa dilihat sekaligus diubah kalau perlu).
+window.bukaLaporanDariPeta = function(id) {
+  const laporan = window._checkpointDataCache[id] || (window._verifDataCache && window._verifDataCache[id]);
+  if (!laporan) { alert('Data laporan tidak ditemukan (mungkin sudah berubah). Coba refresh peta lalu ulangi.'); return; }
+  window.bukaModalVerifikasi(id, laporan, laporan.statusVerifikasi ? 'hasil' : undefined);
+};
 
 // Hitung rentang awal-akhir hari (dalam ms) dari pilihan filter tanggal
 // checkpoint di atas peta "Petugas Aktif". Default: hari ini.
@@ -5114,12 +5129,13 @@ function listenLaporanCheckpoints(forceRefresh) {
     const seen = new Set();
     entries.forEach(([id, l]) => {
       seen.add(id);
+      window._checkpointDataCache[id] = l;
       if (checkpointMarkers[id]) {
         checkpointMarkers[id].setIcon(createCheckpointIcon(l));
-        checkpointMarkers[id].setPopupContent(buildCheckpointPopup(l));
+        checkpointMarkers[id].setPopupContent(buildCheckpointPopup(l, id));
       } else {
         const m = L.marker([l.lat, l.lng], { icon: createCheckpointIcon(l) });
-        m.bindPopup(buildCheckpointPopup(l), { maxWidth: 260 });
+        m.bindPopup(buildCheckpointPopup(l, id), { maxWidth: 260 });
         m.addTo(checkpointLayerGroup);
         checkpointMarkers[id] = m;
       }
@@ -6102,28 +6118,37 @@ function ejStyleHeaderRow(row) {
   });
   row.height = 22;
 }
-function ejStyleDataRow(row, isEven, tinggi) {
+function ejStyleDataRow(row, isEven) {
   row.eachCell(cell => {
     cell.font = { size: 10.5, color: { argb: 'FF1F2A37' } };
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF2F5FA' : 'FFFFFFFF' } };
     cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
     cell.border = ejBorder();
   });
-  if (tinggi) row.height = tinggi;
 }
-// Tempel satu foto (base64/dataURL) ke posisi kolom-baris tertentu (1-based),
-// mengisi penuh sel foto (~ukuran sizePx) supaya rapi dilihat langsung di Excel.
-function ejTempelFoto(wb, ws, dataUrl, rowIdx1, colIdx1, sizePx = 96) {
-  if (!dataUrl) return;
+function ejPxKePt(px) { return px * 0.75; } // px (96dpi) → point, satuan tinggi baris ExcelJS
+// Tempel satu foto dengan ukuran PROPORSIONAL mengikuti rasio asli gambar
+// (tidak dipaksa kotak/gepeng), muat pas di lebar kolom. Mengembalikan tinggi
+// tampil (px) foto itu — dipakai pemanggil untuk menyetel tinggi baris supaya
+// foto "masuk" ke dalam baris (bukan melayang menimpa baris/teks lain).
+async function ejTempelFotoProporsional(wb, ws, dataUrl, rowIdx1, colIdx1, colWidthPx, maxHeightPx = 240) {
+  if (!dataUrl) return 0;
+  const dim = await hvUkuranGambar(dataUrl);
+  const asli = dim || { w: 1, h: 1 };
+  const pad = 6;
+  let dispW = Math.max(20, colWidthPx - pad);
+  let dispH = dispW * (asli.h / asli.w);
+  if (dispH > maxHeightPx) { dispH = maxHeightPx; dispW = dispH * (asli.w / asli.h); }
   const m = /^data:image\/(png|jpe?g|gif);base64,/i.exec(dataUrl);
   const extension = m ? (m[1].toLowerCase() === 'jpg' ? 'jpeg' : m[1].toLowerCase()) : 'jpeg';
   try {
     const imgId = wb.addImage({ base64: dataUrl, extension });
     ws.addImage(imgId, {
-      tl: { col: colIdx1 - 1 + 0.08, row: rowIdx1 - 1 + 0.08 },
-      ext: { width: sizePx, height: sizePx }
+      tl: { col: colIdx1 - 1 + 0.06, row: rowIdx1 - 1 + 0.06 },
+      ext: { width: dispW, height: dispH }
     });
-  } catch (e) { /* format gambar tak dikenal — dilewati, sel tetap kosong */ }
+  } catch (e) { return 0; /* format gambar tak dikenal — dilewati, sel tetap kosong */ }
+  return dispH;
 }
 // Unduh workbook ExcelJS sebagai file .xlsx ke browser
 async function ejUnduhWorkbook(wb, filename) {
@@ -6185,14 +6210,17 @@ window.exportLaporanExcel = async function() {
         laporanCapaianPct(l) !== null ? laporanCapaianPct(l) : '—', laporanStatusLabel(l),
         l.verifOleh || '—', fmtWaktuFull(l.verifWaktu), l.verifCatatan || '—', '', '', ''
       ];
-      ejStyleDataRow(ws.getRow(rowIdx), i % 2 === 0, 78);
+      ejStyleDataRow(ws.getRow(rowIdx), i % 2 === 0);
       const fotoSrcs = [l.fotoBeforeUrl || l.fotoBeforeBase64, l.fotoProgresUrl || l.fotoProgresBase64, l.fotoAfterUrl || l.fotoAfterBase64];
+      const tinggiFoto = [0, 0, 0];
       for (let k = 0; k < 3; k++) {
         const src = fotoSrcs[k];
         if (!src) continue;
         if (!(src in gambarCache)) gambarCache[src] = await hvSiapkanGambar(src);
-        if (gambarCache[src]) ejTempelFoto(wb, ws, gambarCache[src], rowIdx, 16 + k, 100);
+        if (gambarCache[src]) tinggiFoto[k] = await ejTempelFotoProporsional(wb, ws, gambarCache[src], rowIdx, 16 + k, 100);
       }
+      const maxTinggiFoto = Math.max(...tinggiFoto);
+      ws.getRow(rowIdx).height = maxTinggiFoto > 0 ? ejPxKePt(maxTinggiFoto) + 6 : 20;
     }
     await ejUnduhWorkbook(wb, `Laporan_Pekerjaan_NUMBAY_${fmtFileStamp()}.xlsx`);
     showToast('Export Excel berhasil. Foto sudah tertempel langsung di kolom.', 'ok');
@@ -8414,7 +8442,8 @@ function riUpdateMap(entries) {
     if (l.lat < minLat) minLat = l.lat; if (l.lat > maxLat) maxLat = l.lat;
     if (l.lng < minLng) minLng = l.lng; if (l.lng > maxLng) maxLng = l.lng;
     const m = L.marker([l.lat, l.lng], { icon: createCheckpointIcon(l) });
-    m.bindPopup(buildCheckpointPopup(l), { maxWidth: 260 });
+    window._checkpointDataCache[id] = l;
+    m.bindPopup(buildCheckpointPopup(l, id), { maxWidth: 260 });
     m.addTo(riMarkersLayer);
     riMarkersById[id] = m;
   });
@@ -8638,18 +8667,21 @@ window.exportHasilVerifikasiExcel = async function() {
         l.material || '—', l.realisasi || '—', fmtWaktuFull(l.waktu), l.verifOleh || 'TL/Admin',
         l.verifWaktu ? fmtWaktuFull(l.verifWaktu) : '—', l.verifCatatan || '—', '', '', ''
       ];
-      ejStyleDataRow(ws.getRow(rowIdx), i % 2 === 0, 78);
+      ejStyleDataRow(ws.getRow(rowIdx), i % 2 === 0);
       const fotoSrcs = [
         l.fotoBeforeUrl  || l.fotoBeforeBase64,
         l.fotoProgresUrl || l.fotoProgresBase64,
         l.fotoAfterUrl   || l.fotoAfterBase64
       ];
+      const tinggiFoto = [0, 0, 0];
       for (let k = 0; k < 3; k++) {
         const src = fotoSrcs[k];
         if (!src) continue;
         if (!(src in gambarCache)) gambarCache[src] = await hvSiapkanGambar(src);
-        if (gambarCache[src]) ejTempelFoto(wb, ws, gambarCache[src], rowIdx, 13 + k, 100);
+        if (gambarCache[src]) tinggiFoto[k] = await ejTempelFotoProporsional(wb, ws, gambarCache[src], rowIdx, 13 + k, 100);
       }
+      const maxTinggiFoto = Math.max(...tinggiFoto);
+      ws.getRow(rowIdx).height = maxTinggiFoto > 0 ? ejPxKePt(maxTinggiFoto) + 6 : 20;
       progEl.textContent = `Mengunduh foto laporan ${i} dari ${entries.length}...`;
     }
 
@@ -9254,14 +9286,17 @@ window.exportRekapExcel = async function() {
         laporanCapaianPct(l) !== null ? laporanCapaianPct(l) : '—', laporanStatusLabel(l),
         l.verifOleh || '—', fmtWaktuFull(l.verifWaktu), l.verifCatatan || '—', '', '', ''
       ];
-      ejStyleDataRow(wsDetail.getRow(rowIdx), i % 2 === 0, 78);
+      ejStyleDataRow(wsDetail.getRow(rowIdx), i % 2 === 0);
       const fotoSrcs = [l.fotoBeforeUrl || l.fotoBeforeBase64, l.fotoProgresUrl || l.fotoProgresBase64, l.fotoAfterUrl || l.fotoAfterBase64];
+      const tinggiFoto = [0, 0, 0];
       for (let k = 0; k < 3; k++) {
         const src = fotoSrcs[k];
         if (!src) continue;
         if (!(src in gambarCache)) gambarCache[src] = await hvSiapkanGambar(src);
-        if (gambarCache[src]) ejTempelFoto(wb, wsDetail, gambarCache[src], rowIdx, 16 + k, 100);
+        if (gambarCache[src]) tinggiFoto[k] = await ejTempelFotoProporsional(wb, wsDetail, gambarCache[src], rowIdx, 16 + k, 100);
       }
+      const maxTinggiFoto = Math.max(...tinggiFoto);
+      wsDetail.getRow(rowIdx).height = maxTinggiFoto > 0 ? ejPxKePt(maxTinggiFoto) + 6 : 20;
     }
 
     await ejUnduhWorkbook(wb, `Rekap_Laporan_NUMBAY_${rekapPeriode}_${fmtFileStamp()}.xlsx`);
