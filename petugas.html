@@ -4277,6 +4277,7 @@ window.submitAbsensi = async function() {
   let absensiTersinkron = false;
   if (currentUser) {
     absensiTersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
+      petugasId: currentUser.id,
       regu: currentUser.regu, ulp: currentUser.ulp,
       anggotaHadir: currentUser.anggotaHadir || '',
       asalTimRow: currentUser.asalTimRow || '',
@@ -4497,6 +4498,7 @@ window.submitAbsenCepat = async function() {
   let tersinkron = false;
   if (currentUser) {
     tersinkron = await safeSet('absensi/' + currentUser.id + '_' + waktu, {
+      petugasId: currentUser.id,
       regu: currentUser.regu, ulp: currentUser.ulp,
       anggotaHadir: currentUser.anggotaHadir || '',
       asalTimRow: currentUser.asalTimRow || '',

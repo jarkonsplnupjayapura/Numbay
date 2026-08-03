@@ -2475,6 +2475,20 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
             </datalist>
           </div>
           <div style="margin-bottom:12px">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">ULP *</label>
+            <select id="akun-ulp" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none">
+              <option value="">— Pilih ULP —</option>
+              <option value="ULP Jayapura">ULP Jayapura</option>
+              <option value="ULP Abepura">ULP Abepura</option>
+              <option value="ULP Sentani">ULP Sentani</option>
+              <option value="ULP Arso">ULP Arso</option>
+              <option value="ULP Genyem">ULP Genyem</option>
+              <option value="ULP Sarmi">ULP Sarmi</option>
+              <option value="PT MITRA">PT MITRA</option>
+            </select>
+            <div style="font-size:11px;color:var(--text-3);margin-top:5px">Identitas akun = Regu + ULP ini. 2 tim beda ULP boleh pakai nama regu yang sama, tapi Regu+ULP yang sama akan ditolak (harus 1 akun).</div>
+          </div>
+          <div style="margin-bottom:12px">
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px" id="akun-password-label">Password *</label>
             <input id="akun-password" type="text" placeholder="Password awal untuk akun ini" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
             <div id="akun-password-hint" style="font-size:11px;color:var(--text-3);margin-top:5px;display:none">Kosongkan kalau tidak ingin mengubah password.</div>
@@ -2503,12 +2517,13 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
                 <tr>
                   <th>Username</th>
                   <th>Regu / Tim</th>
+                  <th>ULP</th>
                   <th>Status</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
               <tbody id="akunBody">
-                <tr><td colspan="4" class="empty">Menunggu data Firebase...</td></tr>
+                <tr><td colspan="5" class="empty">Menunggu data Firebase...</td></tr>
               </tbody>
             </table>
           </div>
@@ -3804,9 +3819,11 @@ function applyAdminUI() {
   document.getElementById('user-chip').classList.toggle('is-admin', isAdminMode);
   document.getElementById('user-role').textContent = isAdminMode ? 'Mode Admin Aktif' : (currentAuth ? currentAuth.label : 'UP3 Jayapura');
   document.getElementById('th-aksi-absensi').style.display = isAdminMode ? '' : 'none';
-  // Kelola Akun Regu (users/{username}) sengaja Superadmin-only: data akun ini
-  // tidak menyimpan field `ulp` per akun (lihat catatan di listenAkunRegu),
-  // jadi tidak bisa difilter aman per ULP untuk Admin ULP.
+  // Kelola Akun Regu (users/{username}) sengaja Superadmin-only.
+  // Sejak field `ulp` ditambahkan ke tiap akun (lihat simpanAkun/renderAkunTable),
+  // identitas akun = kombinasi Regu + ULP, bukan nama regu saja — supaya 2 tim
+  // fisik beda ULP boleh pakai nama regu yang sama, tapi 1 kombinasi Regu+ULP
+  // cuma boleh 1 akun (dicegah saat simpan, lihat validasi `bentrok` di simpanAkun).
   document.getElementById('nav-akun').style.display = (isAdminMode && isSuperadmin()) ? '' : 'none';
   // Kelola Akun Usher (login TL/Admin) sama-sama Superadmin-only, akun ULP
   // lain tidak boleh bisa mengubah/lihat password & PIN akun lain.
@@ -3849,6 +3866,7 @@ window.bukaModalAkun = function(username, data) {
   document.getElementById('akun-username').value = username || '';
   document.getElementById('akun-username').disabled = !!username;
   document.getElementById('akun-regu').value = data?.regu || '';
+  document.getElementById('akun-ulp').value = data?.ulp || '';
   document.getElementById('akun-password').value = '';
   document.getElementById('akun-password').placeholder = username ? 'Isi untuk ganti password...' : 'Password awal untuk akun ini';
   document.getElementById('akun-password-label').textContent = username ? 'Password Baru' : 'Password *';
@@ -3868,14 +3886,31 @@ window.simpanAkun = async function() {
   const usernameRaw = document.getElementById('akun-username').value.trim();
   const username = usernameRaw.toLowerCase();
   const regu     = document.getElementById('akun-regu').value.trim();
+  const ulp      = document.getElementById('akun-ulp').value.trim();
   const password = document.getElementById('akun-password').value;
   const aktif    = document.getElementById('akun-aktif').checked;
   const errEl    = document.getElementById('akun-err');
 
-  if (!username || !regu) { errEl.textContent = 'Username dan Regu/Tim wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (!username || !regu || !ulp) { errEl.textContent = 'Username, Regu/Tim, dan ULP wajib diisi.'; errEl.style.display = 'block'; return; }
   if (!/^[a-z0-9_.-]+$/.test(username)) { errEl.textContent = 'Username hanya boleh huruf kecil, angka, titik, underscore, atau strip (tanpa spasi).'; errEl.style.display = 'block'; return; }
   if (!currentEditAkunUsername && !password) { errEl.textContent = 'Password wajib diisi untuk akun baru.'; errEl.style.display = 'block'; return; }
   if (password && password.length < 4) { errEl.textContent = 'Password minimal 4 karakter.'; errEl.style.display = 'block'; return; }
+
+  // Cegah 1 kombinasi Regu+ULP dipakai lebih dari 1 akun. Nama regu SAJA
+  // boleh sama antar-ULP (mis. "Tim ROW" di ULP Genyem dan "Tim ROW" di ULP
+  // Arso itu wajar, dua tim fisik yang beda). Tapi Regu+ULP yang PERSIS sama
+  // berarti tabrakan identitas tim fisik yang sama, harus 1 akun saja.
+  const reguNorm = regu.toLowerCase();
+  const ulpNorm  = ulp.toLowerCase();
+  const bentrok = (lastAkunEntries || []).find(([uname, u]) => {
+    if (uname === currentEditAkunUsername) return false; // lagi edit diri sendiri, skip
+    return (u.regu || '').trim().toLowerCase() === reguNorm && (u.ulp || '').trim().toLowerCase() === ulpNorm;
+  });
+  if (bentrok) {
+    errEl.textContent = `Regu "${regu}" di ${ulp} sudah punya akun (username: ${bentrok[0]}). Pakai akun itu, atau ganti nama regu/ULP kalau ini memang tim fisik yang berbeda.`;
+    errEl.style.display = 'block';
+    return;
+  }
   errEl.style.display = 'none';
 
   if (!fbDb) { showToast('Firebase belum terhubung.', 'err'); return; }
@@ -3886,10 +3921,10 @@ window.simpanAkun = async function() {
       const snap = await get(window._fbRef(fbDb, 'users/' + username));
       if (snap.exists()) { errEl.textContent = 'Username sudah dipakai akun lain.'; errEl.style.display = 'block'; return; }
       const passwordHash = await sha256HexDash(password);
-      await set(window._fbRef(fbDb, 'users/' + username), { username, passwordHash, regu, aktif });
+      await set(window._fbRef(fbDb, 'users/' + username), { username, passwordHash, regu, ulp, aktif });
       showToast('Akun ' + username + ' berhasil dibuat.', 'ok');
     } else {
-      const upd = { regu, aktif };
+      const upd = { regu, ulp, aktif };
       if (password) upd.passwordHash = await sha256HexDash(password);
       await window._fbUpdate(window._fbRef(fbDb, 'users/' + currentEditAkunUsername), upd);
       showToast('Akun ' + currentEditAkunUsername + ' berhasil diperbarui.', 'ok');
@@ -3923,18 +3958,19 @@ function renderAkunTable(entries) {
   document.getElementById('akunCount').textContent = entries.length + ' akun';
   const tbody = document.getElementById('akunBody');
   if (entries.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty">Belum ada akun regu. Tambah akun baru di atas.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Belum ada akun regu. Tambah akun baru di atas.</td></tr>';
     return;
   }
-  tbody.innerHTML = entries.sort((a, b) => (a[1].regu || '').localeCompare(b[1].regu || '')).map(([username, u]) => {
+  tbody.innerHTML = entries.sort((a, b) => (a[1].regu || '').localeCompare(b[1].regu || '') || (a[1].ulp || '').localeCompare(b[1].ulp || '')).map(([username, u]) => {
     const isAktif = u.aktif !== false;
     const statusBadge = isAktif
       ? '<span class="badge badge-green"><span class="badge-dot"></span>Aktif</span>'
       : '<span class="badge badge-gray"><span class="badge-dot"></span>Nonaktif</span>';
-    const dataAttr = JSON.stringify({ regu: u.regu, aktif: u.aktif }).replace(/"/g, '&quot;');
+    const dataAttr = JSON.stringify({ regu: u.regu, ulp: u.ulp, aktif: u.aktif }).replace(/"/g, '&quot;');
     return `<tr>
       <td style="font-family:var(--mono);font-weight:600">${username}</td>
       <td>${u.regu || '—'}</td>
+      <td>${u.ulp || '<span style="color:var(--text-3)">— (data lama, belum diisi)</span>'}</td>
       <td>${statusBadge}</td>
       <td style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn-edit" title="Edit akun" onclick='bukaModalAkun("${username}", ${dataAttr})'>✏️</button>
@@ -5252,10 +5288,16 @@ function renderAbsensiTable(todayEntries) {
   renderAbsensiDetailTablePaged();
 
   // ── Per-petugas phase log cards ───────────────────
-  // Kelompokkan by regu (1 akun login = 1 regu, sesuai skema login baru)
+  // Kelompokkan by petugasId (id sesi login unik per shift), BUKAN by nama
+  // regu. Nama regu bisa sama untuk 2 tim fisik yang berbeda (nama diketik
+  // manual / dipilih sama), jadi kalau dikelompokkan pakai nama regu saja,
+  // check-in dari 2 tim berbeda bisa tergabung jadi 1 kartu. petugasId
+  // dibuatkan unik per login (lihat currentUser.id di petugas.html), jadi
+  // aman dipakai sebagai kunci pengelompokan. Fallback ke id record kalau
+  // data lama belum punya field petugasId (sebelum fix ini diterapkan).
   const byPetugas = {};
   todayEntries.forEach(([id, a]) => {
-    const key = a.regu || id;
+    const key = extractPetugasId(id, a);
     if (!byPetugas[key]) byPetugas[key] = { regu: a.regu||'—', ulp: a.ulp||'—', anggotaHadir: a.anggotaHadir||'—', fases: {}, lastWaktu: 0 };
     const fase = a.fase || a.lokasi || 'Standby';
     if (!byPetugas[key].fases[fase] || (byPetugas[key].fases[fase].waktu||0) < (a.waktu||0)) {
@@ -5309,6 +5351,20 @@ let absensiTotalPages = 1;
 let absensiSizeStable = false;
 
 const FASE_ORDER = ['Standby','Perjalanan','Aktif Bekerja','Selesai'];
+
+// Ambil identitas sesi login (petugasId) dari sebuah entri absensi.
+// Dipakai sebagai kunci pengelompokan kartu (Beranda & Log Absensi) supaya
+// 2 tim fisik berbeda yang kebetulan punya nama regu sama TIDAK tergabung
+// jadi 1 kartu. Data baru sudah punya field `petugasId` langsung (lihat
+// petugas.html). Data lama (sebelum fix ini) belum punya field itu, tapi
+// key record-nya di Firebase formatnya 'absensi/{petugasId}_{waktu}', jadi
+// petugasId masih bisa direkonstruksi dari situ.
+function extractPetugasId(id, a) {
+  if (a && a.petugasId) return a.petugasId;
+  const idx = id.lastIndexOf('_');
+  if (idx > 0) return id.slice(0, idx);
+  return a && a.regu ? a.regu : id; // fallback terakhir kalau format id tidak dikenali
+}
 
 // Hitung rentang & durasi jam kerja dari fase "Aktif Bekerja" sampai "Selesai".
 // Kalau belum "Selesai", dihitung sampai sekarang (masih berjalan).
@@ -5552,7 +5608,18 @@ function getLogAbsensiRange(periode, refDate) {
   }
 }
 
-// Kelompokkan entri absensi per REGU + per HARI (1 kartu = 1 siklus absen 1 regu di 1 hari)
+// Kelompokkan entri absensi per SESI LOGIN (petugasId) + per HARI
+// (1 kartu = 1 siklus absen 1 sesi login di 1 hari).
+//
+// CATATAN PENTING: sebelumnya key-nya cuma `regu + tanggal`. Itu bug —
+// nama regu BUKAN identitas unik (nama bisa sama untuk 2 tim fisik yang
+// beda, misal 2 kru ROW yang kebetulan dikasih/mengetik nama regu yang
+// sama). Akibatnya check-in dari tim berbeda, dengan anggota & lokasi GPS
+// yang jauh berbeda, bisa tergabung jadi 1 kartu timeline seolah 1 tim
+// yang sama kerja dari pagi sampai sore. petugasId (dibuat di
+// petugas.html saat login, currentUser.id) unik per sesi login, jadi
+// dipakai sebagai kunci pengelompokan yang sebenarnya. `regu` tetap
+// disimpan untuk ditampilkan & difilter, bukan untuk dikelompokkan.
 function buildLogAbsensiGroups(entries) {
   const byGroup = {};
   entries.forEach(([id, a]) => {
@@ -5560,8 +5627,9 @@ function buildLogAbsensiGroups(entries) {
     if (!waktu) return;
     const tanggal = localDateKey(waktu);
     const regu = a.regu || 'Tanpa Regu';
-    const key = regu + '|' + tanggal;
-    if (!byGroup[key]) byGroup[key] = { regu, ulp: a.ulp || '—', anggotaHadir: a.anggotaHadir || '—', tanggal, fases: {}, lastWaktu: 0 };
+    const petugasId = extractPetugasId(id, a);
+    const key = petugasId + '|' + tanggal;
+    if (!byGroup[key]) byGroup[key] = { regu, petugasId, ulp: a.ulp || '—', anggotaHadir: a.anggotaHadir || '—', tanggal, fases: {}, lastWaktu: 0 };
     const fase = a.fase || a.lokasi || 'Standby';
     if (!byGroup[key].fases[fase] || (byGroup[key].fases[fase].waktu || 0) < waktu) byGroup[key].fases[fase] = a;
     if (waktu > byGroup[key].lastWaktu) byGroup[key].lastWaktu = waktu;
