@@ -1831,17 +1831,17 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
                 </select>
               </div>
               <div>
-                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Section</label>
-                <select id="rp-section" onchange="onRpSectionChange()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
-                  <option value="">— Pilih Penyulang dulu —</option>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Kelompok</label>
+                <select id="rp-kelompok" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
+                  <option value="">— Pilih —</option>
                 </select>
               </div>
             </div>
 
             <div style="margin-bottom:12px">
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Kelompok</label>
-              <select id="rp-kelompok" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
-                <option value="">— Pilih —</option>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Section</label>
+              <select id="rp-section" onchange="onRpSectionChange()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
+                <option value="">— Pilih Penyulang dulu —</option>
               </select>
             </div>
 
@@ -1873,17 +1873,17 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
                 </select>
               </div>
               <div>
-                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Jenis Pekerjaan</label>
-                <select id="rp-jenis-pekerjaan" onchange="window._rpJenisPekerjaanManual = true" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
-                  <option value="">— Pilih —</option>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Rincian Pekerjaan *</label>
+                <select id="rp-rincian" onchange="applyRpSatuanOtomatis(); applyRpJenisPekerjaanOtomatis()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
+                  <option value="">— Pilih Rincian Pekerjaan —</option>
                 </select>
               </div>
             </div>
 
             <div style="margin-bottom:12px">
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Rincian Pekerjaan *</label>
-              <select id="rp-rincian" onchange="applyRpSatuanOtomatis(); applyRpJenisPekerjaanOtomatis()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
-                <option value="">— Pilih Rincian Pekerjaan —</option>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Jenis Pekerjaan</label>
+              <select id="rp-jenis-pekerjaan" onchange="window._rpJenisPekerjaanManual = true" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
+                <option value="">— Pilih —</option>
               </select>
             </div>
 
@@ -1923,22 +1923,32 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-              <div>
-                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Kolaborasi PDKB</label>
-                <select id="rp-pdkb" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
-                </select>
-              </div>
-              <div>
-                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Metode</label>
-                <select id="rp-metode" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
-                </select>
-              </div>
+            <div style="margin-bottom:12px">
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Kolaborasi PDKB</label>
+              <select id="rp-pdkb" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
+              </select>
             </div>
 
             <div style="margin-bottom:12px">
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Daerah Padam <span style="font-weight:400;color:var(--text-3)">(opsional)</span></label>
               <input id="rp-daerah-padam" type="text" placeholder="cth: Pasar Sentral Mararena" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Titik Koordinat Awal <span style="font-weight:400;color:var(--text-3)">(opsional)</span></label>
+                <input id="tiket-koordinat-awal" type="text" placeholder="cth: -2.5916, 140.6719" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Titik Koordinat Akhir <span style="font-weight:400;color:var(--text-3)">(opsional)</span></label>
+                <input id="tiket-koordinat-akhir" type="text" placeholder="cth: -2.6011, 140.6890" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px">
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Metode</label>
+              <select id="rp-metode" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
+              </select>
             </div>
 
             <div style="margin-bottom:12px">
@@ -1955,18 +1965,6 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
             <div style="margin-bottom:0">
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Keterangan <span style="font-weight:400;color:var(--text-3)">(opsional)</span></label>
               <textarea id="rp-keterangan" rows="2" placeholder="Catatan tambahan..." style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;resize:vertical;font-family:inherit"></textarea>
-            </div>
-          </div>
-
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 12px">
-            <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Titik Koordinat Awal <span style="font-weight:400;color:var(--text-3)">(opsional)</span></label>
-              <input id="tiket-koordinat-awal" type="text" placeholder="cth: -2.5916, 140.6719" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
-            </div>
-            <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Titik Koordinat Akhir <span style="font-weight:400;color:var(--text-3)">(opsional)</span></label>
-              <input id="tiket-koordinat-akhir" type="text" placeholder="cth: -2.6011, 140.6890" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.18s" onfocus="this.style.borderColor='var(--pln-blue-light)'" onblur="this.style.borderColor='var(--line)'">
             </div>
           </div>
 
@@ -6193,8 +6191,13 @@ window.exportLaporanExcel = async function() {
     showToast(`Menyiapkan ${entries.length} laporan & mengunduh foto...`, 'ok');
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Laporan Pekerjaan');
-    const headers = ['No','Waktu','Regu','ULP','Anggota Hadir','No Penugasan','Rincian Pekerjaan','Material','Target','Realisasi','Capaian (%)','Status Verifikasi','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Before','Foto Progres','Foto After'];
-    const widths  = [5,16,10,10,22,14,35,20,9,9,11,16,14,16,24,15,15,15];
+    // Urutan kolom inti (Penyulang..Keterangan) SENGAJA mengikuti persis urutan
+    // field FORMAT PEMADAMAN ULP. Hari/Tanggal & Waktu diambil otomatis dari
+    // timestamp submit laporan (bukan input manual). Kolom operasional aplikasi
+    // (Anggota Hadir, No Penugasan, Target, Capaian, Verifikasi, Foto) tetap
+    // disertakan di akhir karena di luar format sheet tapi penting utk supervisor.
+    const headers = ['No','Hari/Tanggal','Waktu','Penyulang','Kelompok','Section','Nomor Gardu','Health Index Penyulang','Kategori Pekerjaan','Rincian Pekerjaan','Jenis Pekerjaan','Vol','Satuan','Pelaksana','Kolaborasi PDKB','Daerah Padam','Metode','Jenis Pemadaman','PIC','Keterangan','Anggota Hadir','No Penugasan','Target','Capaian (%)','Status Verifikasi','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Before','Foto Progres','Foto After'];
+    const widths  = [5,13,9,20,16,14,16,16,14,28,20,8,8,20,14,20,12,14,16,24,22,14,9,11,16,14,16,24,15,15,15];
     ws.columns = headers.map((h, i) => ({ header: h, key: 'c'+i, width: widths[i] }));
     ejStyleHeaderRow(ws.getRow(1));
     ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
@@ -6204,9 +6207,18 @@ window.exportLaporanExcel = async function() {
     for (const [, l] of entries) {
       i++;
       const rowIdx = i + 1;
+      const waktuDate = l.waktu ? new Date(l.waktu) : null;
       ws.getRow(rowIdx).values = [
-        i, fmtWaktuFull(l.waktu), l.regu || '—', l.ulp || '—', l.anggotaHadir || '—', l.nomorTiket || '—',
-        l.rincian || '—', l.material || '—', l.target || '—', l.realisasi || '—',
+        i,
+        waktuDate ? waktuDate.toLocaleDateString('id-ID') : '—',
+        waktuDate ? waktuDate.toLocaleTimeString('id-ID') : '—',
+        l.lapPenyulang || '—', l.lapKelompok || '—', l.lapSection || '—', l.lapGardu || '—',
+        l.lapHealthIndex || '—', l.lapKategori || '—', l.rincian || '—', l.jenisPekerjaan || '—',
+        l.realisasi || '—', l.realisasiSatuan || '—',
+        [l.ulp, l.regu].filter(Boolean).join(' / ') || '—',
+        l.lapPdkb || '—', l.lapDaerahPadam || '—', l.lapMetode || '—', l.lapJenisPemadaman || '—',
+        l.lapPic || '—', l.lapKeterangan || '—',
+        l.anggotaHadir || '—', l.nomorTiket || '—', l.target || '—',
         laporanCapaianPct(l) !== null ? laporanCapaianPct(l) : '—', laporanStatusLabel(l),
         l.verifOleh || '—', fmtWaktuFull(l.verifWaktu), l.verifCatatan || '—', '', '', ''
       ];
@@ -6217,7 +6229,7 @@ window.exportLaporanExcel = async function() {
         const src = fotoSrcs[k];
         if (!src) continue;
         if (!(src in gambarCache)) gambarCache[src] = await hvSiapkanGambar(src);
-        if (gambarCache[src]) tinggiFoto[k] = await ejTempelFotoProporsional(wb, ws, gambarCache[src], rowIdx, 16 + k, 100);
+        if (gambarCache[src]) tinggiFoto[k] = await ejTempelFotoProporsional(wb, ws, gambarCache[src], rowIdx, 29 + k, 100);
       }
       const maxTinggiFoto = Math.max(...tinggiFoto);
       ws.getRow(rowIdx).height = maxTinggiFoto > 0 ? ejPxKePt(maxTinggiFoto) + 6 : 20;
@@ -6242,28 +6254,42 @@ window.exportLaporanPDF = function() {
     doc.setTextColor(110);
     doc.text('Dicetak: ' + new Date().toLocaleString('id-ID') + '  ·  Total: ' + entries.length + ' laporan', 40, 47);
 
-    const body = entries.map(([, l], i) => [
-      i + 1,
-      fmtWaktuFull(l.waktu),
-      l.regu || '—',
-      l.ulp || '—',
-      l.anggotaHadir || '—',
-      l.nomorTiket || '—',
-      l.rincian || '—',
-      l.target || '—',
-      l.realisasi || '—',
-      laporanCapaianPct(l) !== null ? laporanCapaianPct(l) + '%' : '—',
-      laporanStatusLabel(l)
-    ]);
+    const body = entries.map(([, l], i) => {
+      const waktuDate = l.waktu ? new Date(l.waktu) : null;
+      return [
+        i + 1,
+        waktuDate ? waktuDate.toLocaleDateString('id-ID') : '—',
+        waktuDate ? waktuDate.toLocaleTimeString('id-ID') : '—',
+        l.lapPenyulang || '—',
+        l.lapKelompok || '—',
+        l.lapSection || '—',
+        l.lapGardu || '—',
+        l.lapHealthIndex || '—',
+        l.lapKategori || '—',
+        l.rincian || '—',
+        l.jenisPekerjaan || '—',
+        l.realisasi || '—',
+        l.realisasiSatuan || '—',
+        [l.ulp, l.regu].filter(Boolean).join(' / ') || '—',
+        l.lapPdkb || '—',
+        l.lapDaerahPadam || '—',
+        l.lapMetode || '—',
+        l.lapJenisPemadaman || '—',
+        l.lapPic || '—',
+        l.lapKeterangan || '—',
+        laporanCapaianPct(l) !== null ? laporanCapaianPct(l) + '%' : '—',
+        laporanStatusLabel(l)
+      ];
+    });
 
     doc.autoTable({
       startY: 58,
-      head: [['No','Waktu','Regu','ULP','Anggota Hadir','No Penugasan','Rincian Pekerjaan','Target','Realisasi','%','Status']],
+      head: [['No','Hari/Tgl','Waktu','Penyulang','Kelompok','Section','Nomor Gardu','Health Index','Kategori Pekerjaan','Rincian Pekerjaan','Jenis Pekerjaan','Vol','Satuan','Pelaksana','Kolaborasi PDKB','Daerah Padam','Metode','Jenis Pemadaman','PIC','Keterangan','Capaian','Status']],
       body,
-      styles: { fontSize: 7.5, cellPadding: 4, overflow: 'linebreak' },
-      headStyles: { fillColor: [0, 71, 133], textColor: 255, fontStyle: 'bold' },
-      columnStyles: { 6: { cellWidth: 180 } },
-      margin: { left: 40, right: 40 }
+      styles: { fontSize: 6, cellPadding: 2.5, overflow: 'linebreak' },
+      headStyles: { fillColor: [0, 71, 133], textColor: 255, fontStyle: 'bold', fontSize: 6 },
+      columnStyles: { 9: { cellWidth: 65 }, 19: { cellWidth: 55 } },
+      margin: { left: 20, right: 20 }
     });
 
     doc.save(`Laporan_Pekerjaan_NUMBAY_${fmtFileStamp()}.pdf`);
@@ -7361,18 +7387,38 @@ window.onTiketPageSizeChange = function() {
 
 // ── Export Daftar Rencana Pekerjaan (Excel & PDF) — ikut filter (ULP, Jenis
 // Pekerjaan, Periode) yang sedang aktif, BUKAN cuma halaman yang sedang tampil. ──
+// Urutan kolom SENGAJA mengikuti persis urutan field FORMAT PEMADAMAN ULP:
+// NO, HARI/TANGGAL, WAKTU, PENYULANG, KELOMPOK, SECTION, NOMOR GARDU, HEALTH
+// INDEX PENYULANG, KATEGORI PEKERJAAN, RINCIAN PEKERJAAN, JENIS PEKERJAAN,
+// VOL, SATUAN, PELAKSANA, KOLABORASI PDKB, DAERAH PADAM, TITIK KOORDINAT,
+// METODE, JENIS PEMADAMAN, PIC, KETERANGAN — supaya export Excel/PDF bisa
+// langsung dicocokkan/ditempel ke format sheet aslinya. Nomor Penugasan,
+// Status & Dibuat tetap disertakan sebagai kolom tambahan di awal/akhir
+// (identitas & metadata internal aplikasi, di luar format sheet).
 function buildTiketExportRows(entries) {
   return entries.map(([, t], i) => ({
     'No': i + 1,
     'Nomor Penugasan': t.nomor || '—',
-    'Jenis Pekerjaan': t.jenis || '—',
-    'Kategori': t.rpKategori || '—',
-    'Rincian Pekerjaan': t.rpRincian || '—',
-    'Lokasi / Aset': t.lokasi || '—',
+    'Hari/Tanggal': t.rpTanggal ? new Date(t.rpTanggal).toLocaleDateString('id-ID') : '—',
+    'Waktu': t.rpWaktu || '—',
     'Penyulang': t.rpPenyulang || '—',
-    'ULP': fmtUlpDisplay(t.ulp),
-    'Ditugaskan Ke': t.assignedRegu || 'Belum ditugaskan',
-    'Target & Periode': fmtTargetPeriode(t).replace(/<[^>]+>/g, ''),
+    'Kelompok': t.rpKelompok || '—',
+    'Section': t.rpSection || '—',
+    'Nomor Gardu': t.rpGardu || '—',
+    'Health Index Penyulang': t.rpHealthIndex || '—',
+    'Kategori Pekerjaan': t.rpKategori || '—',
+    'Rincian Pekerjaan': t.rpRincian || '—',
+    'Jenis Pekerjaan': t.rpJenisPekerjaan || '—',
+    'Vol': t.rpVol != null ? t.rpVol : '—',
+    'Satuan': t.rpSatuan || '—',
+    'Pelaksana': [fmtUlpDisplay(t.ulp), t.assignedRegu].filter(Boolean).join(' / ') || 'Belum ditugaskan',
+    'Kolaborasi PDKB': t.rpPdkb || '—',
+    'Daerah Padam': t.rpDaerahPadam || '—',
+    'Titik Koordinat': (t.koordinatAwal || t.koordinatAkhir) ? `${t.koordinatAwal || '—'} → ${t.koordinatAkhir || '—'}` : '—',
+    'Metode': t.rpMetode || '—',
+    'Jenis Pemadaman': t.rpJenisPemadaman || '—',
+    'PIC': t.rpPic || '—',
+    'Keterangan': t.rpKeterangan || '—',
     'Status': t.statusTiket || 'Aktif',
     'Dibuat': t.waktu ? new Date(t.waktu).toLocaleDateString('id-ID') : '—'
   }));
@@ -7386,7 +7432,9 @@ window.exportTiketExcel = function() {
     const rows = buildTiketExportRows(entries);
     const ws = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = [
-      {wch:4},{wch:16},{wch:26},{wch:16},{wch:28},{wch:24},{wch:16},{wch:14},{wch:24},{wch:20},{wch:11},{wch:12}
+      {wch:4},{wch:16},{wch:13},{wch:12},{wch:20},{wch:16},{wch:14},{wch:16},{wch:14},{wch:18},
+      {wch:28},{wch:20},{wch:8},{wch:8},{wch:22},{wch:14},{wch:20},{wch:26},{wch:12},{wch:14},
+      {wch:16},{wch:24},{wch:11},{wch:12}
     ];
     styleExcelSheet(ws);
     const wb = XLSX.utils.book_new();
@@ -7414,25 +7462,39 @@ window.exportTiketPDF = function() {
     const body = entries.map(([, t], i) => [
       i + 1,
       t.nomor || '—',
-      t.jenis || '—',
+      t.rpTanggal ? new Date(t.rpTanggal).toLocaleDateString('id-ID') : '—',
+      t.rpWaktu || '—',
+      t.rpPenyulang || '—',
+      t.rpKelompok || '—',
+      t.rpSection || '—',
+      t.rpGardu || '—',
+      t.rpHealthIndex || '—',
+      t.rpKategori || '—',
       t.rpRincian || '—',
-      t.lokasi || '—',
-      fmtUlpDisplay(t.ulp),
-      t.assignedRegu || 'Belum ditugaskan',
-      fmtTargetPeriode(t).replace(/<[^>]+>/g, ''),
+      t.rpJenisPekerjaan || '—',
+      t.rpVol != null ? t.rpVol : '—',
+      t.rpSatuan || '—',
+      [fmtUlpDisplay(t.ulp), t.assignedRegu].filter(Boolean).join(' / ') || 'Belum ditugaskan',
+      t.rpPdkb || '—',
+      t.rpDaerahPadam || '—',
+      (t.koordinatAwal || t.koordinatAkhir) ? `${t.koordinatAwal || '—'} → ${t.koordinatAkhir || '—'}` : '—',
+      t.rpMetode || '—',
+      t.rpJenisPemadaman || '—',
+      t.rpPic || '—',
+      t.rpKeterangan || '—',
       t.statusTiket || 'Aktif',
       t.waktu ? new Date(t.waktu).toLocaleDateString('id-ID') : '—'
     ]);
 
     doc.autoTable({
       startY: 58,
-      head: [['No','Nomor Penugasan','Jenis Pekerjaan','Rincian Pekerjaan','Lokasi / Aset','ULP','Ditugaskan Ke','Target & Periode','Status','Dibuat']],
+      head: [['No','Nomor Penugasan','Hari/Tgl','Waktu','Penyulang','Kelompok','Section','Nomor Gardu','Health Index','Kategori Pekerjaan','Rincian Pekerjaan','Jenis Pekerjaan','Vol','Satuan','Pelaksana','Kolaborasi PDKB','Daerah Padam','Titik Koordinat','Metode','Jenis Pemadaman','PIC','Keterangan','Status','Dibuat']],
       body,
-      styles: { fontSize: 7.5, cellPadding: 4, overflow: 'linebreak' },
-      headStyles: { fillColor: [0, 61, 130], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 6, cellPadding: 2.5, overflow: 'linebreak' },
+      headStyles: { fillColor: [0, 61, 130], textColor: 255, fontStyle: 'bold', fontSize: 6 },
       alternateRowStyles: { fillColor: [242, 245, 250] },
-      columnStyles: { 3: { cellWidth: 130 }, 4: { cellWidth: 110 } },
-      margin: { left: 40, right: 40 }
+      columnStyles: { 10: { cellWidth: 70 }, 21: { cellWidth: 60 } },
+      margin: { left: 20, right: 20 }
     });
 
     doc.save(`Rencana_Pekerjaan_NUMBAY_${fmtFileStamp()}.pdf`);
@@ -8702,8 +8764,8 @@ window.exportHasilVerifikasiExcel = async function() {
   try {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Hasil Verifikasi');
-    const headers = ['No','Status','Regu','ULP','No Penugasan','Rincian Pekerjaan','Material','Realisasi','Waktu Laporan','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Sebelum','Foto Progres','Foto Sesudah'];
-    const widths  = [5,14,22,12,14,32,20,11,18,18,18,30,15,15,15];
+    const headers = ['No','Hari/Tanggal','Waktu','Penyulang','Kelompok','Section','Nomor Gardu','Health Index Penyulang','Kategori Pekerjaan','Rincian Pekerjaan','Jenis Pekerjaan','Vol','Satuan','Pelaksana','Kolaborasi PDKB','Daerah Padam','Metode','Jenis Pemadaman','PIC','Keterangan','Status','No Penugasan','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Sebelum','Foto Progres','Foto Sesudah'];
+    const widths  = [5,13,9,20,16,14,16,16,14,28,20,8,8,20,14,20,12,14,16,24,14,14,18,18,30,15,15,15];
     ws.columns = headers.map((h, i) => ({ header: h, key: 'c'+i, width: widths[i] }));
     ejStyleHeaderRow(ws.getRow(1));
     ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
@@ -8713,9 +8775,18 @@ window.exportHasilVerifikasiExcel = async function() {
     for (const [, l] of entries) {
       i++;
       const rowIdx = i + 1;
+      const waktuDate = l.waktu ? new Date(l.waktu) : null;
       ws.getRow(rowIdx).values = [
-        i, laporanStatusLabel(l), l.regu || '—', l.ulp || '—', l.nomorTiket || '—', l.rincian || '—',
-        l.material || '—', l.realisasi || '—', fmtWaktuFull(l.waktu), l.verifOleh || 'TL/Admin',
+        i,
+        waktuDate ? waktuDate.toLocaleDateString('id-ID') : '—',
+        waktuDate ? waktuDate.toLocaleTimeString('id-ID') : '—',
+        l.lapPenyulang || '—', l.lapKelompok || '—', l.lapSection || '—', l.lapGardu || '—',
+        l.lapHealthIndex || '—', l.lapKategori || '—', l.rincian || '—', l.jenisPekerjaan || '—',
+        l.realisasi || '—', l.realisasiSatuan || '—',
+        [l.ulp, l.regu].filter(Boolean).join(' / ') || '—',
+        l.lapPdkb || '—', l.lapDaerahPadam || '—', l.lapMetode || '—', l.lapJenisPemadaman || '—',
+        l.lapPic || '—', l.lapKeterangan || '—',
+        laporanStatusLabel(l), l.nomorTiket || '—', l.verifOleh || 'TL/Admin',
         l.verifWaktu ? fmtWaktuFull(l.verifWaktu) : '—', l.verifCatatan || '—', '', '', ''
       ];
       ejStyleDataRow(ws.getRow(rowIdx), i % 2 === 0);
@@ -8729,7 +8800,7 @@ window.exportHasilVerifikasiExcel = async function() {
         const src = fotoSrcs[k];
         if (!src) continue;
         if (!(src in gambarCache)) gambarCache[src] = await hvSiapkanGambar(src);
-        if (gambarCache[src]) tinggiFoto[k] = await ejTempelFotoProporsional(wb, ws, gambarCache[src], rowIdx, 13 + k, 100);
+        if (gambarCache[src]) tinggiFoto[k] = await ejTempelFotoProporsional(wb, ws, gambarCache[src], rowIdx, 26 + k, 100);
       }
       const maxTinggiFoto = Math.max(...tinggiFoto);
       ws.getRow(rowIdx).height = maxTinggiFoto > 0 ? ejPxKePt(maxTinggiFoto) + 6 : 20;
@@ -8986,7 +9057,12 @@ window.toggleSidebar = function() {
 };
 
 function startAppAfterAuth() {
-  loadAll();
+  // NONAKTIF: loadAll() (fetch ke Google Apps Script utk tab "Peta Inspeksi" &
+  // "Tabel Data") sengaja TIDAK dipanggil otomatis lagi saat halaman dibuka —
+  // ini salah satu penyebab loading awal lama (Apps Script sering cold-start
+  // lambat). Data sheet sekarang baru ditarik kalau user pencet tombol
+  // "↻ Refresh Data" secara manual (lihat onclick="loadAll()" di topbar).
+  // loadAll();
   switchView('beranda');
   applyAdminUI(); // pastikan semua tombol hapus/edit tersembunyi di awal (Mode Admin selalu OFF saat halaman dibuka)
   initSidebarState(); // pulihkan status collapse/expand sidebar dari localStorage

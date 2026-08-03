@@ -1172,16 +1172,16 @@ body {
           <option value="">— Pilih Penyulang —</option>
         </select>
       </div>
-      <div class="field"><label>Section</label>
-        <select id="lapor-section" style="width:100%" onchange="onLaporSectionChange()">
-          <option value="">— Pilih Penyulang dulu —</option>
+      <div class="field"><label>Kelompok</label>
+        <select id="lapor-kelompok" style="width:100%">
+          <option value="">— Pilih —</option>
         </select>
       </div>
     </div>
 
-    <div class="field"><label>Kelompok</label>
-      <select id="lapor-kelompok" style="width:100%">
-        <option value="">— Pilih —</option>
+    <div class="field"><label>Section</label>
+      <select id="lapor-section" style="width:100%" onchange="onLaporSectionChange()">
+        <option value="">— Pilih Penyulang dulu —</option>
       </select>
     </div>
 
@@ -1210,14 +1210,14 @@ body {
       </select>
     </div>
 
-    <div class="field"><label>Jenis Pekerjaan</label>
-      <select id="lapor-jenis-pekerjaan" style="width:100%">
-        <option value="">— Pilih —</option>
-      </select>
-    </div>
     <div class="field"><label>Rincian Pekerjaan <span style="color:var(--red)">*</span></label>
       <select id="lapor-rincian" style="width:100%">
         <option value="">— Pilih Rincian Pekerjaan —</option>
+      </select>
+    </div>
+    <div class="field"><label>Jenis Pekerjaan</label>
+      <select id="lapor-jenis-pekerjaan" onchange="window._jenisPekerjaanManual = true" style="width:100%">
+        <option value="">— Pilih —</option>
       </select>
     </div>
 
@@ -1259,17 +1259,16 @@ body {
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="field"><label>Kolaborasi PDKB</label>
-        <select id="lapor-pdkb" style="width:100%"></select>
-      </div>
-      <div class="field"><label>Metode</label>
-        <select id="lapor-metode" style="width:100%"></select>
-      </div>
+    <div class="field"><label>Kolaborasi PDKB</label>
+      <select id="lapor-pdkb" style="width:100%"></select>
     </div>
 
     <div class="field"><label>Daerah Padam <span style="font-size:10px;color:var(--text-muted);font-weight:400">(opsional)</span></label>
       <input type="text" id="lapor-daerah-padam" placeholder="cth: Pasar Sentral Mararena">
+    </div>
+
+    <div class="field"><label>Metode</label>
+      <select id="lapor-metode" style="width:100%"></select>
     </div>
 
     <div class="field"><label>Jenis Pemadaman</label>
@@ -2228,6 +2227,7 @@ const RINCIAN_SATUAN_MAP = {
   'Inspeksi Tier 1 JTM': 'kms',
   'Inspeksi Tier 2 JTM': 'kms',
   'Pengukuran Tahanan Isolasi JTM/SKTM': 'kms',
+  'Pengukuran Tahanan Isolasi': 'unit',
   'Rabas Pohon': 'gwg',
   'Rabas Pohon Kriteria-1': 'gwg',
   'Rabas Pohon Kriteria-2': 'gwg',
@@ -2236,6 +2236,7 @@ const RINCIAN_SATUAN_MAP = {
   'Rabas Pohon Kriteria-5': 'gwg',
   'Rabas Pohon Tuntas': 'gwg',
   'Pembersihan Terminasi': 'kms',
+  'Terminasi Kabel': 'kms',
   'Tebang Pohon': 'btng',
   'Tebang Pohon Kriteria-1': 'btng',
   'Tebang Pohon Kriteria-2': 'btng',
@@ -2255,6 +2256,7 @@ const RINCIAN_SATUAN_MAP = {
   'Perbaikan Konstruksi Schoor': 'titik',
   'Perbaikan Tiang Miring': 'btg',
   'Penggantian Traves': 'titik',
+  'Perbaikan Traves': 'titik',
   'Penggantian Tiang Keropos/Rusak TM': 'btg',
   'Pemasangan Pondasi Tiang': 'btg',
   'Pemasangan Top Ties': 'bh',
@@ -2267,6 +2269,7 @@ const RINCIAN_SATUAN_MAP = {
   'Penggantian Isolator Tumpu': 'bh',
   'Penggantian Pin Insulator menjadi Pin Post': 'bh',
   'Pemasangan LA Jaringan': 'bh',
+  'Pemasangan Anti Petir': 'bh',
   'Pemasangan Fault Indikator': 'bh',
   'Penggantian Baterai LBS Motorized': 'bh',
   'Penggantian LBS': 'bh',
@@ -2281,6 +2284,7 @@ const RINCIAN_SATUAN_MAP = {
   'Pemasangan DS': 'titik',
   'Penggantian Rectifier Rusak': 'bh',
   'Penggantian Relay Rusak (Peremajaan)': 'bh',
+  'Pemasangan Directional Relay': 'bh',
   'Integrasi Keypoint ke SCADA': 'titik',
   'Assesment Keypoint': 'unit',
   'Pemeliharaan berbasis PDKB': 'titik',
@@ -2295,13 +2299,16 @@ const RINCIAN_SATUAN_MAP = {
   'Menaikkan Tap Changer Trafo Distribusi': 'unit',
   'Penggantian PHBTR Rusak': 'unit',
   'Penggantian Dudukan PHBTR': 'unit',
+  'Penggantian Dudukan Trafo': 'unit',
   'Pembersihan Halaman Gardu Distribusi': 'unit',
   'Pengecatan Gardu': 'unit',
+  'Pengecatan PHB TR': 'unit',
   'Penggantian In / Out Gardu': 'unit',
   'Penggantian Tiang Keropos/Rusak Gardu': 'btg',
   'Perbaikan LA Gardu': 'bh',
   'Perbaikan Grounding Gardu': 'unit',
   'Penyesuaian Rating (Fuse Link)': 'unit',
+  'Penyesuaian Rating (NH Fuse)': 'unit',
   'Pemasangan Cover LA & Bushing Gardu': 'unit',
   'Penyesuaian tegangan drop': 'unit',
   'Downrating trafo': 'unit',
@@ -2360,6 +2367,28 @@ function applySatuanOtomatis() {
   satuanEl.value = RINCIAN_SATUAN_MAP[rincianVal] || '';
 }
 window.applySatuanOtomatis = applySatuanOtomatis;
+
+// Isi otomatis field Jenis Pekerjaan berdasarkan Rincian Pekerjaan yang
+// sedang dipilih (RP_RINCIAN_JENIS_PEKERJAAN di master-data.js — sumber:
+// FORMAT PEMADAMAN ULP, kolom LEAD MEASURE/JENIS PEKERJAAN). Dipanggil
+// setiap kali Rincian Pekerjaan berganti. Field Jenis Pekerjaan TETAP
+// dropdown biasa yang bisa diganti manual kapan saja oleh petugas — ini
+// cuma nilai awal/saran (sama seperti mekanisme isiHealthIndexOtomatis),
+// BUKAN dikunci. TIDAK menimpa kalau petugas sudah pernah mengganti Jenis
+// Pekerjaan manual (lihat window._jenisPekerjaanManual, di-set di onchange
+// #lapor-jenis-pekerjaan). Kalau Rincian Pekerjaan yang dipilih belum ada
+// pemetaannya di RP_RINCIAN_JENIS_PEKERJAAN, field dibiarkan seperti apa
+// adanya supaya tetap bisa dipilih manual dari dropdown.
+function applyJenisPekerjaanOtomatis() {
+  const jenisEl = document.getElementById('lapor-jenis-pekerjaan');
+  if (!jenisEl || window._jenisPekerjaanManual) return;
+  const rincianVal = document.getElementById('lapor-rincian')?.value || '';
+  const jp = RP_RINCIAN_JENIS_PEKERJAAN[rincianVal];
+  if (jp && [...jenisEl.options].some(o => o.value === jp)) {
+    jenisEl.value = jp;
+  }
+}
+window.applyJenisPekerjaanOtomatis = applyJenisPekerjaanOtomatis;
 
 // ── Gardu — MULTI-SELECT (form Laporan) ──
 // Sama seperti di dashboard supervisor: satu laporan bisa mencakup lebih
@@ -2658,6 +2687,7 @@ function populateLaporPekerjaanDropdowns() {
     // di-set oleh oninput pada field #lapor-satuan).
     if (rincianSel && !rincianSel.dataset.satuanAutofillBound) {
       rincianSel.addEventListener('change', applySatuanOtomatis);
+      rincianSel.addEventListener('change', applyJenisPekerjaanOtomatis);
       rincianSel.dataset.satuanAutofillBound = '1';
     }
     isiPilihanPenyulang('lapor');
@@ -4298,6 +4328,7 @@ window.bukaModalLapor = function() {
     document.getElementById('lapor-health-index').value = '';
     document.getElementById('lapor-kategori').value = '';
     document.getElementById('lapor-jenis-pekerjaan').value = '';
+    window._jenisPekerjaanManual = false;
     document.getElementById('lapor-rincian').value = '';
     document.getElementById('lapor-vol').value = '';
     document.getElementById('lapor-satuan').value = '';
@@ -4752,6 +4783,7 @@ function restoreLaporDraft() {
       if (el && draft.fields[id]) { el.value = draft.fields[id]; adaYangDipulihkan = true; }
     });
     if (draft.fields['lapor-satuan']) window._satuanManual = true;
+    if (draft.fields['lapor-jenis-pekerjaan']) window._jenisPekerjaanManual = true;
   }
 
   // Penyulang → Section (cascading, sama seperti alur Rencana Pekerjaan).
