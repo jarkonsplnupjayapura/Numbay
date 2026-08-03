@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NUMBAY — Pusat Kendali UP3 Jayapura</title>
+<title>NUMBAY: Pusat Kendali UP3 Jayapura</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./favicon.ico">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
@@ -26,7 +26,7 @@
 <script src="master-data.js"></script>
 <style>
 /* ════════════════════════════════════════════════════════════
-   DESIGN TOKENS — "Grid Operasional"
+   DESIGN TOKENS, "Grid Operasional"
    Identitas: command-center kelistrikan, bukan SaaS generik.
    Base gelap navy-charcoal + PLN blue sebagai brand anchor +
    PLN yellow dipakai sangat selektif untuk sinyal kritis.
@@ -39,7 +39,7 @@
   --pln-yellow:       #FFB800;
   --pln-yellow-deep:  #E6A300;
 
-  /* base — command-center navy-charcoal, bukan biru murni */
+  /* base, command-center navy-charcoal, bukan biru murni */
   --ink-900: #0A1424;
   --ink-800: #101D33;
   --ink-700: #16253F;
@@ -57,7 +57,7 @@
   --text-1: #0B1626;
   --text-2: #4D5D78;
   --text-3: #8C9AB3;
-  /* aliases — dipakai di banyak tempat lama sebagai --text-secondary/--text-muted/--green,
+  /* aliases, dipakai di banyak tempat lama sebagai --text-secondary/--text-muted/--green,
      tapi belum pernah didefinisikan sehingga fallback ke warna default (bukan abu-abu redup
      yang dimaksud). Alias di sini memperbaiki hierarki teks di seluruh app tanpa perlu
      mengganti satu-satu tiap pemakaiannya. */
@@ -65,7 +65,7 @@
   --text-muted:     var(--text-3);
   --green:          var(--ok);
 
-  /* semantic — più saturated, less corporate-pastel */
+  /* semantic, più saturated, less corporate-pastel */
   --ok:       #0EA15B;
   --ok-bg:    rgba(14,161,91,0.10);
   --warn:     #D97B0A;
@@ -128,7 +128,7 @@ body {
 .app { display: flex; height: 100vh; overflow: hidden; }
 
 /* ══════════════════════════════════════
-   SIDEBAR — single-line-diagram texture
+   SIDEBAR, single-line-diagram texture
 ══════════════════════════════════════ */
 .sidebar {
   width: var(--sidebar-w);
@@ -460,7 +460,7 @@ body {
 }
 
 /* ══════════════════════════════════════
-   PAGINATION — tabel Data Inspeksi Lengkap
+   PAGINATION, tabel Data Inspeksi Lengkap
 ══════════════════════════════════════ */
 .pagination-bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -537,7 +537,7 @@ body {
 .section-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 
 /* ══════════════════════════════════════
-   MAP VIEW — full remaining height
+   MAP VIEW, full remaining height
 ══════════════════════════════════════ */
 #viewMap { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 #viewMap .grid-2-3 { flex: 1; min-height: 0; margin-bottom: 0; align-items: stretch; }
@@ -552,7 +552,7 @@ body {
 #viewMap .side-panel { overflow-y: auto; min-height: 0; }
 
 /* ══════════════════════════════════════
-   RIWAYAT INSPEKSI — peta penuh 1 layar tanpa scroll ganda;
+   RIWAYAT INSPEKSI, peta penuh 1 layar tanpa scroll ganda;
    mode Daftar scroll internal saja (header/filter tetap diam)
 ══════════════════════════════════════ */
 #viewRiwayatInspeksi { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
@@ -650,7 +650,7 @@ tbody tr:hover td { background: var(--surface-2); }
 .empty { padding: 44px; text-align: center; color: var(--text-3); font-size: 13px; }
 
 /* ══════════════════════════════════════
-   TOAST NOTIFICATIONS — pengganti alert() bawaan browser
+   TOAST NOTIFICATIONS, pengganti alert() bawaan browser
 ══════════════════════════════════════ */
 .toast-stack {
   position: fixed; top: 18px; right: 18px; z-index: 10000;
@@ -706,7 +706,7 @@ tbody tr:hover td { background: var(--surface-2); }
 @keyframes toast-shrink { from { width: 100%; } to { width: 0%; } }
 
 /* ══════════════════════════════════════
-   CONFIRM MODAL — pengganti confirm() bawaan browser
+   CONFIRM MODAL, pengganti confirm() bawaan browser
 ══════════════════════════════════════ */
 .confirm-overlay {
   display: none; position: fixed; inset: 0; z-index: 10001;
@@ -765,7 +765,7 @@ tbody tr:hover td { background: var(--surface-2); }
 .leaflet-popup-close-button:hover { background: var(--surface-3) !important; color: var(--text-1) !important; }
 .popup-card    { padding: 14px 40px 12px 16px; }
 /* flex-wrap: kalau nama tim panjang & badge ULP tidak cukup ruang di baris
-   yang sama, badge otomatis turun ke baris sendiri — supaya judul tim TIDAK
+   yang sama, badge otomatis turun ke baris sendiri, supaya judul tim TIDAK
    dipaksa memakai kolom sempit yang membuatnya patah jadi 3 baris acak-acakan. */
 .popup-head    { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
 .popup-title   { flex: 1 1 auto; min-width: 120px; font-weight: 800; font-size: 14.5px; color: var(--text-1); font-family: var(--font-display); line-height: 1.3; }
@@ -777,14 +777,13 @@ tbody tr:hover td { background: var(--surface-2); }
 .popup-val     { font-weight: 700; color: var(--text-1); text-align: right; flex: 1; }
 .popup-urgensi { display: inline-block; padding: 3px 11px; border-radius: 20px; font-size: 11px; font-weight: 800; color: #fff; white-space: nowrap; line-height: 1.4; }
 
-/* Kartu popup "Petugas Aktif" di peta — label di atas, nilai penuh di bawah
+/* Kartu popup "Petugas Aktif" di peta, label di atas, nilai penuh di bawah
    (bukan sejajar kiri/kanan) supaya daftar anggota yang panjang tidak
    terpotong-potong saat wrap ke baris baru. */
 .popup-label     { display: block; color: var(--text-3); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
 .popup-block     { padding: 8px 0; }
 /* Regu dengan banyak anggota (5-6+ nama, tiap nama 1 baris) bisa membuat
-   kartu jadi sangat tinggi sampai melebihi tinggi popup default Leaflet —
-   ini yang menyebabkan sudut kartu terlihat terpotong/tidak rounded lagi
+   kartu jadi sangat tinggi sampai melebihi tinggi popup default Leaflet, ini yang menyebabkan sudut kartu terlihat terpotong/tidak rounded lagi
    di bagian bawah. Dibatasi tinggi maksimal + scroll internal supaya
    kartu selalu ringkas & sudutnya tetap rapi, berapa pun jumlah anggotanya. */
 .popup-anggota   {
@@ -916,7 +915,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
 /* ══════════════════════════════════════
    RESPONSIVE
-   Sebelumnya cuma ada SATU breakpoint (960px) yang langsung lompat ke mode
+   Sebelumnya hanya ada SATU breakpoint (960px) yang langsung lompat ke mode
    mobile (sidebar hilang total). Akibatnya laptop kecil/jendela browser
    yang tidak full-width (≈1024–1366px, umum di laptop 13"–14") ikut kena
    rasio layout yang sama persis dengan laptop lebar (1600–1920px+), jadi
@@ -926,7 +925,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 ══════════════════════════════════════ */
 
 /* Laptop kompak (≈961–1279px, mis. layar 13" native 1280px atau jendela
-   browser yang di-resize tidak full-width) — sidebar dipadatkan & rasio
+   browser yang di-resize tidak full-width), sidebar dipadatkan & rasio
    peta:panel-samping dibuat lebih longgar supaya panel kanan tidak
    berdesakan seperti kalau pakai rasio laptop lebar. */
 @media (max-width: 1279px) and (min-width: 961px) {
@@ -938,7 +937,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
   .sidebar .nav-label { font-size: 12.5px; }
 }
 
-/* Layar dengan tinggi terbatas (mis. laptop 1366×768 / 1280×800) — padatkan
+/* Layar dengan tinggi terbatas (mis. laptop 1366×768 / 1280×800), padatkan
    elemen vertikal (topbar, header section, jarak kpi) supaya konten utama
    (peta/tabel/daftar) tetap kebagian tinggi yang cukup tanpa harus scroll
    berlebihan. Berdasarkan tinggi viewport, bukan lebar, jadi tetap berlaku
@@ -951,7 +950,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
   .card-header  { padding: 12px 16px; }
 }
 
-/* Laptop/monitor besar (≥1680px) — batasi lebar konten & simetriskan di
+/* Laptop/monitor besar (≥1680px), batasi lebar konten & simetriskan di
    tengah supaya kartu/peta tidak melebar berlebihan dan renggang di layar
    lebar (mis. laptop 16"/17" 1920px atau external monitor). */
 @media (min-width: 1680px) {
@@ -975,7 +974,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 }
 
 /* ══════════════════════════════════════════════════════════════
-   LOGIN SCREEN — gerbang akses berjenjang (Superadmin / Admin ULP)
+   LOGIN SCREEN, gerbang akses berjenjang (Superadmin / Admin ULP)
    Reuse identitas visual sidebar (navy-charcoal + PLN yellow anchor)
    supaya terasa satu kesatuan dengan app, bukan halaman terpisah.
 ════════════════════════════════════════════════════════════════ */
@@ -1049,7 +1048,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
   </div>
 </div>
 
-<!-- ══ LOGIN SCREEN — Superadmin (UP3 Jayapura) & Admin ULP (6 ULP) ══ -->
+<!-- ══ LOGIN SCREEN, Superadmin (UP3 Jayapura) & Admin ULP (6 ULP) ══ -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-card-brand">
@@ -1375,10 +1374,10 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
     <div id="viewPetugas" style="display:none;" class="firebase-view">
       <div class="fb-header">
         <div>
-          <div class="card-title" style="font-size:16px">👷 Petugas Aktif — GPS Realtime</div>
+          <div class="card-title" style="font-size:16px">👷 Petugas Aktif: GPS Realtime</div>
           <div class="fb-subtitle">Update otomatis dari Firebase · seluruh petugas yang sedang bertugas hari ini</div>
           <div class="fb-info-chips">
-            <span class="info-chip" title="Checkpoint laporan yang muncul di peta menampilkan hari ini saja secara default — bisa diganti tanggalnya lewat filter di atas peta">📋 Checkpoint: Hari Ini</span>
+            <span class="info-chip" title="Checkpoint laporan yang muncul di peta menampilkan hari ini saja secara default, bisa diganti tanggalnya lewat filter di atas peta">📋 Checkpoint: Hari Ini</span>
             <span class="info-chip" title="Petugas yang sudah Offline tidak dihitung sebagai Aktif, tapi tetap tampil di daftar sebelah">ℹ️ "Aktif" = belum lapor Selesai</span>
           </div>
         </div>
@@ -1445,7 +1444,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
     <div id="viewAbsensi" style="display:none;" class="firebase-view">
       <div class="fb-header">
         <div>
-          <div class="card-title" style="font-size:16px">📍 Monitoring Absensi (Live) — Log Fase</div>
+          <div class="card-title" style="font-size:16px">📍 Monitoring Absensi (Live): Log Fase</div>
           <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Fase bertahap: Standby → Perjalanan → Aktif Bekerja → Selesai · Selfie + GPS tiap fase</div>
         </div>
         <span id="absensiCount" class="card-count">0 petugas</span>
@@ -1665,7 +1664,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
         </div>
         <div id="el-info" style="font-size:12px;color:var(--text-2);margin-bottom:12px;padding:10px 13px;background:var(--surface-2);border-radius:var(--radius-xs)"></div>
         <div id="el-warn-verified" style="display:none;font-size:12px;color:var(--warn);background:var(--warn-bg);border:1px solid rgba(217,123,10,0.3);padding:10px 13px;border-radius:var(--radius-xs);margin-bottom:16px">
-          ⚠️ Laporan ini <b>sudah diverifikasi</b>. Menyimpan perubahan akan mengembalikan status ke <b>"Menunggu Verifikasi"</b> — perlu diverifikasi ulang oleh TL/Admin.
+          ⚠️ Laporan ini <b>sudah diverifikasi</b>. Menyimpan perubahan akan mengembalikan status ke <b>"Menunggu Verifikasi"</b>, perlu diverifikasi ulang oleh TL/Admin.
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div>
@@ -1791,7 +1790,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       <div class="fb-header">
         <div>
           <div class="card-title" style="font-size:16px">🎫 Rencana Pekerjaan</div>
-          <div class="fb-subtitle">Buat rencana pekerjaan sekaligus target volumenya di sini — petugas lapangan tinggal pilih dari daftar tugasnya saat lapor, tidak perlu ketik nomor apa pun</div>
+          <div class="fb-subtitle">Buat rencana pekerjaan sekaligus target volumenya di sini, petugas lapangan tinggal pilih dari daftar tugasnya saat lapor, tidak perlu ketik nomor apa pun</div>
         </div>
         <button class="topbar-btn-yellow" onclick="bukaModalTiket()" style="font-size:13px;padding:9px 18px">+ Buat Rencana Pekerjaan</button>
       </div>
@@ -2284,12 +2283,12 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
         </div>
       </div>
 
-    <!-- ══ HASIL VERIFIKASI VIEW — arsip laporan yang sudah diproses ══ -->
+    <!-- ══ HASIL VERIFIKASI VIEW, arsip laporan yang sudah diproses ══ -->
     <div id="viewHasilVerifikasi" style="display:none;" class="firebase-view">
       <div class="fb-header">
         <div>
           <div class="card-title" style="font-size:16px">📁 Hasil Verifikasi Laporan</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Arsip laporan yang sudah Terverifikasi, Perlu Revisi, maupun Ditolak — dikelompokkan per ULP &amp; jenis pekerjaan</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Arsip laporan yang sudah Terverifikasi, Perlu Revisi, maupun Ditolak, dikelompokkan per ULP &amp; jenis pekerjaan</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span id="hasilVerifikasiCount" class="card-count">0 laporan</span>
@@ -2355,7 +2354,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
     </div>
 
-    <!-- ══ PETA RIWAYAT INSPEKSI VIEW — laporan pekerjaan (node 'laporan') disajikan
+    <!-- ══ PETA RIWAYAT INSPEKSI VIEW, laporan pekerjaan (node 'laporan') disajikan
          sebagai peta + daftar, dengan status verifikasi sebagai sinyal utama.
          Data sama persis dengan Rekap Laporan / Hasil Verifikasi (reuse verifikasiRawEntries),
          hanya cara sajinya berbeda. Peta punya layer opsional "Temuan Inspeksi (Sheets)"
@@ -2364,7 +2363,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       <div class="fb-header">
         <div>
           <div class="card-title" style="font-size:16px">🧭 Peta Laporan Pekerjaan</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Sebaran lokasi &amp; status verifikasi seluruh laporan pekerjaan (HAR/ROW/PDKB dkk) — data sama dengan Rekap Laporan, disajikan sebagai peta + daftar</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Sebaran lokasi &amp; status verifikasi seluruh laporan pekerjaan (HAR/ROW/PDKB dkk), data sama dengan Rekap Laporan, disajikan sebagai peta + daftar</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span id="riCount" class="card-count">0 laporan</span>
@@ -2444,7 +2443,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
     </div>
 
-    <!-- ══ AKUN REGU (KELOLA LOGIN) VIEW — hanya Mode Admin ══ -->
+    <!-- ══ AKUN REGU (KELOLA LOGIN) VIEW, hanya Mode Admin ══ -->
     <div id="viewAkun" style="display:none;" class="firebase-view">
       <div class="fb-header">
         <div>
@@ -2517,12 +2516,12 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
     </div>
 
-    <!-- ══ AKUN USHER — Login TL/Admin (Superadmin & Admin ULP), gantikan AUTH_ACCOUNTS hardcode ══ -->
+    <!-- ══ AKUN USHER, Login TL/Admin (Superadmin & Admin ULP), gantikan AUTH_ACCOUNTS hardcode ══ -->
     <div id="viewAkunUsher" style="display:none;" class="firebase-view">
       <div class="fb-header">
         <div>
           <div class="card-title" style="font-size:16px">🛡️ Akun Usher (Login TL/Admin)</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Akun untuk masuk ke dashboard ini (bukan akun regu petugas) — username, password &amp; PIN Admin per-akun disimpan di Firebase, bukan hardcode lagi</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Akun untuk masuk ke dashboard ini (bukan akun regu petugas), username, password &amp; PIN Admin per-akun disimpan di Firebase, bukan hardcode lagi</div>
         </div>
         <button class="topbar-btn-yellow" onclick="bukaModalAkunUsher()" style="font-size:13px;padding:9px 18px">+ Tambah Akun Usher</button>
       </div>
@@ -2609,12 +2608,12 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
     </div>
 
-    <!-- ══ DATABASE VIEWER — hanya Mode Admin (Superadmin) ══ -->
+    <!-- ══ DATABASE VIEWER, hanya Mode Admin (Superadmin) ══ -->
     <div id="viewDbViewer" style="display:none;" class="firebase-view">
       <div class="fb-header">
         <div>
           <div class="card-title" style="font-size:16px">🗄 Database Viewer</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Lihat isi node Firebase sebagai tabel — bukan pengganti Firebase Console, hanya bantuan lihat data sehari-hari</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Lihat isi node Firebase sebagai tabel, bukan pengganti Firebase Console, hanya bantuan lihat data sehari-hari</div>
         </div>
       </div>
 
@@ -2671,7 +2670,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
     </div>
 
-    <!-- Modal Detail JSON — Database Viewer -->
+    <!-- Modal Detail JSON, Database Viewer -->
     <div id="modal-dbv-detail" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
       <div style="background:var(--surface);border-radius:var(--radius-lg);padding:22px;width:100%;max-width:620px;max-height:80vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);margin:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -2688,7 +2687,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
 <script>
 // ══════════════════════════════════════
-// TOAST & CONFIRM — pengganti alert()/confirm() bawaan browser
+// TOAST & CONFIRM, pengganti alert()/confirm() bawaan browser
 // (dialog sistem yang terasa "keluar" dari aplikasi)
 // ══════════════════════════════════════
 const TOAST_META = {
@@ -2992,7 +2991,7 @@ function parseCoord(str) {
   // Timur. Data dari Google Sheets sering ada baris salah ketik (misal nyaris
   // 0,0 tapi bukan persis, atau lat-lng terbalik). Satu baris nyasar saja
   // cukup membuat bounding box fitBounds() melebar ke seluruh dunia, sehingga
-  // peta selalu ter-zoom-out — itulah sebab utama "peta dunia" yang berulang.
+  // peta selalu ter-zoom-out, itulah sebab utama "peta dunia" yang berulang.
   if (lat < -12 || lat > 5 || lng < 125 || lng > 145) return null;
   return parts;
 }
@@ -3089,7 +3088,7 @@ function updateMap() {
   // Simpan bounds hasil hitung supaya bisa di-"fit" ulang nanti (lihat fitMapToData),
   // karena saat fungsi ini pertama kali jalan (waktu load awal), container #map
   // masih disembunyikan (display:none) sehingga Leaflet tidak bisa menghitung
-  // zoom yang tepat — itu sebabnya peta sempat tampil zoom dunia penuh.
+  // zoom yang tepat, itu sebabnya peta sempat tampil zoom dunia penuh.
   mapBoundsCache = { validCount, minLat, maxLat, minLng, maxLng };
   fitMapToData();
 }
@@ -3101,7 +3100,7 @@ function fitMapToData() {
 
   // PENJAGA UTAMA: jika container peta masih berukuran 0 (lagi disembunyikan /
   // baru saja ditampilkan dan belum sempat reflow), JANGAN panggil fitBounds()
-  // dulu — itulah yang membuat zoom jatuh ke level 0 (peta seluruh dunia).
+  // dulu, itulah yang membuat zoom jatuh ke level 0 (peta seluruh dunia).
   // Tunggu satu frame lalu coba lagi sampai ukurannya valid.
   const size = mapInstance.getSize();
   if (!size.x || !size.y) {
@@ -3281,11 +3280,11 @@ window.onPageSizeChange = function() {
 };
 
 // ══════════════════════════════════════
-// DATABASE VIEWER — tabel generik untuk lihat isi node Firebase RTDB
+// DATABASE VIEWER, tabel generik untuk lihat isi node Firebase RTDB
 // (khusus Mode Admin/Superadmin). Ambil snapshot sekali via get(), flatten
 // jadi baris, lalu render sebagai tabel HTML biasa: bisa dicari, disortir,
 // dipaginasi, dan diexport CSV. Field yang kelihatan seperti base64 (foto
-// selfie) sengaja tidak ditampilkan penuh — cuma ditandai [foto] biar tabel
+// selfie) sengaja tidak ditampilkan penuh, hanya ditandai [foto] agar tabel
 // tidak berat & rusak layout.
 // ══════════════════════════════════════
 let dbvState = { node: '', rows: [], filtered: [], columns: [], page: 1, pageSize: 50, totalPages: 1, sortKey: null, sortDir: 1 };
@@ -3295,7 +3294,7 @@ function dbvLooksLikeBase64Image(v) {
 }
 
 // Ratakan satu record jadi objek flat 1 level (dot-notation untuk nested object,
-// array/nested dalam ditandai ringkas biar tabel tetap enak dibaca).
+// array/nested dalam ditandai ringkas agar tabel tetap enak dibaca).
 function dbvFlattenRecord(id, val) {
   const row = { _id: id };
   if (val === null || typeof val !== 'object') { row.value = val; return row; }
@@ -3422,7 +3421,7 @@ window.dbvOnPageSizeChange = function() {
 
 window.dbvShowDetail = function(id) {
   const row = dbvState.rows.find(r => r._id === id);
-  document.getElementById('dbv-modal-title').textContent = 'Detail — ' + id;
+  document.getElementById('dbv-modal-title').textContent = 'Detail: ' + id;
   document.getElementById('dbv-modal-json').textContent = JSON.stringify(row, null, 2);
   document.getElementById('modal-dbv-detail').style.display = 'flex';
 };
@@ -3457,7 +3456,7 @@ function switchView(view) {
   allNavIds.forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('active'); });
 
   // Tiap kali pindah/masuk (lagi) ke suatu halaman, scroll selalu dikembalikan
-  // ke paling atas — supaya tidak "nyangkut" di posisi scroll terakhir waktu
+  // ke paling atas, supaya tidak "tersangkut" di posisi scroll terakhir waktu
   // user meninggalkan halaman itu sebelumnya.
   document.querySelector('.content')?.scrollTo(0, 0);
 
@@ -3527,7 +3526,7 @@ function switchView(view) {
     document.getElementById('nav-riwayat-inspeksi').classList.add('active');
     initFirebase().then(ok => {
       if (!ok) return;
-      listenVerifikasi(); // reuse listener yang sama dgn Verifikasi/Hasil Verifikasi — sumber data node 'laporan' sama persis
+      listenVerifikasi(); // reuse listener yang sama dengan Verifikasi/Hasil Verifikasi, sumber data node 'laporan' sama persis
       renderRiwayatInspeksi(); // render langsung dari cache kalau listener sudah aktif sebelumnya (data tidak hilang)
     });
     if (typeof resetRiwayatInspeksiFilter === 'function') resetRiwayatInspeksiFilter();
@@ -3557,19 +3556,18 @@ function switchView(view) {
 function switchTab(tab) { switchView(tab); }
 
 // ══════════════════════════════════════
-// AUTH — LOGIN BERJENJANG (Superadmin UP3 / Admin ULP)
+// AUTH, LOGIN BERJENJANG (Superadmin UP3 / Admin ULP)
 // ══════════════════════════════════════
 // CATATAN: ini gerbang akses level-aplikasi (siapa yang boleh MEMBUKA
 // dashboard & data ULP mana yang dia lihat), TERPISAH dari "Mode Admin"
 // (PIN Admin di bawah) yang tetap dipertahankan sebagai gerbang khusus
-// tombol hapus data — dua lapis ini sengaja tidak digabung.
+// tombol hapus data, dua lapis ini sengaja tidak digabung.
 //
-// Akun login (username/password/PIN Admin) TIDAK lagi hardcode di sini —
-// sekarang disimpan di Firebase node 'usherAkun' dan bisa diatur lewat
+// Akun login (username/password/PIN Admin) TIDAK lagi hardcode di sini, // sekarang disimpan di Firebase node 'usherAkun' dan bisa diatur lewat
 // halaman "Kelola Akun Usher" (khusus Superadmin, lihat listenUsherAkun()
 // & bukaModalAkunUsher() di bawah). USHER_AKUN_SEED_DEFAULT di bawah HANYA
 // dipakai SEKALI untuk mengisi node 'usherAkun' kalau masih kosong (migrasi
-// awal) — lihat seedUsherAkunIfEmpty().
+// awal), lihat seedUsherAkunIfEmpty().
 const USHER_AKUN_SEED_DEFAULT = {
   'plnup3jayapura': { username: 'plnup3jayapura', password: '1111', unitKerja: 'PLN UP3 Jayapura', role: 'superadmin', ulp: null,           hakAkses: 'Semua ULP & PT MITRA',        pinAdmin: '1111' },
   'ulp_jayapura':   { username: 'ulp_jayapura',   password: '1234', unitKerja: 'ULP Jayapura',      role: 'admin_ulp',  ulp: 'ULP Jayapura', hakAkses: 'ULP Jayapura & PT MITRA',      pinAdmin: '1234' },
@@ -3593,12 +3591,11 @@ function normalizeUlp(s) {
 // untuk isi dropdown "Akun" di layar login.
 let usherAkunCache = {};
 
-// currentAuth SENGAJA TIDAK di-restore dari localStorage/sessionStorage —
-// sesuai permintaan: setiap kali web ditutup ATAU di-refresh, harus login
-// ulang dari nol (password wajib diketik lagi). currentAuth cuma hidup di
+// currentAuth SENGAJA TIDAK di-restore dari localStorage/sessionStorage, // sesuai permintaan: setiap kali web ditutup ATAU di-refresh, harus login
+// ulang dari nol (password wajib diketik lagi). currentAuth hanya hidup di
 // memori JS selama tab ini terbuka & belum di-refresh; begitu tab ditutup
 // atau halaman di-refresh, seluruh memori JS hilang otomatis sehingga
-// currentAuth otomatis kembali null saat halaman dimuat lagi — tanpa perlu
+// currentAuth otomatis kembali null saat halaman dimuat lagi, tanpa perlu
 // mekanisme storage apa pun. Ditambah: auto-logout kalau 30 menit tanpa
 // aktivitas sama sekali (lihat resetIdleTimer()/autoLogoutIdle() di bawah).
 let currentAuth = null; // { username, role: 'superadmin'|'admin_ulp', ulp, label, pinAdmin } atau null kalau belum login
@@ -3614,7 +3611,7 @@ function isSuperadmin() {
 // Daftar ULP yang boleh diakses akun yang sedang login, sesuai kolom "Hak Akses"
 // di Kelola Akun Usher (mis. "ULP Genyem & PT MITRA"): Superadmin = null (tanpa
 // batasan, semua ULP + PT MITRA ikut lolos), Admin ULP = [ULP-nya sendiri, 'PT MITRA']
-// — BUKAN cuma ULP-nya sendiri saja. PT MITRA memang bekerja lintas-ULP (mitra
+//, BUKAN hanya ULP-nya sendiri saja. PT MITRA memang bekerja lintas-ULP (mitra
 // konstruksi bersama), jadi semua Admin ULP tetap perlu bisa melihat & mengelola
 // data PT MITRA selain data ULP-nya sendiri.
 function getScopeUlpList() {
@@ -3624,17 +3621,16 @@ function getScopeUlpList() {
 // Filter generik untuk array [id, obj] hasil Object.entries(snapshot) dari node
 // yang membawa field `ulp` (petugas, absensi, laporan, penugasan). Kalau akun
 // yang login adalah Admin ULP, hanya baris dengan ulp yang ada di getScopeUlpList()
-// (ULP-nya sendiri ATAU PT MITRA) yang diloloskan — ULP lain (bukan miliknya,
+// (ULP-nya sendiri ATAU PT MITRA) yang diloloskan, ULP lain (bukan miliknya,
 // bukan PT MITRA) tetap tidak pernah tampil untuk Admin ULP mana pun.
 //
-// PENGECUALIAN — Tim ROW lintas-ULP: petugas.html punya field wajib "Asal
+// PENGECUALIAN, Tim ROW lintas-ULP: petugas.html punya field wajib "Asal
 // Tim ROW" (muncul & wajib diisi kalau nama regu mengandung kata "ROW") yang
 // diisi dengan ULP asal tim tsb. Kalau field itu terisi, `v.asalTimRow` berisi nama
-// ULP asal tim tsb. Baris itu WAJIB tetap lolos untuk Admin ULP asal juga —
-// bukan cuma Admin ULP tempat dia bertugas hari itu — supaya live GPS,
+// ULP asal tim tsb. Baris itu WAJIB tetap lolos untuk Admin ULP asal juga, // bukan hanya Admin ULP tempat dia bertugas hari itu, supaya live GPS,
 // absensi, & laporan Tim ROW yang sedang dipinjam tetap kelihatan (akses
 // penuh, termasuk bisa diverifikasi) di dashboard ULP asalnya. Ini persis pola
-// akses PT MITRA yang sudah ada, cuma sumbernya dinamis per-baris data
+// akses PT MITRA yang sudah ada, hanya sumbernya dinamis per-baris data
 // (bukan daftar ULP tetap) karena Tim ROW yang sama bisa kadang bantu ULP
 // lain, kadang kerja normal di ULP asalnya sendiri (asalTimRow dikosongkan).
 function scopeFilterEntries(entries) {
@@ -3669,7 +3665,7 @@ window.doLoginTLAdmin = function() {
 // keyboard, klik, sentuh, scroll) selama 30 menit berturut-turut, paksa
 // logout & reload halaman supaya harus login ulang. Timer di-reset setiap
 // kali ada aktivitas apa pun, dan hanya berjalan selama currentAuth terisi
-// (sedang login) — dipasang/dilepas otomatis lewat resetIdleTimer().
+// (sedang login), dipasang/dilepas otomatis lewat resetIdleTimer().
 const IDLE_LOGOUT_MS = 30 * 60 * 1000; // 30 menit
 let idleLogoutTimer = null;
 function resetIdleTimer() {
@@ -3733,9 +3729,9 @@ let fbListeners = {};
 // tidak dipakai siapa-siapa.
 // listener yang dipakai bersama beberapa tab (rekap dipakai beranda/rekap/tiket,
 // verifikasi dipakai verifikasi/hasil-verifikasi/riwayat-inspeksi) hanya dilepas
-// kalau SEMUA tab pemakainya sedang ditinggalkan — supaya pindah antar tab yang
+// kalau SEMUA tab pemakainya sedang ditinggalkan, supaya pindah antar tab yang
 // masih 1 grup tidak memutus & memasang ulang listener secara sia-sia.
-// 'petugasBadge' sengaja TIDAK dimasukkan — itu listener global badge sidebar
+// 'petugasBadge' sengaja TIDAK dimasukkan, itu listener global badge sidebar
 // yang memang harus menyala terus di semua tab (lihat komentar di listenPetugasBadge()).
 const LISTENER_VIEW_MAP = {
   akun:              ['akun'],
@@ -3770,14 +3766,13 @@ let checkpointMarkers = {};        // laporanId -> leaflet marker checkpoint
 //
 // PENTING: Mode Admin SENGAJA TIDAK dipertahankan lewat sessionStorage lagi.
 // Sebelumnya status "aktif" tersimpan di sessionStorage dan otomatis menyala
-// kembali tiap kali halaman dibuka ulang/di-refresh TANPA perlu PIN lagi —
-// ini yang menyebabkan bug "bisa hapus data padahal merasa tidak sedang
+// kembali tiap kali halaman dibuka ulang/di-refresh TANPA perlu PIN lagi, // ini yang menyebabkan bug "bisa hapus data padahal merasa tidak sedang
 // membuka Mode Admin" (nyala dari sesi sebelumnya, lupa dimatikan). Sekarang
 // Mode Admin SELALU dimulai OFF setiap kali halaman dimuat/di-refresh, dan
 // PIN wajib dimasukkan ulang tiap kali mau mengaktifkannya.
 //
 // PIN Admin sekarang PER-AKUN (field `pinAdmin` di node Firebase 'usherAkun',
-// diatur lewat halaman Kelola Akun Usher) — bukan 1 PIN global lagi. Akun yang
+// diatur lewat halaman Kelola Akun Usher), bukan 1 PIN global lagi. Akun yang
 // sedang login memvalidasi lewat currentAuth.pinAdmin; DEFAULT_ADMIN_PIN
 // (didefinisikan di bagian AUTH di atas) hanya fallback kalau untuk suatu
 // alasan currentAuth.pinAdmin belum terisi (mis. akun lama sebelum migrasi).
@@ -3813,7 +3808,7 @@ function applyAdminUI() {
   // tidak menyimpan field `ulp` per akun (lihat catatan di listenAkunRegu),
   // jadi tidak bisa difilter aman per ULP untuk Admin ULP.
   document.getElementById('nav-akun').style.display = (isAdminMode && isSuperadmin()) ? '' : 'none';
-  // Kelola Akun Usher (login TL/Admin) sama-sama Superadmin-only — akun ULP
+  // Kelola Akun Usher (login TL/Admin) sama-sama Superadmin-only, akun ULP
   // lain tidak boleh bisa mengubah/lihat password & PIN akun lain.
   document.getElementById('nav-akun-usher').style.display = (isAdminMode && isSuperadmin()) ? '' : 'none';
   document.getElementById('nav-db-viewer').style.display = (isAdminMode && isSuperadmin()) ? '' : 'none';
@@ -3823,9 +3818,9 @@ function applyAdminUI() {
 
   // render ulang daftar yang sudah ada di memori, supaya tombol hapus langsung
   // muncul/hilang saat ini juga, tanpa perlu menunggu data Firebase berubah.
-  // PENTING: sebelumnya hanya 3 daftar ini yang di-render ulang — Tiket
+  // PENTING: sebelumnya hanya 3 daftar ini yang di-render ulang, Tiket
   // (Rencana Pekerjaan) & Verifikasi Laporan TIDAK ikut, jadi tombol hapus
-  // di kedua tampilan itu bisa nyangkut menampilkan status Mode Admin yang
+  // di kedua tampilan itu bisa tersangkut menampilkan status Mode Admin yang
   // lama sampai data Firebase-nya berubah sendiri (bug: tombol hapus masih
   // terlihat/tertekan padahal Mode Admin sudah dimatikan, atau sebaliknya).
   if (lastPetugasEntries) renderPetugasList(lastPetugasEntries);
@@ -3836,8 +3831,8 @@ function applyAdminUI() {
 }
 
 // ══════════════════════════════════════
-// AKUN REGU — panel Kelola Akun (users/{username})
-// Password TIDAK pernah dibaca ulang dalam bentuk asli — hanya hash SHA-256
+// AKUN REGU, panel Kelola Akun (users/{username})
+// Password TIDAK pernah dibaca ulang dalam bentuk asli, hanya hash SHA-256
 // yang disimpan/dibandingkan. Reset password = tulis hash baru.
 // ══════════════════════════════════════
 let lastAkunEntries = null;
@@ -3960,17 +3955,17 @@ function listenAkunRegu() {
 }
 
 // ══════════════════════════════════════
-// AKUN USHER — Login TL/Admin (menggantikan AUTH_ACCOUNTS hardcode)
+// AKUN USHER, Login TL/Admin (menggantikan AUTH_ACCOUNTS hardcode)
 // ══════════════════════════════════════
 // Node Firebase 'usherAkun', key = username (lowercase). Listener ini SENGAJA
 // selalu menyala sejak boot (dipanggil di initFirebase().then(...) di bagian
-// bawah file, sama seperti listenPetugasBadge()) — BUKAN cuma saat halaman
-// "Kelola Akun Usher" dibuka — karena dropdown akun di layar login & validasi
-// PIN Admin di Mode Admin butuh data ini kapan saja, bukan cuma pas TL/Admin
+// bawah file, sama seperti listenPetugasBadge()), BUKAN hanya saat halaman
+// "Kelola Akun Usher" dibuka, karena dropdown akun di layar login & validasi
+// PIN Admin di Mode Admin butuh data ini kapan saja, bukan hanya pas TL/Admin
 // lagi buka halaman kelola akunnya.
 
 // Isi 'usherAkun' SEKALI dari USHER_AKUN_SEED_DEFAULT kalau node itu masih
-// kosong (migrasi awal dari AUTH_ACCOUNTS hardcode) — tidak pernah menimpa
+// kosong (migrasi awal dari AUTH_ACCOUNTS hardcode), tidak pernah menimpa
 // data yang sudah ada.
 async function seedUsherAkunIfEmpty() {
   try {
@@ -3996,11 +3991,11 @@ function listenUsherAkun() {
 // Isi ulang dropdown "Akun" di layar login dari data Firebase, supaya akun
 // baru/hapus di halaman Kelola Akun Usher langsung ikut muncul/hilang di
 // layar login tanpa perlu ubah kode. Juga bertanggung jawab MENGAKTIFKAN
-// form login (select/password/tombol) — form ini sengaja mulai dalam
+// form login (select/password/tombol), form ini sengaja mulai dalam
 // keadaan disabled (lihat HTML #login-username/#login-password/#login-submit-btn)
 // supaya orang tidak bisa coba login sebelum data akun dari Firebase selesai
 // dimuat (kalau dibiarkan aktif dari awal, submit pertama bisa gagal/salah
-// karena usherAkunCache masih kosong — ini akar bug lama di layar login).
+// karena usherAkunCache masih kosong, ini akar bug lama di layar login).
 function populateLoginUsernameDropdown(data) {
   const sel = document.getElementById('login-username');
   if (!sel) return;
@@ -4010,7 +4005,7 @@ function populateLoginUsernameDropdown(data) {
     return (a[1].unitKerja || '').localeCompare(b[1].unitKerja || '');
   });
   sel.innerHTML = '<option value="">Pilih akun...</option>' + entries.map(([username, acc]) =>
-    `<option value="${esc(username)}">${acc.role === 'superadmin' ? 'Superadmin' : 'Admin ULP'} — ${esc(acc.unitKerja || username)}</option>`
+    `<option value="${esc(username)}">${acc.role === 'superadmin' ? 'Superadmin' : 'Admin ULP'}, ${esc(acc.unitKerja || username)}</option>`
   ).join('');
   if (current) sel.value = current;
 
@@ -4022,8 +4017,7 @@ function populateLoginUsernameDropdown(data) {
 }
 
 // Begitu data 'usherAkun' pertama kali (atau berubah) dimuat, samakan
-// role/ulp/label/pinAdmin currentAuth dengan sumber Firebase yang terbaru —
-// supaya kalau Superadmin mengubah data akun (mis. ganti PIN atau ULP) lewat
+// role/ulp/label/pinAdmin currentAuth dengan sumber Firebase yang terbaru, // supaya kalau Superadmin mengubah data akun (mis. ganti PIN atau ULP) lewat
 // Kelola Akun Usher, sesi yang sedang login ikut ter-update tanpa perlu
 // logout/login ulang. Kalau akunnya sudah tidak ada lagi di Firebase (mis.
 // dihapus), currentAuth dibiarkan apa adanya (tidak logout paksa di sini).
@@ -4205,10 +4199,10 @@ function listenPetugasBadge() {
   fbListeners.petugasBadge = window._fbOnValue(ref, snap => {
     const data = snap.val() || {};
     // FIX: harus filter "hari ini" juga (v.ts >= todayStart), persis seperti
-    // listenPetugas() di bawah — sebelum fix ini, badge menghitung SEMUA baris
+    // listenPetugas() di bawah, sebelum fix ini, badge menghitung SEMUA baris
     // berstatus non-Offline tanpa peduli tanggal (termasuk log GPS hari
     // sebelumnya yang lupa/belum ke-overwrite jadi Offline), sedangkan halaman
-    // "Petugas Aktif" sudah benar memfilter hari ini saja — makanya badge bisa
+    // "Petugas Aktif" sudah benar memfilter hari ini saja, sehingga badge bisa
     // menunjukkan angka jauh lebih besar (mis. 30) daripada jumlah yang
     // sebenarnya tampil begitu halaman Petugas Aktif dibuka (mis. 2).
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
@@ -4271,7 +4265,7 @@ function hexToRgba(hex, alpha) {
   return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${alpha})`;
 }
 
-// Urutan cek keyword PENTING — paling spesifik dulu (lihat instruksi poin 1c).
+// Urutan cek keyword PENTING, paling spesifik dulu (lihat instruksi poin 1c).
 const TEAM_ICON_RULES = [
   { test: n => n.includes('PDKB SL 1'),      icon: '⚡', badge: '1' },
   { test: n => n.includes('PDKB SL 2'),      icon: '⚡', badge: '2' },
@@ -4291,7 +4285,7 @@ function getTeamIcon(regu) {
 }
 
 
-// Kode singkat per ULP — dipakai untuk generate Nomor Penugasan otomatis
+// Kode singkat per ULP, dipakai untuk generate Nomor Penugasan otomatis
 // (format KODE-0001, urut per ULP via Firebase transaction, tidak pernah
 // reset/pakai ulang supaya nomor lama tetap valid untuk histori/laporan).
 const KODE_ULP = {
@@ -4310,15 +4304,15 @@ const KODE_ULP = {
 // satu-satunya sumber untuk index.html & petugas.html.
 // CATATAN: dulu ada mekanisme "rpGarduTambahan" di localStorage supaya Gardu
 // baru dari tombol "+ Tambah Gardu" ikut nongol lagi di pencarian berikutnya.
-// Itu SENGAJA DIHAPUS TOTAL — Gardu yang ditambahkan manual TIDAK BOLEH
-// pernah jadi opsi permanen di dropdown, harus cuma berlaku untuk laporan
+// Itu SENGAJA DIHAPUS TOTAL, Gardu yang ditambahkan manual TIDAK BOLEH
+// pernah jadi opsi permanen di dropdown, harus hanya berlaku untuk laporan
 // yang sedang diisi saat itu saja. Baris di bawah ini membersihkan sisa data
 // lama dari localStorage HP yang mungkin masih tersimpan dari versi
 // sebelumnya, supaya Gardu manual lama tidak terus muncul lagi.
 try { localStorage.removeItem('rpGarduTambahan'); } catch (e) {}
 
 // Daftar Gardu resmi mengikuti Section yang sedang dipilih di form Rencana
-// Pekerjaan (Penyulang → Section → Gardu). HANYA data resmi — tidak ada lagi
+// Pekerjaan (Penyulang → Section → Gardu). HANYA data resmi, tidak ada lagi
 // sumber tambahan dari localStorage.
 function daftarGarduGabungan(prefix) {
   const pen = document.getElementById(prefix + '-penyulang')?.value || '';
@@ -4327,7 +4321,7 @@ function daftarGarduGabungan(prefix) {
   return [...new Set(resmi)].sort((a, b) => a.localeCompare(b, 'id'));
 }
 
-// Isi dropdown Penyulang (dipanggil sekali) — daftar lengkap dari data resmi.
+// Isi dropdown Penyulang (dipanggil sekali), daftar lengkap dari data resmi.
 function isiPilihanPenyulang(prefix) {
   const sel = document.getElementById(prefix + '-penyulang');
   if (!sel || sel.dataset.filled) return;
@@ -4351,7 +4345,7 @@ function perbaruiPilihanSection(prefix) {
 // Auto-isi Health Index Penyulang begitu Penyulang dipilih, kalau nilainya
 // sudah diketahui di PLN_PENYULANG_HEALTH_INDEX (master-data.js). Field
 // Health Index TETAP select biasa yang bisa diganti manual kapan saja oleh
-// petugas/TL — ini cuma nilai awal/saran, bukan dikunci.
+// petugas/TL, ini hanya nilai awal/saran, bukan dikunci.
 function isiHealthIndexOtomatis(prefix, healthIndexElId) {
   const pen = document.getElementById(prefix + '-penyulang').value;
   const sel = document.getElementById(healthIndexElId);
@@ -4399,27 +4393,27 @@ window.onVfSectionChange = function() {
 
 
 // ══════════════════════════════════════════════════════════════
-// KELOLA TARGET (poin 2b) — target volume per Regu per periode.
+// KELOLA TARGET (poin 2b), target volume per Regu per periode.
 // Skema Firebase: targetKerja/{ulp}/{regu}/{periodeKey}
-// CATATAN PENTING: kuncinya HARUS {ulp}/{regu}, bukan {regu} saja — karena
+// CATATAN PENTING: kuncinya HARUS {ulp}/{regu}, bukan {regu} saja, karena
 // beberapa nama Tim generik (Tim Pemeliharaan PLN ND, Tim Inspeksi Gardu,
 // Tim Mitra Konstruksi, Tim PDKB SL 1/2) SAMA PERSIS namanya di 6 ULP
-// berbeda. Kalau kuncinya cuma {regu}, target 6 tim fisik yang berbeda itu
+// berbeda. Kalau kuncinya hanya {regu}, target 6 tim fisik yang berbeda itu
 // akan saling menimpa satu sama lain di Firebase. Jadi ULP wajib jadi
 // bagian dari path supaya tiap tim di tiap ULP punya target sendiri-sendiri.
 // ══════════════════════════════════════════════════════════════
-let targetKerjaCache = []; // [{ulp, regu, periodeKey, tipePeriode, targetVolume, dibuatOleh, waktu}] — dibangun dari node 'penugasan' (lihat listenTiket)
+let targetKerjaCache = []; // [{ulp, regu, periodeKey, tipePeriode, targetVolume, dibuatOleh, waktu}], dibangun dari node 'penugasan' (lihat listenTiket)
 
 // CATATAN MIGRASI: field terpisah "Target Volume & Periode" (Harian/Mingguan/
 // Bulanan + rentang tanggal) sudah dihapus dari form Rencana Pekerjaan atas
-// permintaan TL/Admin — dianggap dobel dengan field Vol (Detail RKM) dan
+// permintaan TL/Admin, dianggap dobel dengan field Vol (Detail RKM) dan
 // Tanggal (Hari/Tanggal). Mulai sekarang setiap penugasan baru/edit SELALU
 // tersimpan sebagai tipePeriode:'harian' dengan periodeKey = Hari/Tanggal dan
 // targetVolume = Vol (lihat simpanTiket). Ini supaya fitur % capaian, grafik
 // Beranda, dan Rekap per Tim/Regu di bawah (yang membaca tipePeriode/
 // periodeKey/targetVolume) TETAP JALAN tanpa refactor besar. Konsekuensinya:
-// tidak bisa lagi bikin target Mingguan/Bulanan atau isi banyak tanggal
-// sekaligus dari form ini — kalau perlu itu lagi, field itu harus dikembalikan.
+// tidak bisa lagi membuat target Mingguan/Bulanan atau isi banyak tanggal
+// sekaligus dari form ini, kalau perlu itu lagi, field itu harus dikembalikan.
 
 function fmtTglRangeID(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -4430,7 +4424,7 @@ const TIPE_PERIODE_LABEL = { harian: 'Harian', mingguan: 'Mingguan', bulanan: 'B
 // Format ringkas "Target & Periode" untuk kolom tabel Daftar Penugasan Aktif.
 // Tabel Daftar Rencana Pekerjaan sudah punya kolom header "ULP", jadi kalau
 // nilainya berupa "ULP Genyem" dsb, prefix "ULP " dibuang di tampilan supaya
-// tidak berulang/dobel dan tidak gampang wrap 2 baris di kolom yang sempit.
+// tidak berulang/dobel dan tidak mudah wrap 2 baris di kolom yang sempit.
 function fmtUlpDisplay(ulp) {
   if (!ulp) return '—';
   return String(ulp).replace(/^ULP\s+/i, '');
@@ -4476,7 +4470,7 @@ function getPeriodeRange(tipePeriode, periodeKey) {
 }
 
 // Cek apakah 1 target (SELALU tersimpan sebagai tipePeriode:'harian' dengan
-// periodeKey = tanggal spesifik — lihat catatan migrasi di simpanTiket) jatuh
+// periodeKey = tanggal spesifik, lihat catatan migrasi di simpanTiket) jatuh
 // di dalam rentang [start, end) suatu periode yang sedang dilihat.
 function targetDalamRentang(t, start, end) {
   if (!t.periodeKey) return false;
@@ -4486,7 +4480,7 @@ function targetDalamRentang(t, start, end) {
 
 // Cari total target 1 regu di 1 ULP untuk suatu periode (Hari Ini/Minggu Ini/
 // Bulan Ini). PENTING: target yang tersimpan di tiap Rencana Pekerjaan SELALU
-// tipePeriode:'harian' per tanggal spesifik (bukan mingguan/bulanan) — jadi
+// tipePeriode:'harian' per tanggal spesifik (bukan mingguan/bulanan), jadi
 // untuk tab Minggu Ini/Bulan Ini, target-target harian yang tanggalnya jatuh
 // di rentang periode itu DIJUMLAHKAN, bukan dicari yang persis tipePeriode-nya
 // sama (yang tidak akan pernah ketemu & sebelumnya membuat kolom Target selalu
@@ -4743,13 +4737,13 @@ function renderPetugasCardHtml(id, p) {
   const avatarEmoji = isTerputus ? '📴' : teamIcon.icon;
   const avatarBadge  = (!isTerputus && teamIcon.badge) ? `<span class="team-icon-badge">${teamIcon.badge}</span>` : '';
   // "Tidak Terhubung" berarti koneksi realtime terputus otomatis (app ditutup/
-  // di-kill, HP mati, atau lama tidak dibuka) — BUKAN petugas sengaja selesai
+  // di-kill, HP mati, atau lama tidak dibuka), BUKAN petugas sengaja selesai
   // tugas (itu baru jadi 'Offline'). Jadi pesannya dibedakan supaya TL/Admin
-  // tidak salah kira "sudah selesai" padahal cuma HP-nya yang tidak merespons.
+  // tidak salah kira "sudah selesai" padahal hanya HP-nya yang tidak merespons.
   const peringatan = isTerputus
-    ? `<div style="font-size:10.5px;color:var(--done);font-weight:700;margin-top:3px">📴 Tidak terhubung — terakhir terlihat ${ago}, belum tentu selesai tugas</div>`
+    ? `<div style="font-size:10.5px;color:var(--done);font-weight:700;margin-top:3px">📴 Tidak terhubung, terakhir terlihat ${ago}, belum tentu selesai tugas</div>`
     : (p.status !== 'Offline' && minsAgo !== null && minsAgo > 240
-        ? `<div style="font-size:10.5px;color:var(--warn);font-weight:700;margin-top:3px">⚠ Sesi tidak aktif — GPS terakhir ${ago}, mohon dicek</div>`
+        ? `<div style="font-size:10.5px;color:var(--warn);font-weight:700;margin-top:3px">⚠ Sesi tidak aktif, GPS terakhir ${ago}, mohon dicek</div>`
         : '');
   const asalNote = p.asalTimRow ? ` <span style="color:var(--text-3)">↔ asal ${esc(p.asalTimRow)}</span>` : '';
   const mitraNote = p.ulpMitra ? ` <span style="color:var(--text-3)">🏗️ untuk ${esc(p.ulpMitra)}</span>` : '';
@@ -4785,10 +4779,9 @@ let petugasListSizeStable = false;
 function calcPetugasListPageSize() {
   const container = document.getElementById('petugasList');
   if (!container || !container.children.length) return null;
-  // Pakai kartu TERTINGGI di antara yang sedang tampil, bukan cuma kartu pertama —
-  // kartu dgn status "Tidak Terhubung" / peringatan sesi punya baris ekstra jadi
-  // lebih tinggi dari kartu biasa. Kalau cuma pakai kartu pertama (yg kebetulan
-  // pendek), kartu lain yg lebih tinggi bisa kepotong overflow.
+  // Pakai kartu TERTINGGI di antara yang sedang tampil, bukan hanya kartu pertama, // kartu dengan status "Tidak Terhubung" / peringatan sesi punya baris ekstra jadi
+  // lebih tinggi dari kartu biasa. Kalau hanya pakai kartu pertama (yang kebetulan
+  // pendek), kartu lain yang lebih tinggi bisa terpotong overflow.
   let cardHeight = 0;
   for (const child of container.children) {
     const h = child.getBoundingClientRect().height;
@@ -4894,7 +4887,7 @@ function buildPetugasPopup(p) {
   // Nama anggota dipisah per baris (koma/titik-koma/•/baris baru) supaya tiap
   // orang jelas sebagai satu item, bukan satu blok teks panjang yang rapat ke
   // kanan. Sejak "Anggota Regu Hari Ini" di app petugas jadi field per-nama,
-  // datanya selalu koma-terpisah rapi — pemisah lain di sini cuma jaga-jaga
+  // datanya selalu koma-terpisah rapi, pemisah lain di sini hanya jaga-jaga
   // untuk data lama yang mungkin diketik bebas tanpa koma.
   const anggotaList = (p.anggotaHadir || '').split(/\s*[,;•\n]\s*/).filter(Boolean);
   const anggotaHtml = anggotaList.length
@@ -4902,10 +4895,10 @@ function buildPetugasPopup(p) {
     : '—';
   const waktuTxt = p.ts ? new Date(p.ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '—';
   const asalTimRowHtml = p.asalTimRow
-    ? `<div style="font-size:10.5px;padding:5px 10px;color:var(--text-3);border-bottom:1px solid var(--line)">↔ Tim asal <b>${esc(p.asalTimRow)}</b> — sedang bantu tugas di ${esc(p.ulp)||'ULP ini'}</div>`
+    ? `<div style="font-size:10.5px;padding:5px 10px;color:var(--text-3);border-bottom:1px solid var(--line)">↔ Tim asal <b>${esc(p.asalTimRow)}</b>, sedang bantu tugas di ${esc(p.ulp)||'ULP ini'}</div>`
     : '';
   const ulpMitraHtml = p.ulpMitra
-    ? `<div style="font-size:10.5px;padding:5px 10px;color:var(--text-3);border-bottom:1px solid var(--line)">🏗️ PT MITRA — sedang kerja untuk <b>${esc(p.ulpMitra)}</b></div>`
+    ? `<div style="font-size:10.5px;padding:5px 10px;color:var(--text-3);border-bottom:1px solid var(--line)">🏗️ PT MITRA, sedang kerja untuk <b>${esc(p.ulpMitra)}</b></div>`
     : '';
   return `
     <div class="popup-card" style="border-left:4px solid ${ulpColor}">
@@ -4939,8 +4932,7 @@ function buildPetugasPopup(p) {
   `;
 }
 
-// Render marker di peta dari entries yang SUDAH difilter (search/ULP/status) —
-// dipanggil baik saat data Firebase baru masuk maupun saat filter diganti,
+// Render marker di peta dari entries yang SUDAH difilter (search/ULP/status), // dipanggil baik saat data Firebase baru masuk maupun saat filter diganti,
 // supaya peta selalu menampilkan persis petugas yang sama dengan daftar di kanan.
 function renderPetugasMapMarkers(entries) {
   const seen = new Set();
@@ -4972,7 +4964,7 @@ function listenPetugas() {
   const ref = window._fbRef(fbDb, 'petugas');
   fbListeners.petugas = window._fbOnValue(ref, snap => {
     const data = snap.val() || {};
-    // hanya petugas yang absen/update posisi HARI INI — log GPS hari
+    // hanya petugas yang absen/update posisi HARI INI, log GPS hari
     // sebelumnya (belum ke-overwrite / lupa logout) tidak dihitung.
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
     const entries = scopeFilterEntries(Object.entries(data).filter(([,v]) => v.ts && v.ts >= todayStart.getTime()));
@@ -4991,8 +4983,7 @@ function listenPetugas() {
 
 // ── Checkpoint Laporan di Peta Petugas ─────────────────
 // Setiap kali petugas mengirim laporan pekerjaan (yang membawa lat/lng),
-// muncul sebagai titik checkpoint terpisah di peta "Petugas Aktif" —
-// beda dari marker posisi petugas (yang bergerak real-time). Checkpoint
+// muncul sebagai titik checkpoint terpisah di peta "Petugas Aktif", // beda dari marker posisi petugas (yang bergerak real-time). Checkpoint
 // ini statis di lokasi laporan dibuat, dan popup-nya menunjukkan sedang/
 // sudah mengerjakan apa di titik tersebut.
 function checkpointColor(l) {
@@ -5044,7 +5035,7 @@ function buildCheckpointPopup(l, id) {
 // fetch ulang ke Firebase.
 window._checkpointDataCache = window._checkpointDataCache || {};
 
-// Dipanggil dari tombol "Buka Laporan" di popup peta — membuka modal detail
+// Dipanggil dari tombol "Buka Laporan" di popup peta, membuka modal detail
 // laporan yang sama dipakai di tab Verifikasi (mode "hasil" kalau laporan
 // sudah diverifikasi, supaya bisa dilihat sekaligus diubah kalau perlu).
 window.bukaLaporanDariPeta = function(id) {
@@ -5057,7 +5048,7 @@ window.bukaLaporanDariPeta = function(id) {
 // checkpoint di atas peta "Petugas Aktif". Default: hari ini.
 // UP3 Jayapura beroperasi di WIT (Waktu Indonesia Timur / UTC+9). Batas hari
 // untuk filter checkpoint DIHITUNG BERDASARKAN WIT, bukan zona waktu lokal
-// perangkat yang dipakai membuka dashboard — supaya "Hari Ini"/"Kemarin"
+// perangkat yang dipakai membuka dashboard, supaya "Hari Ini"/"Kemarin"
 // tetap konsisten walau dashboard dibuka dari device dengan setting zona
 // waktu lain (mis. laptop di kantor pusat yang di-set WIB).
 const WIT_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -5099,7 +5090,7 @@ function onCheckpointDateFilterChange() {
 }
 
 // Checkpoint laporan di peta "Petugas Aktif" DIBATASI per rentang tanggal
-// terpilih (default: hari ini) — bukan seluruh riwayat laporan — supaya
+// terpilih (default: hari ini), bukan seluruh riwayat laporan, supaya
 // tidak semua checkpoint lama ikut ter-render sekaligus (penyebab lag saat
 // jumlah laporan sudah ribuan). Query dipersempit langsung lewat Firebase
 // (orderByChild('waktu') + startAt/endAt) kalau tersedia; kalau tidak,
@@ -5305,7 +5296,7 @@ function renderAbsensiTeamSummary(todayEntries) {
     <div style="flex-shrink:0;display:flex;align-items:center;gap:6px;background:var(--ok-bg);border:1px solid rgba(14,161,91,0.3);border-radius:999px;padding:5px 12px;font-size:11px;white-space:nowrap;">
       <span style="width:6px;height:6px;border-radius:50%;background:var(--ok);flex-shrink:0"></span>
       <b style="color:var(--text-1)">${regu}</b>
-      <span style="color:var(--text-2)">: ${count} — Aktif</span>
+      <span style="color:var(--text-2)">: ${count}, Aktif</span>
     </div>
   `).join('');
 }
@@ -5518,8 +5509,7 @@ function localDateKey(ts) {
 
 // Log Absensi = data historis (tidak berubah setelah tersimpan), jadi tidak perlu
 // onValue permanen di seluruh node 'absensi'. Cukup get() sekali, dan hanya untuk
-// rentang tanggal yang sedang dilihat (orderByChild('waktu') + startAt/endAt) —
-// bukan download seluruh riwayat lalu dipotong di JS dengan .slice().
+// rentang tanggal yang sedang dilihat (orderByChild('waktu') + startAt/endAt), // bukan download seluruh riwayat lalu dipotong di JS dengan .slice().
 async function loadLogAbsensiRange() {
   const range = getLogAbsensiRange(logAbsensiPeriode, logAbsensiRefDate);
   const cardsEl = document.getElementById('logabsensi-cards');
@@ -5907,13 +5897,13 @@ window.onLaporanPageSizeChange = function() {
 // lapKonstruksiMaterialMitra, lapKonstruksiPasang, lapKonstruksiBongkar
 // (null kalau togglenya tidak ditekan / bukan pekerjaan konstruksi). Field
 // lama lapKonstruksiSatuan sudah tidak dikirim lagi (satuan konstruksi sudah
-// digabung ke field Satuan utama / realisasiSatuan) — tapi baris di bawah
+// digabung ke field Satuan utama / realisasiSatuan), tapi baris di bawah
 // tetap menampilkannya kalau ada di data laporan LAMA. Fungsi ini menyusun
 // baris-baris detail laporan, dan HANYA menampilkan baris yang datanya
 // memang terisi supaya kartu tidak penuh baris kosong.
 function laporanDetailFieldsHtml(l) {
   const lokasi = [l.lapPenyulang, l.lapSection, l.lapGardu].filter(Boolean).map(esc).join(' / ');
-  const pemadaman = [l.lapJenisPemadaman, l.lapDaerahPadam].filter(Boolean).map(esc).join(' — ');
+  const pemadaman = [l.lapJenisPemadaman, l.lapDaerahPadam].filter(Boolean).map(esc).join(', ');
   const realisasiTxt = (l.realisasi || l.realisasi === 0) ? (esc(l.realisasi) + (l.realisasiSatuan ? ' ' + esc(l.realisasiSatuan) : '')) : '—';
   const targetTxt    = (l.target    || l.target    === 0) ? (esc(l.target)    + (l.targetSatuan    ? ' ' + esc(l.targetSatuan)    : '')) : '—';
   return `
@@ -5952,7 +5942,7 @@ function renderLaporanCardHtml(id, l) {
     </div>` : '';
   const editBtn = isAdminMode ? `<button class="btn-edit" title="Edit laporan ini" onclick="bukaModalEditLaporan('${id}')">✏️</button>` : '';
   const delBtn  = isAdminMode ? `<button class="btn-del" title="Hapus laporan ini" onclick="hapusLaporan('${id}')">🗑</button>` : '';
-  const editedBadge = l.editedAt ? `<div style="font-size:10.5px;color:var(--warn);margin-top:4px">✏️ Diedit ${l.statusVerifikasi ? '' : '— menunggu verifikasi ulang '}oleh ${esc(l.editedBy)||'TL/Admin'} · ${new Date(l.editedAt).toLocaleString('id-ID')}</div>` : '';
+  const editedBadge = l.editedAt ? `<div style="font-size:10.5px;color:var(--warn);margin-top:4px">✏️ Diedit ${l.statusVerifikasi ? '' : ', menunggu verifikasi ulang '}oleh ${esc(l.editedBy)||'TL/Admin'} · ${new Date(l.editedAt).toLocaleString('id-ID')}</div>` : '';
   return `<div class="laporan-card">
     <div class="laporan-card-header">
       <div>
@@ -6065,12 +6055,11 @@ function fmtFileStamp() {
 }
 
 // ── Styling Excel bersama (header biru PLN + putih tebal, border tipis di
-// semua sel, garis-garis warna selang-seling/zebra biar gampang dibaca) —
-// dipakai oleh SEMUA fungsi export Excel di aplikasi ini (Laporan, Hasil
+// semua sel, garis-garis warna selang-seling/zebra agar mudah dibaca), // dipakai oleh SEMUA fungsi export Excel di aplikasi ini (Laporan, Hasil
 // Verifikasi, Rekap, Rencana Pekerjaan) supaya hasilnya konsisten & tidak
 // polos/flat. Butuh xlsx-js-style (bukan xlsx biasa) karena SheetJS Community
 // Edition tidak menyimpan style saat menulis file .xlsx.
-// headerRow: baris ke berapa (0-based) yang jadi header berwarna — default 0.
+// headerRow: baris ke berapa (0-based) yang jadi header berwarna, default 0.
 function styleExcelSheet(ws, headerRow = 0) {
   if (!ws || !ws['!ref']) return;
   const range = XLSX.utils.decode_range(ws['!ref']);
@@ -6104,11 +6093,11 @@ function styleExcelSheet(ws, headerRow = 0) {
 }
 
 // ── Helper Excel BERGAMBAR (pakai ExcelJS, bukan xlsx-js-style) ──────────
-// xlsx-js-style (SheetJS community fork) cuma bisa styling, TIDAK bisa
+// xlsx-js-style (SheetJS community fork) hanya bisa styling, TIDAK bisa
 // menyisipkan gambar asli ke dalam sel .xlsx. Makanya export yang punya
 // kolom foto (Laporan Pekerjaan, Hasil Verifikasi, Rekap) pakai ExcelJS,
-// yang bisa embed gambar asli — foto ditarik dari Cloudinary lalu
-// ditempel langsung ke sel, bukan cuma link URL lagi.
+// yang bisa embed gambar asli, foto ditarik dari Cloudinary lalu
+// ditempel langsung ke sel, bukan hanya link URL lagi.
 function ejBorder() {
   const thin = { style: 'thin', color: { argb: 'FFD9E0EA' } };
   return { top: thin, bottom: thin, left: thin, right: thin };
@@ -6133,7 +6122,7 @@ function ejStyleDataRow(row, isEven) {
 function ejPxKePt(px) { return px * 0.75; } // px (96dpi) → point, satuan tinggi baris ExcelJS
 // Tempel satu foto dengan ukuran PROPORSIONAL mengikuti rasio asli gambar
 // (tidak dipaksa kotak/gepeng), muat pas di lebar kolom. Mengembalikan tinggi
-// tampil (px) foto itu — dipakai pemanggil untuk menyetel tinggi baris supaya
+// tampil (px) foto itu, dipakai pemanggil untuk menyetel tinggi baris supaya
 // foto "masuk" ke dalam baris (bukan melayang menimpa baris/teks lain).
 async function ejTempelFotoProporsional(wb, ws, dataUrl, rowIdx1, colIdx1, colWidthPx, maxHeightPx = 240) {
   if (!dataUrl) return 0;
@@ -6151,7 +6140,7 @@ async function ejTempelFotoProporsional(wb, ws, dataUrl, rowIdx1, colIdx1, colWi
       tl: { col: colIdx1 - 1 + 0.06, row: rowIdx1 - 1 + 0.06 },
       ext: { width: dispW, height: dispH }
     });
-  } catch (e) { return 0; /* format gambar tak dikenal — dilewati, sel tetap kosong */ }
+  } catch (e) { return 0; /* format gambar tak dikenal, dilewati, sel tetap kosong */ }
   return dispH;
 }
 // Unduh workbook ExcelJS sebagai file .xlsx ke browser
@@ -6201,7 +6190,7 @@ window.exportLaporanExcel = async function() {
     // field FORMAT PEMADAMAN ULP. Hari/Tanggal & Waktu diambil otomatis dari
     // timestamp submit laporan (bukan input manual). Kolom operasional aplikasi
     // (Anggota Hadir, No Penugasan, Target, Capaian, Verifikasi, Foto) tetap
-    // disertakan di akhir karena di luar format sheet tapi penting utk supervisor.
+    // disertakan di akhir karena di luar format sheet tapi penting untuk TL/Admin.
     const headers = ['No','Hari/Tanggal','Waktu','Penyulang','Kelompok','Section','Nomor Gardu','Health Index Penyulang','Kategori Pekerjaan','Rincian Pekerjaan','Jenis Pekerjaan','Vol','Satuan','Pelaksana','Kolaborasi PDKB','Daerah Padam','Metode','Jenis Pemadaman','PIC','Keterangan','Anggota Hadir','No Penugasan','Target','Capaian (%)','Status Verifikasi','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Before','Foto Progres','Foto After'];
     const widths  = [5,13,9,20,16,14,16,16,14,28,20,8,8,20,14,20,12,14,16,24,22,14,9,11,16,14,16,24,15,15,15];
     ws.columns = headers.map((h, i) => ({ header: h, key: 'c'+i, width: widths[i] }));
@@ -6255,7 +6244,7 @@ window.exportLaporanPDF = function() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
     doc.setFontSize(13);
-    doc.text('Laporan Pekerjaan — Field Force Management PLN UP3 Jayapura', 40, 32);
+    doc.text('Laporan Pekerjaan: Field Force Management PLN UP3 Jayapura', 40, 32);
     doc.setFontSize(9);
     doc.setTextColor(110);
     doc.text('Dicetak: ' + new Date().toLocaleString('id-ID') + '  ·  Total: ' + entries.length + ' laporan', 40, 47);
@@ -6305,14 +6294,14 @@ window.exportLaporanPDF = function() {
   }
 };
 
-// ── Edit Laporan (TL/Admin/Admin) — #8: edit pasca-verifikasi wajib verifikasi ulang ──
+// ── Edit Laporan (TL/Admin/Admin), #8: edit pasca-verifikasi wajib verifikasi ulang ──
 let currentEditLaporanId = null;
 let currentEditLaporanData = null;
 let editLaporanWasVerified = false;
 
 // dataLangsung (opsional): dipakai saat dipanggil dari layar yang datanya TIDAK
 // tersimpan di lastLaporanEntries (mis. kartu Hasil Verifikasi memakai array
-// hasilVerifikasiEntries sendiri) — data laporan dikirim langsung dari kartu,
+// hasilVerifikasiEntries sendiri), data laporan dikirim langsung dari kartu,
 // jadi tidak perlu dicari ulang dan tidak akan gagal "tidak ditemukan".
 window.bukaModalEditLaporan = function(id, dataLangsung) {
   if (!isAdminMode) return;
@@ -6396,7 +6385,7 @@ window.simpanEditLaporan = async function() {
 };
 
 // ══════════════════════════════════════
-// TIKET P0/P1 — TL/ADMIN
+// TIKET P0/P1, TL/ADMIN
 // ══════════════════════════════════════
 let currentEditTiketId = null;
 let lastTiketEntries = null;
@@ -6409,7 +6398,7 @@ function populateTiketUlpSelect() {
   if (!sel || sel.options.length > 1) return; // sudah pernah diisi
   const scope = getScopeUlp();
   // Admin ULP boleh membuat/menugaskan pekerjaan untuk ULP-nya sendiri ATAU
-  // PT MITRA (sesuai Hak Akses "ULP X & PT MITRA" — lihat getScopeUlpList()),
+  // PT MITRA (sesuai Hak Akses "ULP X & PT MITRA", lihat getScopeUlpList()),
   // jadi dropdown-nya diisi 2 opsi itu saja & TIDAK dikunci/disabled lagi
   // supaya bisa pindah ke PT MITRA kalau memang sedang menugaskan tim mitra.
   const daftarUlp = scope ? [scope, 'PT MITRA'] : Object.keys(ROSTER_ULP_TEAMS);
@@ -6424,7 +6413,7 @@ function populateTiketUlpSelect() {
   }
 }
 
-// ── Gardu — MULTI-SELECT (generik, dipakai form Rencana Pekerjaan "rp-*"
+// ── Gardu, MULTI-SELECT (generik, dipakai form Rencana Pekerjaan "rp-*"
 //    maupun modal Verifikasi Laporan / Ubah Hasil Verifikasi "vf-*") ──
 // Field Gardu bisa diisi lebih dari 1 (rencana pekerjaan sering mencakup
 // beberapa gardu sekaligus). Kotak chip + dropdown checklist, bukan <select>
@@ -6505,7 +6494,7 @@ document.addEventListener('click', (e) => {
 
 // Isi ulang pilihan Gardu. selectedValue boleh berupa string "GarduA, GarduB"
 // (format tersimpan di Firebase) ATAU array. Beda dari dropdown lain di bawah
-// — daftar opsinya BOLEH diisi ulang kapan saja karena tombol "+ Tambah
+//, daftar opsinya BOLEH diisi ulang kapan saja karena tombol "+ Tambah
 // Gardu" bisa nambah opsi baru selagi modal masih terbuka.
 function populateGarduSelect(prefix, selectedValue) {
   if (selectedValue !== undefined) {
@@ -6518,7 +6507,7 @@ function populateGarduSelect(prefix, selectedValue) {
   if (dd && dd.style.display === 'block') renderGarduDropdownFor(prefix);
 }
 
-// Tombol "+ Tambah Gardu" — Gardu yang ditambahkan TL/Admin/petugas di sini
+// Tombol "+ Tambah Gardu", Gardu yang ditambahkan TL/Admin/petugas di sini
 // HANYA berlaku untuk laporan yang sedang diisi saat ini (langsung masuk ke
 // pilihan Gardu terpilih). Item ini SENGAJA TIDAK disimpan ke localStorage /
 // daftar dropdown, supaya tidak otomatis muncul lagi jadi opsi permanen di
@@ -6530,7 +6519,7 @@ window.tambahGarduBaru = async function(prefix) {
   if (!nama) return;
   const namaBersih = nama.trim().toUpperCase();
   if (!namaBersih) return;
-  // Tidak disimpan ke RP_GARDU_LOCAL_KEY / localStorage — hanya dipakai
+  // Tidak disimpan ke RP_GARDU_LOCAL_KEY / localStorage, hanya dipakai
   // untuk laporan yang sedang berjalan ini saja, bukan jadi dropdown permanen.
   const selected = garduSelectedMap[prefix] || (garduSelectedMap[prefix] = []);
   if (!selected.includes(namaBersih)) selected.push(namaBersih);
@@ -6538,7 +6527,7 @@ window.tambahGarduBaru = async function(prefix) {
   renderGarduDropdownFor(prefix);
 };
 
-// Tombol "+ Tambah Section" — sama seperti "+ Tambah Gardu": Section yang
+// Tombol "+ Tambah Section", sama seperti "+ Tambah Gardu": Section yang
 // ditambahkan TL/Admin di sini HANYA berlaku untuk rencana pekerjaan / laporan
 // yang sedang diisi saat ini (langsung dipilih di dropdown Section). Item ini
 // SENGAJA TIDAK disimpan ke localStorage / PLN_PENYULANG_HIERARCHY, supaya
@@ -6568,8 +6557,7 @@ window.tambahSectionBaru = async function(prefix) {
 
 // Ubah sebuah <select> biasa menjadi combobox yang bisa diketik untuk mencari
 // (select aslinya TETAP ada di DOM tapi disembunyikan, jadi seluruh kode lain
-// yang baca/tulis .value / .options pada id ini tidak perlu diubah sama sekali —
-// termasuk saat kode lain set .value secara langsung, tampilan otomatis ikut sinkron).
+// yang baca/tulis .value / .options pada id ini tidak perlu diubah sama sekali, // termasuk saat kode lain set .value secara langsung, tampilan otomatis ikut sinkron).
 function enhanceSearchableSelect(selectId) {
   const sel = document.getElementById(selectId);
   if (!sel || sel.dataset.searchEnhanced) return;
@@ -6586,7 +6574,7 @@ function enhanceSearchableSelect(selectId) {
   input.placeholder = 'Ketik untuk cari...';
   input.style.cssText = 'width:100%;border:1px solid var(--line,var(--border-str,#d8dee8));border-radius:var(--radius-xs,8px);padding:9px 30px 9px 12px;font-size:13px;outline:none;background:var(--surface,#fff);box-sizing:border-box';
 
-  // Tombol "X" — muncul hanya kalau sudah ada pilihan terisi, supaya supervisor
+  // Tombol "X", muncul hanya kalau sudah ada pilihan terisi, supaya TL/Admin
   // bisa langsung hapus kalau salah pencet, tanpa harus buka dropdown lagi.
   const clearBtn = document.createElement('div');
   clearBtn.innerHTML = '✕';
@@ -6677,10 +6665,10 @@ function enhanceSearchableSelect(selectId) {
   refreshInput();
 }
 
-// RINCIAN_SATUAN_MAP — pemetaan Rincian Pekerjaan ("LEAD MEASURE") ke Satuan
+// RINCIAN_SATUAN_MAP, pemetaan Rincian Pekerjaan ("LEAD MEASURE") ke Satuan
 // ("STN") sesuai master FORMAT PEMADAMAN ULP - TARGET. SAMA PERSIS dengan
-// master di petugas.html (RINCIAN_SATUAN_MAP di sana) — dipakai di sini untuk
-// mengisi otomatis field Satuan (#rp-satuan) begitu supervisor memilih
+// master di petugas.html (RINCIAN_SATUAN_MAP di sana), dipakai di sini untuk
+// mengisi otomatis field Satuan (#rp-satuan) begitu TL/Admin memilih
 // Rincian Pekerjaan saat membuat/mengedit Rencana Pekerjaan, supaya satuan
 // yang diinput sinkron dengan yang nanti otomatis muncul di form Laporan
 // petugas. TL/Admin tetap bisa mengetik/mengubah manual kalau perlu (lihat
@@ -6826,7 +6814,7 @@ const RINCIAN_SATUAN_MAP = {
 // Isi otomatis field Satuan (#rp-satuan) berdasarkan Rincian Pekerjaan yang
 // sedang dipilih (RINCIAN_SATUAN_MAP). Dipanggil setiap kali Rincian
 // Pekerjaan berganti (onchange #rp-rincian). TIDAK menimpa isian kalau
-// supervisor sudah pernah mengetik manual di field Satuan tsb, atau kalau
+// TL/Admin sudah pernah mengetik manual di field Satuan tsb, atau kalau
 // sedang membuka data lama yang satuannya sudah terisi (lihat
 // window._rpSatuanManual, di-set di oninput #rp-satuan & bukaModalTiket).
 function applyRpSatuanOtomatis() {
@@ -6839,14 +6827,14 @@ window.applyRpSatuanOtomatis = applyRpSatuanOtomatis;
 
 // Isi otomatis field Jenis Pekerjaan (#rp-jenis-pekerjaan) berdasarkan Rincian
 // Pekerjaan yang sedang dipilih (RP_RINCIAN_JENIS_PEKERJAAN di master-data.js
-// — sumber: FORMAT PEMADAMAN ULP, kolom LEAD MEASURE/JENIS PEKERJAAN).
+//, sumber: FORMAT PEMADAMAN ULP, kolom LEAD MEASURE/JENIS PEKERJAAN).
 // Dipanggil setiap kali Rincian Pekerjaan berganti (onchange #rp-rincian).
 // Field Jenis Pekerjaan TETAP dropdown biasa yang bisa diganti manual kapan
-// saja oleh TL — ini cuma nilai awal/saran (sama seperti mekanisme
+// saja oleh TL, ini hanya nilai awal/saran (sama seperti mekanisme
 // isiHealthIndexOtomatis), BUKAN dikunci. TIDAK menimpa kalau TL sudah
 // pernah mengganti Jenis Pekerjaan secara manual (lihat
 // window._rpJenisPekerjaanManual, di-set di onchange #rp-jenis-pekerjaan &
-// bukaModalTiket) — supaya pilihan manual tidak tertimpa kalau Rincian
+// bukaModalTiket), supaya pilihan manual tidak tertimpa kalau Rincian
 // Pekerjaan diganti-ganti lagi. Kalau Rincian Pekerjaan yang dipilih belum
 // ada pemetaannya di RP_RINCIAN_JENIS_PEKERJAAN, field dibiarkan seperti apa
 // adanya supaya tetap bisa dipilih manual dari dropdown.
@@ -6862,8 +6850,8 @@ function applyRpJenisPekerjaanOtomatis() {
 window.applyRpJenisPekerjaanOtomatis = applyRpJenisPekerjaanOtomatis;
 
 // Versi applyRpJenisPekerjaanOtomatis untuk modal Verifikasi Laporan / Ubah
-// Hasil Verifikasi (#vf-rincian → #vf-jenis) — perilaku & catatan sama persis,
-// cuma beda pasangan elemen & flag manual-nya (window._vfJenisPekerjaanManual).
+// Hasil Verifikasi (#vf-rincian → #vf-jenis), perilaku & catatan sama persis,
+// hanya beda pasangan elemen & flag manual-nya (window._vfJenisPekerjaanManual).
 function applyVfJenisPekerjaanOtomatis() {
   const jenisEl = document.getElementById('vf-jenis');
   if (!jenisEl || window._vfJenisPekerjaanManual) return;
@@ -6884,8 +6872,7 @@ function populateRpDropdowns() {
       list.map(v => `<option value="${v}">${v}</option>`).join('');
     sel.dataset.filled = '1';
   };
-  // FIX: dropdown sederhana & independen ini SENGAJA diisi PALING AWAL —
-  // sebelum urusan Penyulang/Section/Gardu yang lebih rumit di bawah (sama
+  // FIX: dropdown sederhana & independen ini SENGAJA diisi PALING AWAL, // sebelum urusan Penyulang/Section/Gardu yang lebih rumit di bawah (sama
   // seperti fix di populateLaporPekerjaanDropdowns() petugas.html). Kalau
   // salah satu langkah Penyulang/Section/Gardu gagal/melempar error (mis.
   // perbaruiPilihanSection() memanggil .value pada elemen yang null), dulu
@@ -6909,7 +6896,7 @@ function populateRpDropdowns() {
     rincianSel.dataset.filled = '1';
   }
 
-  // Bagian Penyulang/Section/Gardu dibungkus try/catch terpisah — supaya
+  // Bagian Penyulang/Section/Gardu dibungkus try/catch terpisah, supaya
   // kalau bagian ini gagal, dropdown-dropdown sederhana di atas TETAP
   // terisi & form tetap bisa dipakai (Penyulang/Section/Gardu jadi opsional
   // sementara), bukan ikut kosong semua.
@@ -6926,7 +6913,7 @@ function populateRpDropdowns() {
 }
 
 // Saat ULP dipilih, isi dropdown Tim/Regu sesuai roster ULP tsb.
-// Ini yang menggantikan mekanisme "tim terdekat via GPS" — TL/Admin
+// Ini yang menggantikan mekanisme "tim terdekat via GPS", TL/Admin
 // menugaskan LANGSUNG ke tim tertentu di ULP tertentu, bukan hasil hitung jarak.
 window.onTiketUlpChange = function() {
   const ulp = document.getElementById('tiket-ulp').value;
@@ -6958,9 +6945,9 @@ function updateAssignedChip() {
 }
 
 // ── Ringkasan tim yang sedang aktif hari ini (chip list), ditampilkan di
-// dalam modal Kelola Penugasan sebagai INFO untuk TL/Admin — bukan lagi
+// dalam modal Kelola Penugasan sebagai INFO untuk TL/Admin, bukan lagi
 // dasar penugasan (dasarnya sekarang dropdown ULP → Tim di atas). Dipakai
-// dari data realtime node "petugas" (sama sumbernya dgn peta & absensi).
+// dari data realtime node "petugas" (sama sumbernya dengan peta & absensi).
 window.renderTimAktif = function() {
   const el = document.getElementById('tiket-tim-aktif-list');
   if (!el) return;
@@ -6995,7 +6982,7 @@ window.renderTimAktif = function() {
     <button type="button" onclick="pilihTimAktif('${regu.replace(/'/g, "\\'")}','${(info.ulp||'').replace(/'/g, "\\'")}')"
       style="display:flex;align-items:center;gap:6px;background:${isSelected?'var(--ok)':'var(--ok-bg)'};color:${isSelected?'#fff':'var(--text-1)'};border:1px solid rgba(14,161,91,0.3);border-radius:999px;padding:5px 12px;font-size:11px;white-space:nowrap;cursor:pointer;">
       <span style="width:6px;height:6px;border-radius:50%;background:${isSelected?'#fff':'var(--ok)'};flex-shrink:0"></span>
-      <b>${regu}</b><span style="opacity:0.8">: ${info.count} — Aktif</span>
+      <b>${regu}</b><span style="opacity:0.8">: ${info.count}, Aktif</span>
     </button>`;
   }).join('');
 };
@@ -7032,7 +7019,7 @@ window.bukaModalTiket = function(id, data) {
 
   // Nomor Penugasan: hanya ditampilkan (read-only). Saat buat baru, nomor
   // benar-benar di-generate atomik lewat Firebase transaction pas Simpan
-  // (lihat simpanTiket / generateNomorPenugasan) — bukan diketik siapa pun.
+  // (lihat simpanTiket / generateNomorPenugasan), bukan diketik siapa pun.
   const nomorPreview = document.getElementById('tiket-nomor-preview');
   nomorPreview.textContent = data?.nomor || 'Dibuat otomatis saat disimpan';
   nomorPreview.style.color = data?.nomor ? 'var(--text-1)' : 'var(--text-3)';
@@ -7083,7 +7070,7 @@ window.bukaModalTiket = function(id, data) {
   renderTimAktif();
 
   // Pastikan data posisi/status tim (node "petugas") sudah ditarik walau
-  // TL/Admin belum pernah buka menu Peta — supaya list "Tim Aktif" terisi.
+  // TL/Admin belum pernah buka menu Peta, supaya list "Tim Aktif" terisi.
   initFirebase().then(ok => { if (ok) listenPetugas(); });
 };
 
@@ -7100,12 +7087,12 @@ function koordinatValidOrEmpty(raw) {
 }
 
 // Generate Nomor Penugasan otomatis & atomik: KODE_ULP-DD/MM-0001.
-// Urut per ULP, TIDAK PERNAH RESET (tanggal cuma ditempel sebagai info kapan
-// dibuat, bukan penentu urutan) — supaya tetap 1 sumber angka yang sama persis
+// Urut per ULP, TIDAK PERNAH RESET (tanggal hanya ditempel sebagai info kapan
+// dibuat, bukan penentu urutan), supaya tetap 1 sumber angka yang sama persis
 // dengan sebelumnya, hanya tampilannya yang dibuat beda dari Nomor Gardu
 // (Nomor Gardu formatnya "JPR007" tanpa pemisah; Nomor Penugasan pakai "/" dan
 // "-" supaya sekilas mata langsung kelihatan beda, tidak tertukar di lapangan).
-// Nomor penugasan LAMA (format JYP-0001) sengaja TIDAK diubah/dimigrasi — nomor
+// Nomor penugasan LAMA (format JYP-0001) sengaja TIDAK diubah/dimigrasi, nomor
 // itu dicocokkan sebagai teks ke laporan.nomorTiket di beberapa tempat (auto-
 // selesai tugas saat verifikasi, dst), jadi mengubahnya bisa memutus laporan
 // lama yang sudah menunjuk ke nomor tersebut. Pakai Firebase transaction supaya
@@ -7128,7 +7115,7 @@ window.simpanTiket = async function() {
   const koordinatAkhir = document.getElementById('tiket-koordinat-akhir').value.trim();
   const errEl          = document.getElementById('tiket-err');
 
-  // ── Detail Rencana Pekerjaan (RKM) — semua opsional kecuali Kategori, Rincian & Vol ──
+  // ── Detail Rencana Pekerjaan (RKM), semua opsional kecuali Kategori, Rincian & Vol ──
   const rpTanggal         = document.getElementById('rp-tanggal').value || null;
   const rpWaktu            = document.getElementById('rp-waktu').value.trim() || null;
   const rpPenyulang         = document.getElementById('rp-penyulang').value.trim() || null;
@@ -7148,7 +7135,7 @@ window.simpanTiket = async function() {
   const rpPic               = document.getElementById('rp-pic').value.trim() || null;
   const rpKeterangan        = document.getElementById('rp-keterangan').value.trim() || null;
 
-  // Judul & Lokasi tidak lagi diketik manual — Judul otomatis dari Rincian
+  // Judul & Lokasi tidak lagi diketik manual, Judul otomatis dari Rincian
   // Pekerjaan, Lokasi otomatis dari Gardu / Section / Penyulang (paling
   // spesifik yang terisi), supaya tabel Daftar Rencana Pekerjaan & tampilan
   // petugas.html tetap dapat isinya tanpa perlu field terpisah.
@@ -7209,7 +7196,7 @@ window.simpanTiket = async function() {
 
   try {
     if (currentEditTiketId) {
-      // Edit: nomor & id tetap, cuma update field-fieldnya.
+      // Edit: nomor & id tetap, hanya update field-fieldnya.
       await window._fbUpdate(window._fbRef(fbDb, 'penugasan/' + currentEditTiketId), baseFields);
       showToast('Penugasan berhasil diperbarui.', 'ok');
     } else {
@@ -7263,8 +7250,8 @@ function populateTiketFilters(entries) {
 }
 
 // Hitung rentang tanggal (format YYYY-MM-DD, lokal) untuk filter cepat Hari
-// Ini / Minggu Ini / Bulan Ini — dibandingkan langsung (string compare) dengan
-// rpTanggal yang juga tersimpan YYYY-MM-DD. Minggu memakai aturan Senin—Minggu.
+// Ini / Minggu Ini / Bulan Ini, dibandingkan langsung (string compare) dengan
+// rpTanggal yang juga tersimpan YYYY-MM-DD. Minggu memakai aturan Senin, Minggu.
 function fmtDateLocal(d) { return d.toLocaleDateString('sv-SE'); } // 'sv-SE' -> YYYY-MM-DD sesuai timezone lokal browser
 function periodeRangeStrings(periode) {
   const now = new Date();
@@ -7351,7 +7338,7 @@ function renderTiketTable() {
   const sorted = entries.sort((a,b)=>(b[1].waktu||0)-(a[1].waktu||0));
 
   // Pagination: hitung total halaman & jaga halaman aktif tetap valid
-  // (misalnya saat filter baru bikin hasil lebih sedikit dari sebelumnya).
+  // (misalnya saat filter baru membuat hasil lebih sedikit dari sebelumnya).
   tiketPageTotalPages = Math.max(1, Math.ceil(sorted.length / tiketPageSize));
   tiketPage = Math.min(Math.max(1, tiketPage), tiketPageTotalPages);
   const pageStart = (tiketPage - 1) * tiketPageSize;
@@ -7419,13 +7406,13 @@ window.onTiketPageSizeChange = function() {
   renderTiketTable();
 };
 
-// ── Export Daftar Rencana Pekerjaan (Excel & PDF) — ikut filter (ULP, Jenis
-// Pekerjaan, Periode) yang sedang aktif, BUKAN cuma halaman yang sedang tampil. ──
+// ── Export Daftar Rencana Pekerjaan (Excel & PDF), ikut filter (ULP, Jenis
+// Pekerjaan, Periode) yang sedang aktif, BUKAN hanya halaman yang sedang tampil. ──
 // Urutan kolom SENGAJA mengikuti persis urutan field FORMAT PEMADAMAN ULP:
 // NO, HARI/TANGGAL, WAKTU, PENYULANG, KELOMPOK, SECTION, NOMOR GARDU, HEALTH
 // INDEX PENYULANG, KATEGORI PEKERJAAN, RINCIAN PEKERJAAN, JENIS PEKERJAAN,
 // VOL, SATUAN, PELAKSANA, KOLABORASI PDKB, DAERAH PADAM, TITIK KOORDINAT,
-// METODE, JENIS PEMADAMAN, PIC, KETERANGAN — supaya export Excel/PDF bisa
+// METODE, JENIS PEMADAMAN, PIC, KETERANGAN, supaya export Excel/PDF bisa
 // langsung dicocokkan/ditempel ke format sheet aslinya. Nomor Penugasan,
 // Status & Dibuat tetap disertakan sebagai kolom tambahan di awal/akhir
 // (identitas & metadata internal aplikasi, di luar format sheet).
@@ -7488,7 +7475,7 @@ window.exportTiketPDF = function() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
     doc.setFontSize(13);
-    doc.text('Daftar Rencana Pekerjaan — Field Force Management PLN UP3 Jayapura', 40, 32);
+    doc.text('Daftar Rencana Pekerjaan: Field Force Management PLN UP3 Jayapura', 40, 32);
     doc.setFontSize(9);
     doc.setTextColor(110);
     doc.text('Dicetak: ' + new Date().toLocaleString('id-ID') + '  ·  Total: ' + entries.length + ' penugasan', 40, 47);
@@ -7539,8 +7526,7 @@ window.exportTiketPDF = function() {
 };
 
 // Bangun tabel Penugasan DAN targetKerjaCache (dipakai hitung % capaian di
-// Beranda/Rekap/Progres) dari SATU node Firebase 'penugasan' yang sama —
-// itu titik gabungnya, bukan dua node/listener terpisah seperti sebelumnya.
+// Beranda/Rekap/Progres) dari SATU node Firebase 'penugasan' yang sama, // itu titik gabungnya, bukan dua node/listener terpisah seperti sebelumnya.
 function listenTiket() {
   if (fbListeners.tiket) { renderTargetChart(); return; }
   const r = window._fbRef(fbDb, 'penugasan');
@@ -7642,7 +7628,7 @@ function renderTiketProgres() {
 // ══════════════════════════════════════
 let currentVerifId = null;
 let currentVerifLaporan = null;
-let currentVerifMode = 'verifikasi'; // 'verifikasi' atau 'hasil' — lihat bukaModalVerifikasi()
+let currentVerifMode = 'verifikasi'; // 'verifikasi' atau 'hasil', lihat bukaModalVerifikasi()
 let lastVerifEntries = null;
 let verifikasiRawEntries = [];
 
@@ -7674,7 +7660,7 @@ function populateVerifRincianDropdowns() {
     rincianSel.dataset.filled = '1';
   }
 
-  // Bagian Penyulang/Section/Gardu dibungkus try/catch terpisah — supaya
+  // Bagian Penyulang/Section/Gardu dibungkus try/catch terpisah, supaya
   // kalau bagian ini gagal, dropdown-dropdown sederhana & Rincian di atas
   // TETAP terisi & form tetap bisa dipakai, bukan ikut kosong semua.
   try {
@@ -7689,16 +7675,16 @@ function populateVerifRincianDropdowns() {
   }
 }
 
-// #12: "Edit Laporan" terpisah sudah dihapus dari layar Hasil Verifikasi — TL/Admin
+// #12: "Edit Laporan" terpisah sudah dihapus dari layar Hasil Verifikasi, TL/Admin
 // sekarang mengubah ISI laporan (rincian, penyulang, target/realisasi, dst) dan HASIL
 // verifikasinya sekaligus di modal ini ("Ubah Hasil Verifikasi"), tanpa perlu masuk Mode
 // Admin. Fungsi ini karena itu selalu mengisi field rincian laporan sebagai form yang
-// bisa diedit, bukan cuma teks statis seperti sebelumnya.
+// bisa diedit, bukan hanya teks statis seperti sebelumnya.
 // mode: 'verifikasi' (default, dipanggil dari tab "Verifikasi Laporan") atau
 // 'hasil' (dipanggil dari tombol "Ubah Hasil Verifikasi" di tab "Hasil Verifikasi").
 // Sebelumnya modal ini SELALU berjudul & bertombol "Verifikasi Laporan" walau
 // dibuka dari tab "Hasil Verifikasi", sehingga TL/Admin mengira aksinya
-// "pindah"/muncul di tab Verifikasi Laporan — padahal sebenarnya cuma modal
+// "pindah"/muncul di tab Verifikasi Laporan, padahal sebenarnya hanya modal
 // overlay yang tetap berada di tab manapun ia dibuka, dan hasilnya memang
 // langsung tersimpan & tampil kembali di tab asalnya. Judul & tombol sekarang
 // disesuaikan supaya jelas konteksnya.
@@ -7706,11 +7692,11 @@ function populateVerifRincianDropdowns() {
 // Verifikasi" menyisipkan SELURUH objek laporan (hasil JSON.stringify) langsung ke
 // dalam atribut HTML onclick. Untuk laporan yang fotonya belum sempat ter-upload dan
 // masih tersimpan sebagai base64 lokal (fotoBeforeBase64/fotoProgresBase64/
-// fotoAfterBase64 — bisa beberapa MB per foto), atribut onclick jadi sangat besar
+// fotoAfterBase64, bisa beberapa MB per foto), atribut onclick jadi sangat besar
 // sehingga browser gagal mem-parsingnya dan modal tidak pernah terbuka (tombol
 // terlihat seperti tidak merespons sama sekali). Perbaikannya: data laporan
 // disimpan di cache JS (window._verifDataCache, diisi saat grid dirender) dan
-// tombol hanya membawa id — jauh lebih ringan & tidak tergantung isi/ukuran data.
+// tombol hanya membawa id, jauh lebih ringan & tidak tergantung isi/ukuran data.
 window.bukaModalVerifikasiById = function(id, mode) {
   const laporan = window._verifDataCache && window._verifDataCache[id];
   if (!laporan) {
@@ -7786,8 +7772,8 @@ window.bukaModalVerifikasi = function(id, laporan, mode) {
 
   // Isi dropdown Nomor Penugasan dari daftar penugasan yang lagi berjalan
   // (node 'penugasan'), supaya TL/Admin bisa pindahkan laporan ini ke nomor
-  // penugasan lain kalau salah pilih/salah regu — lihat populateVfNomorPenugasanSelect().
-  // listenTiket() aman dipanggil berulang (idempotent, cuma daftar sekali per sesi)
+  // penugasan lain kalau salah pilih/salah regu, lihat populateVfNomorPenugasanSelect().
+  // listenTiket() aman dipanggil berulang (idempotent, hanya daftar sekali per sesi)
   // dan memastikan lastTiketEntries terisi walau TL/Admin belum pernah buka tab
   // Kelola Penugasan Pekerjaan.
   initFirebase().then(ok => {
@@ -7817,7 +7803,7 @@ window.populateVfNomorPenugasanSelect = function(selectedNomor) {
 
   const options = ['<option value="">— Tanpa Penugasan —</option>'].concat(
     aktif.map(t => {
-      const label = `${t.nomor} — ${t.ulp||'—'} · ${t.assignedRegu||'Belum ditugaskan'}${t.jenis ? ' · ' + t.jenis : ''}`;
+      const label = `${t.nomor}, ${t.ulp||'—'} · ${t.assignedRegu||'Belum ditugaskan'}${t.jenis ? ' · ' + t.jenis : ''}`;
       return `<option value="${esc(t.nomor)}">${esc(label)}</option>`;
     })
   );
@@ -7865,7 +7851,7 @@ window.submitVerifikasi = async function() {
   const vfErrEl  = document.getElementById('vf-err');
 
   // Rincian laporan (dulu ada di modal "Edit Laporan" terpisah, sekarang jadi satu
-  // dengan form verifikasi ini) — dibaca & divalidasi sebelum hasil verifikasi dikirim.
+  // dengan form verifikasi ini), dibaca & divalidasi sebelum hasil verifikasi dikirim.
   const rincian = document.getElementById('vf-rincian').value.trim();
   if (!rincian) {
     vfErrEl.textContent = 'Rincian Pekerjaan wajib diisi.';
@@ -7897,7 +7883,7 @@ window.submitVerifikasi = async function() {
       lapDaerahPadam: document.getElementById('vf-daerahpadam').value.trim() || null,
       lapPic: document.getElementById('vf-pic').value.trim() || null,
       lapKeterangan: document.getElementById('vf-keterangan').value.trim() || null,
-      // Nomor Penugasan — bisa dipindahkan TL/Admin lewat dropdown "Penugasan"
+      // Nomor Penugasan, bisa dipindahkan TL/Admin lewat dropdown "Penugasan"
       // di atas kalau laporan ternyata salah tertaut ke nomor tiket yang bukan
       // haknya (lihat populateVfNomorPenugasanSelect).
       nomorTiket: document.getElementById('vf-nomor-penugasan')?.value || null,
@@ -7920,8 +7906,8 @@ window.submitVerifikasi = async function() {
     // ── Auto-tutup tiket terkait ──
     // Begitu laporan yang terhubung ke nomor tiket dinyatakan "Terverifikasi", tiket P0/P1
     // otomatis ditandai "Selesai" supaya tidak menumpuk "Aktif" selamanya.
-    // Pakai nomor tiket yang BARU (dari dropdown, upd.nomorTiket) — bukan nomor lama
-    // (currentVerifLaporan.nomorTiket) — supaya kalau TL/Admin baru saja memindahkan
+    // Pakai nomor tiket yang BARU (dari dropdown, upd.nomorTiket), bukan nomor lama
+    // (currentVerifLaporan.nomorTiket), supaya kalau TL/Admin baru saja memindahkan
     // laporan ini ke penugasan lain, yang otomatis ditutup adalah penugasan tujuan
     // yang benar, bukan penugasan lama yang sudah tidak relevan lagi.
     const nomorTiket = upd.nomorTiket;
@@ -8040,7 +8026,7 @@ function renderVerifikasiGrid() {
 
   // Cache data laporan per id supaya tombol Verifikasi tidak perlu menyisipkan
   // seluruh objek laporan (termasuk foto base64 yang bisa berukuran besar kalau
-  // belum sempat ter-upload) ke dalam atribut HTML onclick — lihat bukaModalVerifikasiById().
+  // belum sempat ter-upload) ke dalam atribut HTML onclick, lihat bukaModalVerifikasiById().
   window._verifDataCache = window._verifDataCache || {};
   entries.forEach(([id, l]) => { window._verifDataCache[id] = l; });
 
@@ -8063,7 +8049,7 @@ function renderVerifikasiGrid() {
   });
 
   // Pagination: hitung total halaman & jaga halaman aktif tetap valid
-  // (misalnya saat filter baru bikin hasil lebih sedikit dari sebelumnya).
+  // (misalnya saat filter baru membuat hasil lebih sedikit dari sebelumnya).
   verifikasiPageTotalPages = Math.max(1, Math.ceil(entries.length / verifikasiPageSize));
   verifikasiPage = Math.min(Math.max(1, verifikasiPage), verifikasiPageTotalPages);
   const pageStart = (verifikasiPage - 1) * verifikasiPageSize;
@@ -8166,12 +8152,12 @@ function listenVerifikasi() {
     hasilVerifikasiEntries = entries;
     populateHasilVerifikasiFilters(entries);
     renderHasilVerifikasiGrid();
-    renderRiwayatInspeksi(); // sama sumber (verifikasiRawEntries) — tidak perlu listener Firebase baru
+    renderRiwayatInspeksi(); // sama sumber (verifikasiRawEntries), tidak perlu listener Firebase baru
   });
 }
 
 // ══════════════════════════════════════
-// HASIL VERIFIKASI — arsip laporan Terverifikasi / Perlu Revisi / Ditolak
+// HASIL VERIFIKASI, arsip laporan Terverifikasi / Perlu Revisi / Ditolak
 // ══════════════════════════════════════
 let hasilVerifikasiEntries = [];
 
@@ -8236,7 +8222,7 @@ function renderHasilVerifikasiCard(id, l) {
       ${fotoCols.map(([label, src]) => `<div>${src ? `<img src="${src}" onclick="bukaFotoFullscreen(this)" style="cursor:pointer">` : '<div style="background:#f1f5f9;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:20px">📷</div>'}<div class="photo-label">${label}</div></div>`).join('')}
     </div>` : '';
 
-  // Tombol "Edit Laporan" terpisah (khusus Mode Admin) sudah dihapus — sekarang
+  // Tombol "Edit Laporan" terpisah (khusus Mode Admin) sudah dihapus, sekarang
   // mengubah isi laporan (rincian, penyulang, target/realisasi, dst) DAN hasil
   // verifikasinya dilakukan sekaligus lewat "Ubah Hasil Verifikasi" di bawah ini,
   // tanpa perlu masuk Mode Admin terlebih dahulu.
@@ -8300,8 +8286,7 @@ window.renderHasilVerifikasiGrid = function() {
   }
 
   // Pagination: hitung total halaman & jaga halaman aktif tetap valid
-  // (mis. saat filter baru bikin hasil lebih sedikit dari sebelumnya) —
-  // sama seperti renderVerifikasiGrid(). Slicing dilakukan SEBELUM
+  // (mis. saat filter baru membuat hasil lebih sedikit dari sebelumnya), // sama seperti renderVerifikasiGrid(). Slicing dilakukan SEBELUM
   // pengelompokan supaya jumlah kartu per halaman konsisten.
   hasilVerifikasiPageTotalPages = Math.max(1, Math.ceil(entries.length / hasilVerifikasiPageSize));
   hasilVerifikasiPage = Math.min(Math.max(1, hasilVerifikasiPage), hasilVerifikasiPageTotalPages);
@@ -8314,7 +8299,7 @@ window.renderHasilVerifikasiGrid = function() {
   }
 
   // Sama seperti di renderVerifikasiGrid(): cache laporan per id, jangan sisipkan
-  // objek laporan penuh ke atribut HTML onclick — lihat bukaModalVerifikasiById().
+  // objek laporan penuh ke atribut HTML onclick, lihat bukaModalVerifikasiById().
   // Cukup untuk kartu yang benar-benar ditampilkan di halaman ini.
   window._verifDataCache = window._verifDataCache || {};
   pageEntries.forEach(([id, l]) => { window._verifDataCache[id] = l; });
@@ -8383,13 +8368,12 @@ window.goToHasilVerifikasiPage = function(n) {
 };
 
 // ══════════════════════════════════════
-// EXPORT HASIL VERIFIKASI — Excel & PDF (dengan foto Sebelum/Progres/Sesudah)
+// EXPORT HASIL VERIFIKASI, Excel & PDF (dengan foto Sebelum/Progres/Sesudah)
 // Dipakai TL/Admin buat tahu laporan mana yang Terverifikasi/Revisi/Ditolak,
 // lalu dikirim ke petugas lewat WA.
 // ══════════════════════════════════════
 
-// Ambil sumber gambar terbaik dari sebuah laporan untuk satu fase foto —
-// pakai Base64 kalau ada (langsung siap dipakai), kalau tidak coba fetch dari URL cloud.
+// Ambil sumber gambar terbaik dari sebuah laporan untuk satu fase foto, // pakai Base64 kalau ada (langsung siap dipakai), kalau tidak coba fetch dari URL cloud.
 async function hvSiapkanGambar(src) {
   if (!src) return null;
   if (src.startsWith('data:')) return src; // sudah base64, langsung pakai
@@ -8404,19 +8388,18 @@ async function hvSiapkanGambar(src) {
       reader.readAsDataURL(blob);
     });
   } catch (e) {
-    return null; // gagal ambil (offline/CORS) — dilewati, PDF tetap jalan tanpa foto itu
+    return null; // gagal ambil (offline/CORS), dilewati, PDF tetap jalan tanpa foto itu
   }
 }
 
 // ══════════════════════════════════════════════════════════════════
-// PETA RIWAYAT INSPEKSI — laporan pekerjaan (node 'laporan') disajikan
+// PETA RIWAYAT INSPEKSI, laporan pekerjaan (node 'laporan') disajikan
 // sebagai peta + daftar, dengan status verifikasi sbg sinyal utama.
-// SENGAJA REUSE verifikasiRawEntries (diisi oleh listenVerifikasi()) —
-// bukan bikin listener Firebase baru ke 'laporan', supaya tidak dobel
-// query untuk data yang sama persis dgn Rekap Laporan/Hasil Verifikasi.
+// SENGAJA REUSE verifikasiRawEntries (diisi oleh listenVerifikasi()), // bukan membuat listener Firebase baru ke 'laporan', supaya tidak dobel
+// query untuk data yang sama persis dengan Rekap Laporan/Hasil Verifikasi.
 // Marker & popup peta reuse createCheckpointIcon()/buildCheckpointPopup()
 // yang sudah dipakai di peta "Petugas Aktif" (posisi laporan, bukan
-// posisi petugas real-time) — warnanya sudah dikodekan by statusVerifikasi.
+// posisi petugas real-time), warnanya sudah dikodekan by statusVerifikasi.
 // ══════════════════════════════════════════════════════════════════
 let riMapInstance   = null;
 let riMarkersLayer  = null;
@@ -8444,7 +8427,7 @@ function riSwitchMode(mode, afterShow) {
   }, 150);
 }
 
-// Umur (hari) laporan yang BELUM diverifikasi — null kalau sudah ada hasil verifikasi
+// Umur (hari) laporan yang BELUM diverifikasi, null kalau sudah ada hasil verifikasi
 function riAgeDays(l) {
   if (l.statusVerifikasi || !l.waktu) return null;
   return Math.floor((Date.now() - l.waktu) / 86400000);
@@ -8601,8 +8584,8 @@ function riUpdateMap(entries) {
   if (riViewMode === 'peta') setTimeout(riFitMapToData, 50);
 }
 
-// Layer opsional Temuan Inspeksi (Peta Inspeksi lama, dari Google Sheets) — dipetakan
-// berdampingan (bukan digabung datanya) karena skema Urgensi/status beda dgn statusVerifikasi.
+// Layer opsional Temuan Inspeksi (Peta Inspeksi lama, dari Google Sheets), dipetakan
+// berdampingan (bukan digabung datanya) karena skema Urgensi/status beda dengan statusVerifikasi.
 function riRefreshSheetOverlay() {
   if (!riSheetLayer) return;
   riSheetLayer.clearLayers();
@@ -8637,7 +8620,7 @@ function riFitMapToData() {
   }
 }
 
-// Dipanggil dari kartu/tombol "📍 Lihat di Peta" pada daftar — pindah ke mode
+// Dipanggil dari kartu/tombol "📍 Lihat di Peta" pada daftar, pindah ke mode
 // peta lalu langsung fokus & buka popup marker terkait begitu peta selesai
 // invalidateSize (pakai zoomToShowLayer supaya marker yang lagi tersembunyi di
 // dalam cluster ikut "dibuka" dulu sebelum popup muncul).
@@ -8654,7 +8637,7 @@ window.riFocusMarker = function(id) {
   });
 };
 
-// ── DAFTAR ── (pagination: konsisten dgn pola di Verifikasi/Petugas)
+// ── DAFTAR ── (pagination: konsisten dengan pola di Verifikasi/Petugas)
 let riListPage = 1;
 const riListPageSize = 8;
 let riListPageTotalPages = 1;
@@ -8745,8 +8728,7 @@ function riRenderCard(id, l) {
     </div>` : '';
 
   // Klik di mana saja pada kartu (kecuali foto/tombol, yang stopPropagation
-  // sendiri) langsung lompat & fokus ke checkpoint laporan ini di peta —
-  // tombol "📍 Lihat di Peta" tetap ada sebagai penanda eksplisit + jangkauan
+  // sendiri) langsung lompat & fokus ke checkpoint laporan ini di peta, // tombol "📍 Lihat di Peta" tetap ada sebagai penanda eksplisit + jangkauan
   // sentuh yang jelas untuk pengguna yang belum sadar seluruh kartu bisa diklik.
   const cardClickAttr = adaKoordinat ? ` onclick="riFocusMarker('${id}')" style="margin-bottom:10px;cursor:pointer" title="Klik untuk melihat checkpoint ini di peta"` : ` style="margin-bottom:10px"`;
 
@@ -8767,7 +8749,7 @@ function riRenderCard(id, l) {
   </div>`;
 }
 
-// Ambil ukuran asli (lebar x tinggi) sebuah foto dari dataURL-nya — dipakai
+// Ambil ukuran asli (lebar x tinggi) sebuah foto dari dataURL-nya, dipakai
 // supaya penempatan foto di PDF menjaga rasio asli (contain), tidak digepengkan
 // paksa ke kotak persegi seperti sebelumnya.
 function hvUkuranGambar(dataUrl) {
@@ -8863,8 +8845,8 @@ window.exportHasilVerifikasiPDF = async function() {
   try {
     // Pre-fetch semua foto + ukuran ASLI-nya dulu (async), sebelum menggambar PDF.
     // Ukuran asli dipakai supaya foto ditempatkan menjaga rasio (contain), TIDAK
-    // digepengkan paksa ke kotak persegi seperti versi sebelumnya — ini juga yang
-    // bikin watermark waktu/GPS/alamat di foto ikut terdistorsi & terlihat terpotong.
+    // digepengkan paksa ke kotak persegi seperti versi sebelumnya, ini juga yang
+    // membuat watermark waktu/GPS/alamat di foto ikut terdistorsi & terlihat terpotong.
     const gambarCache = {};
     let doneCount = 0;
     for (const [, l] of entries) {
@@ -8902,7 +8884,7 @@ window.exportHasilVerifikasiPDF = async function() {
       doc.setFont(undefined, 'normal');
       doc.setFontSize(7.5);
       doc.setTextColor(140);
-      doc.text('NUMBAY — Sistem Field Force Management', marginX, footerY);
+      doc.text('NUMBAY: Sistem Field Force Management', marginX, footerY);
       doc.text('Halaman ' + halaman, pageW - marginX, footerY, { align: 'right' });
     }
 
@@ -8910,7 +8892,7 @@ window.exportHasilVerifikasiPDF = async function() {
       doc.setFont(undefined, 'bold');
       doc.setFontSize(13);
       doc.setTextColor(20);
-      doc.text('Hasil Verifikasi Laporan — NUMBAY', marginX, y);
+      doc.text('Hasil Verifikasi Laporan: NUMBAY', marginX, y);
       doc.setFont(undefined, 'normal');
       y += 15;
       doc.setFontSize(8.5);
@@ -8929,7 +8911,7 @@ window.exportHasilVerifikasiPDF = async function() {
     const padCard   = 12;             // padding kiri/kanan/bawah di dalam kartu
     const fotoGap   = 10;
     const fotoW     = (contentW - padCard * 2 - fotoGap * 2) / 3; // 3 foto sejajar
-    const fotoH     = Math.round(fotoW * 0.88);                   // sedikit landscape, muat rapi utk foto potret/lanskap
+    const fotoH     = Math.round(fotoW * 0.88);                   // sedikit landscape, muat rapi untuk foto potret/lanskap
 
     entries.forEach(([, l]) => {
       doc.setFontSize(9);
@@ -9011,7 +8993,7 @@ window.exportHasilVerifikasiPDF = async function() {
       }
       cy += 10;
 
-      // Foto trio: Sebelum / Progres / Sesudah — rasio asli dijaga (contain),
+      // Foto trio: Sebelum / Progres / Sesudah, rasio asli dijaga (contain),
       // dilatarbelakangi kotak abu-abu supaya foto non-persegi tetap rapi tanpa gepeng.
       const fotoTrio = [
         ['SEBELUM', l.fotoBeforeUrl || l.fotoBeforeBase64],
@@ -9056,7 +9038,7 @@ window.exportHasilVerifikasiPDF = async function() {
 
     doc.save(`Hasil_Verifikasi_NUMBAY_${fmtFileStamp()}.pdf`);
     progEl.style.display = 'none';
-    showToast('Export PDF berhasil — siap dikirim ke petugas lewat WA.', 'ok');
+    showToast('Export PDF berhasil, siap dikirim ke petugas lewat WA.', 'ok');
   } catch (e) {
     progEl.style.display = 'none';
     showToast('Gagal export PDF: ' + e.message, 'err');
@@ -9091,9 +9073,8 @@ window.toggleSidebar = function() {
 };
 
 function startAppAfterAuth() {
-  // NONAKTIF: loadAll() (fetch ke Google Apps Script utk tab "Peta Inspeksi" &
-  // "Tabel Data") sengaja TIDAK dipanggil otomatis lagi saat halaman dibuka —
-  // ini salah satu penyebab loading awal lama (Apps Script sering cold-start
+  // NONAKTIF: loadAll() (fetch ke Google Apps Script untuk tab "Peta Inspeksi" &
+  // "Tabel Data") sengaja TIDAK dipanggil otomatis lagi saat halaman dibuka, // ini salah satu penyebab loading awal lama (Apps Script sering cold-start
   // lambat). Data sheet sekarang baru ditarik kalau user pencet tombol
   // "↻ Refresh Data" secara manual (lihat onclick="loadAll()" di topbar).
   // loadAll();
@@ -9102,8 +9083,7 @@ function startAppAfterAuth() {
   initSidebarState(); // pulihkan status collapse/expand sidebar dari localStorage
 
   // Sambungkan ke Firebase & nyalakan badge "Petugas Aktif" SEJAK HALAMAN DIBUKA
-  // (initFirebase() sendiri idempotent — lihat guard `if (fbApp) return true;` —
-  // jadi aman dipanggil lagi di sini walau boot() di bawah sudah memanggilnya).
+  // (initFirebase() sendiri idempotent, lihat guard `if (fbApp) return true;`, // jadi aman dipanggil lagi di sini walau boot() di bawah sudah memanggilnya).
   initFirebase().then(ok => {
     if (ok) {
       // patch: expose set untuk tiket
@@ -9115,23 +9095,23 @@ function startAppAfterAuth() {
 }
 
 // ══════════════════════════════════════
-// BOOT — sambungkan Firebase & muat akun usher SEBELUM proses login
+// BOOT, sambungkan Firebase & muat akun usher SEBELUM proses login
 // ══════════════════════════════════════
 // Ini perbaikan bug layar login: dulu (waktu masih AUTH_ACCOUNTS hardcode)
 // data akun selalu siap sinkron sejak awal, jadi tidak masalah. Begitu akun
 // dipindah ke Firebase (node 'usherAkun'), dropdown "Akun" & validasi
-// doLoginTLAdmin() butuh usherAkunCache SUDAH TERISI — kalau listener baru
+// doLoginTLAdmin() butuh usherAkunCache SUDAH TERISI, kalau listener baru
 // dipasang SETELAH login berhasil (di startAppAfterAuth), maka percobaan
 // login pertama kali selalu gagal/kosong karena datanya belum ada sama
 // sekali. Makanya listener di sini dipasang di awal boot, TERPISAH dari
-// startAppAfterAuth() dan TIDAK bergantung pada currentAuth — supaya siap
+// startAppAfterAuth() dan TIDAK bergantung pada currentAuth, supaya siap
 // dipakai sebelum siapa pun sempat login.
 //
 // Selama data belum siap, form login (select/password/tombol) sengaja
-// dalam keadaan disabled (lihat HTML #login-username dkk.) — begitu
+// dalam keadaan disabled (lihat HTML #login-username dkk.), begitu
 // listenUsherAkun() menerima data pertama kalinya, populateLoginUsernameDropdown()
 // yang mengaktifkannya kembali. currentAuth TIDAK PERNAH ter-restore di titik
-// ini (lihat catatan di deklarasi currentAuth) — jadi layar login SELALU
+// ini (lihat catatan di deklarasi currentAuth), jadi layar login SELALU
 // tampil & menunggu submit dari doLoginTLAdmin() setiap kali halaman ini
 // dimuat (baik pertama kali, refresh, maupun dibuka lagi setelah tab ditutup).
 initFirebase().then(async ok => {
@@ -9145,7 +9125,7 @@ initFirebase().then(async ok => {
   }
   await seedUsherAkunIfEmpty();
   listenUsherAkun();
-  // Tidak ada lagi auto-bypass ke app di sini — layar login (tampil default
+  // Tidak ada lagi auto-bypass ke app di sini, layar login (tampil default
   // di HTML) selalu menunggu login manual, sesuai permintaan.
 });
 
@@ -9174,7 +9154,7 @@ function getDateRange(periode) {
   } else if (periode === 'minggu') {
     const day = now.getDay() || 7;
     const mon = new Date(now); mon.setDate(now.getDate() - day + 1); mon.setHours(0,0,0,0);
-    return { start: mon.getTime(), label: 'Minggu Ini · ' + mon.toLocaleDateString('id-ID') + ' — ' + now.toLocaleDateString('id-ID') };
+    return { start: mon.getTime(), label: 'Minggu Ini · ' + mon.toLocaleDateString('id-ID') + ', ' + now.toLocaleDateString('id-ID') };
   } else {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     return { start: monthStart.getTime(), label: 'Bulan Ini · ' + monthStart.toLocaleDateString('id-ID',{month:'long',year:'numeric'}) };
@@ -9188,7 +9168,7 @@ window.setRekapPeriode = function(p, btn) {
   renderRekap(allLaporanCache);
 };
 
-// Kembalikan tab periode Rekap ke default ("Hari Ini") — dipakai switchView()
+// Kembalikan tab periode Rekap ke default ("Hari Ini"), dipakai switchView()
 // supaya tiap kali TL/Admin masuk (lagi) ke halaman Rekap, tampilannya selalu
 // mulai dari kondisi awal, bukan melanjutkan periode terakhir yang dipilih.
 window.resetRekapFilter = function() {
@@ -9206,7 +9186,7 @@ function renderRekap(entries) {
   const filtered = entries.filter(([,l]) => (l.waktu||0) >= start);
 
   // % capaian sekarang dihitung dari targetKerja/{ulp}/{regu}/{periodeKey}
-  // (poin 2c) — bukan lagi dari field `target` per-laporan (sudah dihapus,
+  // (poin 2c), bukan lagi dari field `target` per-laporan (sudah dihapus,
   // lihat poin 2a). Periode Rekap (Hari/Minggu/Bulan) dipetakan langsung ke
   // tipePeriode targetKerja yang sepadan.
   const tipePeriode = REKAP_TO_TIPE_PERIODE[rekapPeriode] || 'harian';
@@ -9233,7 +9213,7 @@ function renderRekap(entries) {
   document.getElementById('rekap-periode-label').textContent = label;
   document.getElementById('rekap-detail-count').textContent  = total + ' laporan';
 
-  // Rekap per Tim (per pasangan ULP+Regu — nama Tim generik bisa sama di
+  // Rekap per Tim (per pasangan ULP+Regu, nama Tim generik bisa sama di
   // beberapa ULP, jadi label baris menyertakan ULP supaya tidak tertukar)
   const timEntries = capaianPerPair
     .map(c => ({ ...c, count: filtered.filter(([,l]) => l.ulp===c.ulp && l.regu===c.regu).length }))
@@ -9252,7 +9232,7 @@ function renderRekap(entries) {
         </tr>`;
       }).join('');
 
-  // Rekap per ULP — realisasi dijumlah dari laporan, target dijumlah dari
+  // Rekap per ULP, realisasi dijumlah dari laporan, target dijumlah dari
   // semua targetKerja regu-regu di ULP itu untuk periode yang sama.
   const byUlp = {};
   filtered.forEach(([,l]) => {
@@ -9284,7 +9264,7 @@ function renderRekap(entries) {
         </tr>`;
       }).join('');
 
-  // Detail tabel — kolom Target/% dihapus (target bukan lagi atribut per-
+  // Detail tabel, kolom Target/% dihapus (target bukan lagi atribut per-
   // laporan, lihat poin 2a), diganti 1 kolom Realisasi saja.
   const svBadgeMap = {
     'Terverifikasi': '<span class="badge badge-green"><span class="badge-dot"></span>Terverifikasi</span>',
@@ -9321,7 +9301,7 @@ function listenRekap() {
   });
 }
 
-// ── Export Rekap Laporan (Excel & PDF) — ikut periode aktif (Hari/Minggu/Bulan) ──
+// ── Export Rekap Laporan (Excel & PDF), ikut periode aktif (Hari/Minggu/Bulan) ──
 function computeRekapExportData() {
   const { start, label } = getDateRange(rekapPeriode);
   const filtered = (allLaporanCache || []).filter(([,l]) => (l.waktu||0) >= start);
@@ -9375,7 +9355,7 @@ window.exportRekapExcel = async function() {
     const wsRingkasan = wb.addWorksheet('Ringkasan');
     wsRingkasan.columns = [{ width: 26 }, { width: 30 }];
     wsRingkasan.mergeCells('A1:B1');
-    wsRingkasan.getCell('A1').value = 'Rekap Laporan Pekerjaan — Field Force Management PLN UP3 Jayapura';
+    wsRingkasan.getCell('A1').value = 'Rekap Laporan Pekerjaan: Field Force Management PLN UP3 Jayapura';
     const ringkasanData = [
       ['Periode', label],
       ['Dicetak', new Date().toLocaleString('id-ID')],
@@ -9427,7 +9407,7 @@ window.exportRekapExcel = async function() {
       ejStyleDataRow(wsUlp.getRow(i+2), i % 2 === 0);
     });
 
-    // Sheet Detail — foto ditempel asli, bukan link
+    // Sheet Detail, foto ditempel asli, bukan link
     const wsDetail = wb.addWorksheet('Detail Laporan');
     const headers = ['No','Waktu','Regu','ULP','Anggota Hadir','No Penugasan','Rincian Pekerjaan','Material','Target','Realisasi','Capaian (%)','Status Verifikasi','Diverifikasi Oleh','Waktu Verifikasi','Catatan Verifikasi','Foto Before','Foto Progres','Foto After'];
     const widths  = [5,16,20,12,10,10,14,35,20,9,9,11,16,14,16,15,15,15];
@@ -9476,7 +9456,7 @@ window.exportRekapPDF = function() {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
 
     doc.setFontSize(13);
-    doc.text('Rekap Laporan Pekerjaan — Field Force Management PLN UP3 Jayapura', 40, 32);
+    doc.text('Rekap Laporan Pekerjaan: Field Force Management PLN UP3 Jayapura', 40, 32);
     doc.setFontSize(9);
     doc.setTextColor(110);
     doc.text('Periode: ' + label + '  ·  Dicetak: ' + new Date().toLocaleString('id-ID'), 40, 47);
