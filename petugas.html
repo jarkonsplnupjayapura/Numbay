@@ -1565,6 +1565,52 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getDatabase, ref, set, get, onValue, update, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 // Foto disimpan di Cloudinary (bukan lagi Base64 di Realtime Database) — Firebase hanya menyimpan URL foto
 
+// ══════════════════════════════════════
+// OTA UPDATE — pengecekan & pemasangan update otomatis lewat GitHub Releases
+// Tidak pakai server Capgo sama sekali, murni gratis lewat repo GitHub sendiri.
+// Plugin diakses lewat window.Capacitor.Plugins (bukan import module),
+// konsisten dengan cara plugin native lain dipakai di file ini.
+// ══════════════════════════════════════
+// PENTING: naikkan angka ini SETIAP KALI rilis versi baru ke GitHub Releases,
+// dan pastikan tag Release di GitHub sama persis dengan angka ini.
+const CURRENT_VERSION = '1.0.2';
+const GITHUB_REPO = 'jarkonsplnupjayapura/Numbay';
+
+async function cekUpdateOTA() {
+  const Updater = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater;
+  if (!Updater) {
+    console.log('[OTA] Plugin CapacitorUpdater belum terpasang, lewati pengecekan update.');
+    return;
+  }
+  try {
+    // Wajib dipanggil setiap app dibuka — memberi tahu plugin bahwa
+    // versi yang sedang berjalan berhasil dimuat (bukan versi rusak).
+    await Updater.notifyAppReady();
+
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
+    if (!res.ok) return; // belum ada Release, atau sedang offline — diam saja, app tetap jalan normal
+    const rilisTerbaru = await res.json();
+    const versiTerbaru = rilisTerbaru.tag_name;
+    if (!versiTerbaru || versiTerbaru === CURRENT_VERSION) return;
+
+    const fileZip = (rilisTerbaru.assets || []).find(a => a.name.endsWith('.zip'));
+    if (!fileZip) return;
+
+    console.log('[OTA] Update ditemukan:', versiTerbaru, '— mendownload...');
+    const versionInfo = await Updater.download({
+      url: fileZip.browser_download_url,
+      version: versiTerbaru,
+    });
+    await Updater.set(versionInfo);
+    // Setelah set(), plugin akan reload app memakai versi baru.
+  } catch (err) {
+    console.log('[OTA] Gagal cek update, app tetap pakai versi yang ada:', err);
+  }
+}
+if (isNativeApp()) {
+  cekUpdateOTA();
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyBGOuBBug0x-yHWlp6KuFBkc8YaFDnWH5M",
   authDomain: "ffm-pln-1b75c.firebaseapp.com",
