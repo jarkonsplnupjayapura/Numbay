@@ -1839,7 +1839,10 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
             </div>
 
             <div style="margin-bottom:12px">
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Section</label>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2)">Section</label>
+                <button type="button" onclick="tambahSectionBaru('rp')" style="background:var(--pln-blue-light,#0057b8);border:none;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,87,184,0.35);transition:filter .15s,transform .1s" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">➕ Tambah Section</button>
+              </div>
               <select id="rp-section" onchange="onRpSectionChange()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
                 <option value="">— Pilih Penyulang dulu —</option>
               </select>
@@ -2179,7 +2182,10 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
                 </select>
               </div>
               <div>
-                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Section</label>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+                  <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2)">Section</label>
+                  <button type="button" onclick="tambahSectionBaru('vf')" style="background:var(--pln-blue-light,#0057b8);border:none;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;padding:5px 11px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,87,184,0.35);transition:filter .15s,transform .1s" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">➕ Tambah Section</button>
+                </div>
                 <select id="vf-section" onchange="onVfSectionChange()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:13px;outline:none;height:36px;background:var(--surface)">
                   <option value="">— Pilih Penyulang dulu —</option>
                 </select>
@@ -6530,6 +6536,34 @@ window.tambahGarduBaru = async function(prefix) {
   if (!selected.includes(namaBersih)) selected.push(namaBersih);
   renderGarduBox(prefix);
   renderGarduDropdownFor(prefix);
+};
+
+// Tombol "+ Tambah Section" — sama seperti "+ Tambah Gardu": Section yang
+// ditambahkan TL/Admin di sini HANYA berlaku untuk rencana pekerjaan / laporan
+// yang sedang diisi saat ini (langsung dipilih di dropdown Section). Item ini
+// SENGAJA TIDAK disimpan ke localStorage / PLN_PENYULANG_HIERARCHY, supaya
+// tidak otomatis muncul lagi jadi opsi permanen di pencarian Section untuk
+// laporan-laporan berikutnya (persis alasan yang sama dengan Gardu manual).
+window.tambahSectionBaru = async function(prefix) {
+  prefix = prefix || 'rp';
+  const sel = document.getElementById(prefix + '-section');
+  if (!sel) return;
+  const nama = await promptDialog('Nama Section baru:', { title: 'Tambah Section', okLabel: 'Tambah', inputType: 'text', placeholder: 'cth: Section 5' });
+  if (!nama) return;
+  const namaBersih = nama.trim();
+  if (!namaBersih) return;
+  // Kalau Section ini belum ada di daftar (baik dari master data maupun yang
+  // sudah ditambah manual sebelumnya), tambahkan sebagai <option> baru dulu.
+  const sudahAda = Array.from(sel.options).some(o => o.value === namaBersih);
+  if (!sudahAda) {
+    const opt = document.createElement('option');
+    opt.value = namaBersih; opt.textContent = namaBersih;
+    sel.appendChild(opt);
+  }
+  sel.value = namaBersih;
+  // Trigger onchange manual (onRpSectionChange / onVfSectionChange) supaya
+  // pilihan Gardu ikut diperbarui sesuai Section baru ini.
+  sel.dispatchEvent(new Event('change', { bubbles: true }));
 };
 
 // Ubah sebuah <select> biasa menjadi combobox yang bisa diketik untuk mencari

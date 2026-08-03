@@ -1138,6 +1138,13 @@ body {
 
 </div>
 
+<!-- ══════ DOCK: LAPORAN SEDANG BERJALAN (di-minimize) — maksimal 5 sekaligus,
+     supaya petugas bisa kerjakan beberapa tugas tanpa harus selesaikan 1
+     laporan dulu. Muncul di atas bottom-nav, hanya kalau ada draft parkir. ══════ -->
+<div id="lapor-draft-dock" style="display:none;flex-shrink:0;background:var(--surface);border-top:1px solid rgba(0,0,0,0.07);padding:8px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+  <div id="lapor-draft-dock-list" style="display:flex;gap:8px;align-items:center"></div>
+</div>
+
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav" style="display:none">
   <button class="nav-tab active" onclick="navTab(this,'dashboard')">
@@ -1156,7 +1163,10 @@ body {
   <div class="modal-sheet">
     <div class="modal-header">
       <h3>Laporan Pekerjaan</h3>
-      <button class="modal-close" onclick="tutupModalLapor()">✕</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="modal-close" onclick="minimizeModalLapor()" title="Minimize — kerjakan laporan/tugas lain dulu">🗕</button>
+        <button class="modal-close" onclick="tutupModalLapor()">✕</button>
+      </div>
     </div>
     <div class="field">
       <label>Nomor Penugasan <span style="font-size:10px;color:var(--text-muted);font-weight:400">(opsional)</span></label>
@@ -1179,7 +1189,11 @@ body {
       </div>
     </div>
 
-    <div class="field"><label>Section</label>
+    <div class="field">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <label style="margin-bottom:0">Section</label>
+        <button type="button" onclick="tambahSectionBaruLapor()" style="background:var(--pln-blue);border:none;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,87,184,0.35);transition:filter .15s,transform .1s" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">➕ Tambah Section</button>
+      </div>
       <select id="lapor-section" style="width:100%" onchange="onLaporSectionChange()">
         <option value="">— Pilih Penyulang dulu —</option>
       </select>
@@ -1622,7 +1636,7 @@ window.tutupKonfirmasiBesar = function() {
   clearTimeout(confirmBigTimer);
 };
 
-function confirmDialog(message, { title = 'Konfirmasi', okLabel = 'Ya, Lanjutkan' } = {}) {
+function confirmDialog(message, { title = 'Konfirmasi', okLabel = 'Ya, Lanjutkan', cancelLabel = 'Batal' } = {}) {
   return new Promise((resolve) => {
     const backdrop = document.getElementById('confirm-backdrop');
     document.getElementById('confirm-title').textContent = title;
@@ -1630,6 +1644,7 @@ function confirmDialog(message, { title = 'Konfirmasi', okLabel = 'Ya, Lanjutkan
     const btnOk = document.getElementById('confirm-btn-ok');
     const btnCancel = document.getElementById('confirm-btn-cancel');
     btnOk.textContent = okLabel;
+    btnCancel.textContent = cancelLabel;
     const cleanup = (result) => {
       backdrop.classList.remove('active');
       btnOk.onclick = null; btnCancel.onclick = null;
@@ -2522,6 +2537,32 @@ window.tambahGarduBaruLapor = async function() {
   scheduleLaporDraftSave();
 };
 
+// Tombol "+ Tambah Section" di form Laporan — sama seperti "+ Tambah Gardu":
+// Section yang ditambahkan petugas di sini HANYA berlaku untuk laporan yang
+// sedang diisi saat ini (langsung dipilih di dropdown Section). Item ini
+// SENGAJA TIDAK disimpan ke localStorage / PLN_PENYULANG_HIERARCHY, supaya
+// tidak otomatis muncul lagi jadi opsi permanen di pencarian Section untuk
+// laporan-laporan berikutnya (persis alasan yang sama dengan Gardu manual).
+window.tambahSectionBaruLapor = async function() {
+  const sel = document.getElementById('lapor-section');
+  if (!sel) return;
+  const nama = await promptDialog('Nama Section baru:', { title: 'Tambah Section', okLabel: 'Tambah', placeholder: 'cth: Section 5' });
+  if (!nama) return;
+  const namaBersih = nama.trim();
+  if (!namaBersih) return;
+  const sudahAda = Array.from(sel.options).some(o => o.value === namaBersih);
+  if (!sudahAda) {
+    const opt = document.createElement('option');
+    opt.value = namaBersih; opt.textContent = namaBersih;
+    sel.appendChild(opt);
+  }
+  sel.value = namaBersih;
+  // Trigger onchange manual (onLaporSectionChange) supaya pilihan Gardu ikut
+  // diperbarui sesuai Section baru ini.
+  sel.dispatchEvent(new Event('change', { bubbles: true }));
+  scheduleLaporDraftSave();
+};
+
 // Ubah sebuah <select> biasa menjadi combobox yang bisa diketik untuk mencari
 // (select aslinya TETAP ada di DOM tapi disembunyikan, jadi seluruh kode lain
 // yang baca/tulis .value / .options pada id ini tidak perlu diubah sama sekali —
@@ -3063,7 +3104,7 @@ async function finalizeLogout() {
   absenPerjalananDone = false;
   resetAbsensiTerakhir();
   clearSession(); // shift resmi selesai — hapus sesi tersimpan supaya TIDAK auto-login lagi saat app dibuka berikutnya
-  clearLaporDraft(); // buang draft foto Sebelum/Progres/Sesudah laporan lama (kalau ada) — supaya TIDAK muncul lagi nyangkut di shift berikutnya
+  clearAllLaporDrafts(); // buang SEMUA draft laporan (termasuk yang diminimize di dock) — supaya TIDAK nyangkut ke shift berikutnya
   laporFoto = { before: null, progres: null, after: null };
   document.getElementById('send-count').textContent = '0';
   document.getElementById('bottom-nav').style.display = 'none';
@@ -4088,6 +4129,7 @@ window.submitAbsensi = async function() {
   persistSession(); // absen awal resmi selesai — dari titik ini sesi lengkap tersimpan & bisa dipulihkan kalau app ke-kill
   jalankanWizardSetupLaluGPS(); // tampilkan wizard cek izin lokasi+baterai dulu, baru GPS beneran dimulai
   listenRevisiDanTugas();
+  renderLaporDraftDock(); // tampilkan draft laporan yang masih diparkir dari sebelumnya (kalau ada)
 };
 
 // ════════════════════════════════════════════════════════
@@ -4317,6 +4359,13 @@ window.bukaModalLapor = function() {
   // dilaporkan balik walau di HP tanpa akses remote-debug.
   document.getElementById('modal-lapor').classList.add('active');
   document.getElementById('lapor-err').style.display = 'none';
+  // Setiap kali form Laporan dibuka "bersih" (bukan lewat dock/resume), anggap
+  // ini laporan baru → dikasih draftId acak sendiri, supaya autosave berjalan
+  // (lihat scheduleLaporDraftSave) tanpa menabrak draft lain yang sedang
+  // di-minimize di dock. bukaModalLaporUntuk() akan menimpa ini dengan id
+  // berbasis Nomor Penugasan kalau memang untuk tugas tertentu.
+  window._currentLaporDraftId = 'bebas_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  window._revisiAsalId = null;
   try {
     populateLaporPekerjaanDropdowns();
     populateLaporTiketSelect('');
@@ -4348,14 +4397,49 @@ window.bukaModalLapor = function() {
     document.getElementById('lapor-konstruksi-bongkar').value = '';
     laporFoto = { before: null, progres: null, after: null };
     LAPOR_FASE_ORDER.forEach(resetSlotFoto);
-    restoreLaporDraft(); // pulihkan foto Sebelum/Progres/Sesudah yang tersimpan sebelumnya, kalau ada
+    // TIDAK auto-restore draft lama di sini lagi — sekarang draft yang belum
+    // selesai muncul sebagai chip di dock (#lapor-draft-dock) dan dipulihkan
+    // manual lewat bukaLaporDraftFromDock(), atau lewat konfirmasi di
+    // bukaModalLaporUntuk() kalau tugas ini sudah pernah ada draft-nya.
   } catch (e) {
     addLog('Gagal menyiapkan form Laporan: ' + e.message, 'err');
   }
 };
 
-window.tutupModalLapor = function() {
+// Sembunyikan modal Laporan TAPI simpan dulu isian saat ini sebagai draft
+// yang "diparkir" di dock (#lapor-draft-dock) — supaya isian & foto yang
+// sudah diambil tidak hilang, dan petugas bisa lanjutkan lagi kapan saja.
+// Dipakai baik oleh tombol ✕ (tutup) maupun 🗕 (minimize) — bedanya cuma
+// pesan konfirmasi & aturan batas maksimal 5 laporan berjalan sekaligus
+// (lihat minimizeModalLapor).
+function parkModalLapor() {
+  const drafts = getLaporDrafts();
+  const id = window._currentLaporDraftId || ('bebas_' + Date.now());
+  const slotBaru = !(id in drafts);
+  if (slotBaru && Object.keys(drafts).length >= LAPOR_DRAFT_MAX) {
+    showToast('Maksimal ' + LAPOR_DRAFT_MAX + ' laporan bisa berjalan bersamaan. Selesaikan/kirim atau buang salah satu dulu lewat dock di bawah.', 'warn', 5000);
+    return false;
+  }
+  window._currentLaporDraftId = id;
+  saveLaporDraftSlot();
   document.getElementById('modal-lapor').classList.remove('active');
+  window._currentLaporDraftId = null;
+  renderLaporDraftDock();
+  return true;
+}
+
+window.tutupModalLapor = function() {
+  parkModalLapor();
+};
+
+// Tombol "🗕" — sama seperti tutupModalLapor, tapi dengan pesan konfirmasi
+// yang menegaskan kalau laporan ini "diparkir" dan bisa dilanjutkan lewat
+// dock, supaya petugas paham bisa langsung buka/kerjakan laporan tugas lain
+// tanpa harus menyelesaikan laporan yang sedang diisi ini dulu.
+window.minimizeModalLapor = function() {
+  if (parkModalLapor()) {
+    showToast('Laporan diminimize & tersimpan. Lanjutkan kapan saja lewat dock di bawah.', 'ok');
+  }
 };
 
 // Buka form Lapor dengan Nomor Penugasan sudah terpilih di dropdown — dipakai
@@ -4363,13 +4447,37 @@ window.tutupModalLapor = function() {
 // petugas tidak perlu cari-cari sendiri, tinggal klik tombolnya.
 // revisiAsalId diisi kalau ini alur "Lapor Ulang" dari revisi, supaya laporan
 // lama otomatis ditandai "sudah ditindaklanjuti" setelah submit berhasil.
-window.bukaModalLaporUntuk = function(nomorTiket, revisiAsalId) {
-  bukaModalLapor();
-  if (nomorTiket) {
-    populateLaporTiketSelect(nomorTiket);
-    onLaporTiketSelectChange();
+// Kalau tugas ini SUDAH punya draft yang diparkir di dock (petugas sempat
+// minimize sebelumnya), tanya dulu: lanjutkan draft lama atau mulai baru
+// (draft lama akan diganti/ditimpa kalau pilih mulai baru).
+window.bukaModalLaporUntuk = async function(nomorTiket, revisiAsalId) {
+  const draftId = nomorTiket ? ('tiket_' + nomorTiket) : null;
+  const drafts = draftId ? getLaporDrafts() : {};
+  const draftLama = draftId ? drafts[draftId] : null;
+
+  let lanjutkanDraftLama = false;
+  if (draftLama) {
+    lanjutkanDraftLama = await confirmDialog(
+      'Laporan untuk penugasan ini sudah ada draft yang belum dikirim (sempat di-minimize sebelumnya). Lanjutkan draft tersebut, atau mulai laporan baru dari kosong?',
+      { title: 'Draft Ditemukan', okLabel: 'Lanjutkan Draft', cancelLabel: 'Mulai Baru' }
+    );
   }
-  window._revisiAsalId = revisiAsalId || null;
+
+  bukaModalLapor(); // reset form ke kosong dulu, sekaligus buka modalnya
+  if (draftId) window._currentLaporDraftId = draftId;
+
+  if (lanjutkanDraftLama) {
+    restoreLaporDraftIntoForm(draftLama);
+    window._revisiAsalId = draftLama.revisiAsalId || revisiAsalId || null;
+  } else {
+    if (draftLama) { delete drafts[draftId]; setLaporDrafts(drafts); } // "Mulai Baru" → buang draft lama yang ditimpa
+    if (nomorTiket) {
+      populateLaporTiketSelect(nomorTiket);
+      onLaporTiketSelectChange();
+    }
+    window._revisiAsalId = revisiAsalId || null;
+  }
+  renderLaporDraftDock();
 };
 
 // #4 + #5: Listener realtime untuk laporan "Perlu Revisi" dan tiket yang
@@ -4706,7 +4814,7 @@ window.pakaiFotoLapor = function() {
     LAPOR_FASE_LABEL[laporKameraTarget] + ' ✓</span>';
 
   document.getElementById('modal-kamera-lapor').classList.remove('active');
-  saveLaporDraft();
+  saveLaporDraftSlot();
 };
 
 // Foto Sebelum/Progres/Sesudah bisa diambil langsung dengan kamera (default)
@@ -4722,7 +4830,21 @@ window.pakaiFotoLapor = function() {
 // sekarang seluruh field form (Penyulang, Rincian Pekerjaan, Vol, dst) ikut
 // tersimpan otomatis setiap kali diketik/diganti, supaya petugas tidak perlu
 // isi ulang dari nol kalau app sempat ditutup di tengah pengisian.
-const LAPOR_DRAFT_KEY = 'ffm_lapor_draft_v1';
+// CATATAN (v2 — dock multi-laporan): dulu cuma ada 1 slot draft global
+// (LAPOR_DRAFT_KEY), jadi kalau petugas mau kerjakan laporan tugas lain
+// sebelum yang sedang diisi selesai, draft yang lama bisa ketiban/hilang.
+// Sekarang draft disimpan sebagai KUMPULAN (dict, key = draftId) di
+// LAPOR_DRAFTS_KEY, supaya petugas bisa "minimize" laporan yang sedang
+// diisi (via 🗕 di header modal) lalu buka/isi laporan tugas lain — sampai
+// maksimal LAPOR_DRAFT_MAX laporan berjalan bersamaan. Laporan yang
+// di-minimize muncul sebagai chip di dock (#lapor-draft-dock) untuk
+// dilanjutkan/dibuang kapan saja. Setiap draft diberi id:
+//   - 'tiket_<nomorTiket>'  → laporan yang dibuka utk Nomor Penugasan tertentu
+//   - 'bebas_<timestamp>_<rnd>' → laporan bebas (tanpa Nomor Penugasan)
+// window._currentLaporDraftId menyimpan id slot yang SEDANG terbuka di modal
+// saat ini (null kalau modal tertutup / semua draft sudah diparkir ke dock).
+const LAPOR_DRAFTS_KEY = 'ffm_lapor_drafts_v2';
+const LAPOR_DRAFT_MAX  = 5;
 const LAPOR_DRAFT_FIELD_IDS = [
   'lapor-tiket-select', 'lapor-penyulang', 'lapor-section', 'lapor-kelompok',
   'lapor-health-index', 'lapor-kategori', 'lapor-jenis-pekerjaan', 'lapor-rincian',
@@ -4731,7 +4853,21 @@ const LAPOR_DRAFT_FIELD_IDS = [
   'lapor-pdkb', 'lapor-metode', 'lapor-daerah-padam', 'lapor-jenis-pemadaman',
   'lapor-pic', 'lapor-keterangan',
 ];
-function saveLaporDraft() {
+
+function getLaporDrafts() {
+  try { return JSON.parse(localStorage.getItem(LAPOR_DRAFTS_KEY) || '{}') || {}; } catch (e) { return {}; }
+}
+function setLaporDrafts(drafts) {
+  localStorage.setItem(LAPOR_DRAFTS_KEY, JSON.stringify(drafts)); // biar QuotaExceededError ditangkap pemanggilnya
+}
+
+// Simpan isian form saat ini ke slot draft-nya (window._currentLaporDraftId).
+// Dipanggil otomatis tiap ketik/ganti isian (debounced, lihat
+// scheduleLaporDraftSave) supaya TIDAK hilang walau app/HP ditutup paksa di
+// tengah pengisian — baik itu laporan yang sedang aktif terbuka MAUPUN saat
+// baru saja diminimize (parkModalLapor memanggil ini sebelum menyembunyikan modal).
+function saveLaporDraftSlot() {
+  if (!window._currentLaporDraftId) return;
   try {
     const fields = {};
     LAPOR_DRAFT_FIELD_IDS.forEach(id => {
@@ -4739,9 +4875,12 @@ function saveLaporDraft() {
       if (el) fields[id] = el.value;
     });
     const konstruksiOn = document.getElementById('konstruksi-fields')?.style.display !== 'none';
-    localStorage.setItem(LAPOR_DRAFT_KEY, JSON.stringify({
+    const drafts = getLaporDrafts();
+    drafts[window._currentLaporDraftId] = {
       ...laporFoto, ts: Date.now(), fields, gardu: laporGarduSelected.slice(), konstruksiOn,
-    }));
+      revisiAsalId: window._revisiAsalId || null,
+    };
+    setLaporDrafts(drafts);
   } catch (e) {
     // Storage penuh / tidak tersedia — beri tahu SEKALI saja per sesi supaya
     // petugas tahu draft (termasuk foto yang baru diambil) mungkin TIDAK
@@ -4752,13 +4891,31 @@ function saveLaporDraft() {
     }
   }
 }
-function clearLaporDraft() {
-  try { localStorage.removeItem(LAPOR_DRAFT_KEY); } catch (e) {}
-  window._laporDraftWarnShown = false;
+
+// Hapus HANYA slot draft yang sedang aktif (dipakai setelah submit berhasil).
+function clearCurrentLaporDraft() {
+  if (!window._currentLaporDraftId) return;
+  try {
+    const drafts = getLaporDrafts();
+    delete drafts[window._currentLaporDraftId];
+    setLaporDrafts(drafts);
+  } catch (e) {}
+  window._currentLaporDraftId = null;
+  renderLaporDraftDock();
 }
-function restoreLaporDraft() {
-  let draft = null;
-  try { draft = JSON.parse(localStorage.getItem(LAPOR_DRAFT_KEY) || 'null'); } catch (e) {}
+
+// Hapus SEMUA draft sekaligus (dipakai saat "Selesai Bertugas" / shift
+// berakhir — supaya draft laporan lama tidak nyangkut ke shift berikutnya).
+function clearAllLaporDrafts() {
+  try { localStorage.removeItem(LAPOR_DRAFTS_KEY); } catch (e) {}
+  window._laporDraftWarnShown = false;
+  window._currentLaporDraftId = null;
+  renderLaporDraftDock();
+}
+
+// Pulihkan satu objek draft (hasil getLaporDrafts()[id]) ke dalam form yang
+// sedang terbuka. Dipanggil oleh bukaLaporDraftFromDock() & bukaModalLaporUntuk().
+function restoreLaporDraftIntoForm(draft) {
   if (!draft) return;
   let adaYangDipulihkan = false;
 
@@ -4809,8 +4966,70 @@ function restoreLaporDraft() {
     adaYangDipulihkan = true;
   }
 
-  if (adaYangDipulihkan) addLog('Draft laporan (isian & foto) yang tersimpan sebelumnya berhasil dipulihkan', 'info');
+  if (adaYangDipulihkan) addLog('Draft laporan (isian & foto) berhasil dipulihkan', 'info');
 }
+
+// ── DOCK laporan yang di-minimize ──
+// Label chip: pakai Nomor Penugasan kalau ada, kalau tidak pakai Rincian
+// Pekerjaan yang sudah diisi, kalau keduanya kosong tampilkan "Laporan Baru".
+function labelLaporDraft(draft) {
+  const nomor = draft.fields?.['lapor-tiket-select'];
+  if (nomor) return nomor;
+  const rincian = draft.fields?.['lapor-rincian'];
+  if (rincian) return rincian;
+  return 'Laporan Baru';
+}
+
+function renderLaporDraftDock() {
+  const dock = document.getElementById('lapor-draft-dock');
+  const list = document.getElementById('lapor-draft-dock-list');
+  if (!dock || !list) return;
+  const drafts = getLaporDrafts();
+  // Draft yang SEDANG terbuka di modal saat ini tidak ikut ditampilkan
+  // sebagai chip (baru muncul lagi begitu di-minimize/ditutup).
+  const entries = Object.entries(drafts)
+    .filter(([id]) => id !== window._currentLaporDraftId)
+    .sort((a, b) => (a[1].ts || 0) - (b[1].ts || 0));
+
+  if (!entries.length) { dock.style.display = 'none'; list.innerHTML = ''; return; }
+  dock.style.display = 'block';
+  list.innerHTML =
+    '<span style="flex-shrink:0;font-size:10.5px;font-weight:700;color:var(--text-muted);padding-right:2px">📋 ' + entries.length + '/' + LAPOR_DRAFT_MAX + '</span>' +
+    entries.map(([id, d]) => `
+      <div onclick="bukaLaporDraftFromDock('${id}')" style="flex-shrink:0;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border-str);border-radius:999px;padding:6px 6px 6px 12px;cursor:pointer">
+        <span style="font-size:12px;font-weight:600;color:var(--text);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(labelLaporDraft(d))}</span>
+        <span onclick="hapusLaporDraft('${id}', event)" title="Buang draft ini" style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--text-muted)">×</span>
+      </div>
+    `).join('');
+}
+
+// Buka kembali salah satu laporan yang diparkir di dock.
+window.bukaLaporDraftFromDock = function(id) {
+  const drafts = getLaporDrafts();
+  const draft = drafts[id];
+  if (!draft) { showToast('Draft tidak ditemukan (mungkin sudah dibuang).', 'err'); renderLaporDraftDock(); return; }
+  bukaModalLapor(); // reset form kosong dulu, sekaligus buka modalnya
+  window._currentLaporDraftId = id;
+  window._revisiAsalId = draft.revisiAsalId || null;
+  restoreLaporDraftIntoForm(draft);
+  renderLaporDraftDock(); // chip ini hilang dari dock selama sedang dibuka
+};
+
+// Buang satu draft dari dock (minta konfirmasi dulu — foto & isian yang
+// belum dikirim akan hilang permanen).
+window.hapusLaporDraft = async function(id, evt) {
+  if (evt) evt.stopPropagation(); // jangan ikut trigger buka draft-nya
+  const ok = await confirmDialog(
+    'Buang draft laporan ini? Isian & foto yang belum dikirim akan hilang permanen.',
+    { title: 'Buang Draft', okLabel: 'Ya, Buang', cancelLabel: 'Batal' }
+  );
+  if (!ok) return;
+  const drafts = getLaporDrafts();
+  delete drafts[id];
+  setLaporDrafts(drafts);
+  renderLaporDraftDock();
+  showToast('Draft laporan dibuang.', 'ok');
+};
 
 // Simpan draft otomatis setiap kali petugas mengetik/mengganti isian form
 // Laporan (di-debounce supaya tidak menulis ke localStorage tiap ketukan
@@ -4819,7 +5038,7 @@ function restoreLaporDraft() {
 let _laporDraftSaveTimer = null;
 function scheduleLaporDraftSave() {
   clearTimeout(_laporDraftSaveTimer);
-  _laporDraftSaveTimer = setTimeout(saveLaporDraft, 400);
+  _laporDraftSaveTimer = setTimeout(saveLaporDraftSlot, 400);
 }
 const modalLaporEl = document.getElementById('modal-lapor');
 if (modalLaporEl) {
@@ -4980,7 +5199,7 @@ window.submitLaporan = async function() {
   laporan.fotoProgres = fotoResult.progres.fotoUrl || fotoResult.progres.fotoBase64;
   laporan.fotoAfter   = fotoResult.after.fotoUrl   || fotoResult.after.fotoBase64;
   laporTugasList.unshift(laporan);
-  clearLaporDraft();
+  clearCurrentLaporDraft();
   updateProgres();
   renderTaskList();
   persistSession();
@@ -5099,6 +5318,7 @@ async function restoreSessionIfAny() {
 
   startGPS();
   listenRevisiDanTugas();
+  renderLaporDraftDock(); // tampilkan lagi draft laporan yang sempat diminimize sebelum app ditutup
   return true;
 }
 populateUlpDropdown();
