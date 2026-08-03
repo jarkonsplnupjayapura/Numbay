@@ -1657,7 +1657,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
     </div>
 
     <!-- Modal Edit Laporan -->
-    <div id="modal-edit-laporan" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
+    <div id="modal-edit-laporan" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
       <div style="background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:520px;box-shadow:var(--shadow-lg);position:relative;margin:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
           <div style="font-family:var(--font-display);font-size:16px;font-weight:800">Edit Laporan Pekerjaan</div>
@@ -1797,7 +1797,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
 
       <!-- Form Tiket Modal -->
-      <div id="modal-tiket" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
+      <div id="modal-tiket" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
         <div style="background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:520px;max-height:calc(100vh - 32px);overflow-y:auto;box-shadow:var(--shadow-lg);position:relative;margin:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
             <div style="font-family:var(--font-display);font-size:16px;font-weight:800">Buat Rencana Pekerjaan</div>
@@ -1874,7 +1874,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               </div>
               <div>
                 <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Jenis Pekerjaan</label>
-                <select id="rp-jenis-pekerjaan" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
+                <select id="rp-jenis-pekerjaan" onchange="window._rpJenisPekerjaanManual = true" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
                   <option value="">— Pilih —</option>
                 </select>
               </div>
@@ -1882,7 +1882,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
             <div style="margin-bottom:12px">
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Rincian Pekerjaan *</label>
-              <select id="rp-rincian" onchange="applyRpSatuanOtomatis()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
+              <select id="rp-rincian" onchange="applyRpSatuanOtomatis(); applyRpJenisPekerjaanOtomatis()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;height:38px;background:var(--surface)">
                 <option value="">— Pilih Rincian Pekerjaan —</option>
               </select>
             </div>
@@ -2146,7 +2146,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
 
       <!-- Modal Verifikasi -->
-      <div id="modal-verifikasi" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,20,36,0.6);align-items:center;justify-content:center;">
+      <div id="modal-verifikasi" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.6);align-items:center;justify-content:center;">
         <div style="background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:560px;box-shadow:var(--shadow-lg);margin:16px;max-height:90vh;overflow-y:auto;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
             <div id="modal-verifikasi-title" style="font-family:var(--font-display);font-size:16px;font-weight:800">Verifikasi Laporan</div>
@@ -2164,13 +2164,13 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               </div>
               <div>
                 <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Jenis Pekerjaan</label>
-                <select id="vf-jenis" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:13px;outline:none;height:36px;background:var(--surface)"></select>
+                <select id="vf-jenis" onchange="window._vfJenisPekerjaanManual = true" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:13px;outline:none;height:36px;background:var(--surface)"></select>
               </div>
             </div>
 
             <div style="margin-bottom:10px">
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Rincian Pekerjaan *</label>
-              <select id="vf-rincian" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:13px;outline:none;height:36px;background:var(--surface)"></select>
+              <select id="vf-rincian" onchange="applyVfJenisPekerjaanOtomatis()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:13px;outline:none;height:36px;background:var(--surface)"></select>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -2451,7 +2451,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
 
       <!-- Modal Tambah/Edit Akun -->
-      <div id="modal-akun" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
+      <div id="modal-akun" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
         <div style="background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:440px;box-shadow:var(--shadow-lg);margin:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
             <div id="akun-modal-title" style="font-family:var(--font-display);font-size:16px;font-weight:800">Tambah Akun Regu</div>
@@ -2524,7 +2524,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
 
       <!-- Modal Tambah/Edit Akun Usher -->
-      <div id="modal-akun-usher" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
+      <div id="modal-akun-usher" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
         <div style="background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:460px;box-shadow:var(--shadow-lg);margin:16px;max-height:calc(100vh - 32px);overflow-y:auto;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
             <div id="akun-usher-modal-title" style="font-family:var(--font-display);font-size:16px;font-weight:800">Tambah Akun Usher</div>
@@ -2668,7 +2668,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
     </div>
 
     <!-- Modal Detail JSON — Database Viewer -->
-    <div id="modal-dbv-detail" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
+    <div id="modal-dbv-detail" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
       <div style="background:var(--surface);border-radius:var(--radius-lg);padding:22px;width:100%;max-width:620px;max-height:80vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);margin:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
           <div id="dbv-modal-title" style="font-family:var(--font-display);font-size:15px;font-weight:800">Detail Record</div>
@@ -6636,6 +6636,7 @@ const RINCIAN_SATUAN_MAP = {
   'Inspeksi Tier 1 JTM': 'kms',
   'Inspeksi Tier 2 JTM': 'kms',
   'Pengukuran Tahanan Isolasi JTM/SKTM': 'kms',
+  'Pengukuran Tahanan Isolasi': 'unit',
   'Rabas Pohon': 'gwg',
   'Rabas Pohon Kriteria-1': 'gwg',
   'Rabas Pohon Kriteria-2': 'gwg',
@@ -6644,6 +6645,7 @@ const RINCIAN_SATUAN_MAP = {
   'Rabas Pohon Kriteria-5': 'gwg',
   'Rabas Pohon Tuntas': 'gwg',
   'Pembersihan Terminasi': 'kms',
+  'Terminasi Kabel': 'kms',
   'Tebang Pohon': 'btng',
   'Tebang Pohon Kriteria-1': 'btng',
   'Tebang Pohon Kriteria-2': 'btng',
@@ -6663,6 +6665,7 @@ const RINCIAN_SATUAN_MAP = {
   'Perbaikan Konstruksi Schoor': 'titik',
   'Perbaikan Tiang Miring': 'btg',
   'Penggantian Traves': 'titik',
+  'Perbaikan Traves': 'titik',
   'Penggantian Tiang Keropos/Rusak TM': 'btg',
   'Pemasangan Pondasi Tiang': 'btg',
   'Pemasangan Top Ties': 'bh',
@@ -6675,6 +6678,7 @@ const RINCIAN_SATUAN_MAP = {
   'Penggantian Isolator Tumpu': 'bh',
   'Penggantian Pin Insulator menjadi Pin Post': 'bh',
   'Pemasangan LA Jaringan': 'bh',
+  'Pemasangan Anti Petir': 'bh',
   'Pemasangan Fault Indikator': 'bh',
   'Penggantian Baterai LBS Motorized': 'bh',
   'Penggantian LBS': 'bh',
@@ -6689,6 +6693,7 @@ const RINCIAN_SATUAN_MAP = {
   'Pemasangan DS': 'titik',
   'Penggantian Rectifier Rusak': 'bh',
   'Penggantian Relay Rusak (Peremajaan)': 'bh',
+  'Pemasangan Directional Relay': 'bh',
   'Integrasi Keypoint ke SCADA': 'titik',
   'Assesment Keypoint': 'unit',
   'Pemeliharaan berbasis PDKB': 'titik',
@@ -6703,13 +6708,16 @@ const RINCIAN_SATUAN_MAP = {
   'Menaikkan Tap Changer Trafo Distribusi': 'unit',
   'Penggantian PHBTR Rusak': 'unit',
   'Penggantian Dudukan PHBTR': 'unit',
+  'Penggantian Dudukan Trafo': 'unit',
   'Pembersihan Halaman Gardu Distribusi': 'unit',
   'Pengecatan Gardu': 'unit',
+  'Pengecatan PHB TR': 'unit',
   'Penggantian In / Out Gardu': 'unit',
   'Penggantian Tiang Keropos/Rusak Gardu': 'btg',
   'Perbaikan LA Gardu': 'bh',
   'Perbaikan Grounding Gardu': 'unit',
   'Penyesuaian Rating (Fuse Link)': 'unit',
+  'Penyesuaian Rating (NH Fuse)': 'unit',
   'Pemasangan Cover LA & Bushing Gardu': 'unit',
   'Penyesuaian tegangan drop': 'unit',
   'Downrating trafo': 'unit',
@@ -6768,6 +6776,44 @@ function applyRpSatuanOtomatis() {
   satuanEl.value = RINCIAN_SATUAN_MAP[rincianVal] || '';
 }
 window.applyRpSatuanOtomatis = applyRpSatuanOtomatis;
+
+// Isi otomatis field Jenis Pekerjaan (#rp-jenis-pekerjaan) berdasarkan Rincian
+// Pekerjaan yang sedang dipilih (RP_RINCIAN_JENIS_PEKERJAAN di master-data.js
+// — sumber: FORMAT PEMADAMAN ULP, kolom LEAD MEASURE/JENIS PEKERJAAN).
+// Dipanggil setiap kali Rincian Pekerjaan berganti (onchange #rp-rincian).
+// Field Jenis Pekerjaan TETAP dropdown biasa yang bisa diganti manual kapan
+// saja oleh TL — ini cuma nilai awal/saran (sama seperti mekanisme
+// isiHealthIndexOtomatis), BUKAN dikunci. TIDAK menimpa kalau TL sudah
+// pernah mengganti Jenis Pekerjaan secara manual (lihat
+// window._rpJenisPekerjaanManual, di-set di onchange #rp-jenis-pekerjaan &
+// bukaModalTiket) — supaya pilihan manual tidak tertimpa kalau Rincian
+// Pekerjaan diganti-ganti lagi. Kalau Rincian Pekerjaan yang dipilih belum
+// ada pemetaannya di RP_RINCIAN_JENIS_PEKERJAAN, field dibiarkan seperti apa
+// adanya supaya tetap bisa dipilih manual dari dropdown.
+function applyRpJenisPekerjaanOtomatis() {
+  const jenisEl = document.getElementById('rp-jenis-pekerjaan');
+  if (!jenisEl || window._rpJenisPekerjaanManual) return;
+  const rincianVal = document.getElementById('rp-rincian')?.value || '';
+  const jp = RP_RINCIAN_JENIS_PEKERJAAN[rincianVal];
+  if (jp && [...jenisEl.options].some(o => o.value === jp)) {
+    jenisEl.value = jp;
+  }
+}
+window.applyRpJenisPekerjaanOtomatis = applyRpJenisPekerjaanOtomatis;
+
+// Versi applyRpJenisPekerjaanOtomatis untuk modal Verifikasi Laporan / Ubah
+// Hasil Verifikasi (#vf-rincian → #vf-jenis) — perilaku & catatan sama persis,
+// cuma beda pasangan elemen & flag manual-nya (window._vfJenisPekerjaanManual).
+function applyVfJenisPekerjaanOtomatis() {
+  const jenisEl = document.getElementById('vf-jenis');
+  if (!jenisEl || window._vfJenisPekerjaanManual) return;
+  const rincianVal = document.getElementById('vf-rincian')?.value || '';
+  const jp = RP_RINCIAN_JENIS_PEKERJAAN[rincianVal];
+  if (jp && [...jenisEl.options].some(o => o.value === jp)) {
+    jenisEl.value = jp;
+  }
+}
+window.applyVfJenisPekerjaanOtomatis = applyVfJenisPekerjaanOtomatis;
 
 // Isi semua dropdown "Detail Rencana Pekerjaan" (Kategori, Jenis, Rincian, Health Index, dst) sekali saja.
 function populateRpDropdowns() {
@@ -6945,6 +6991,10 @@ window.bukaModalTiket = function(id, data) {
   populateGarduSelect('rp', data?.rpGardu || '');
   document.getElementById('rp-health-index').value      = data?.rpHealthIndex    || '';
   document.getElementById('rp-kategori').value           = data?.rpKategori       || '';
+  // Data lama yang Jenis Pekerjaan-nya sudah terisi dianggap "manual" (tidak
+  // ditimpa otomatis kalau nanti Rincian Pekerjaan-nya diganti); form baru
+  // (kosong) biarkan auto-fill aktif begitu Rincian Pekerjaan dipilih.
+  window._rpJenisPekerjaanManual = !!(data?.rpJenisPekerjaan);
   document.getElementById('rp-jenis-pekerjaan').value    = data?.rpJenisPekerjaan || '';
   document.getElementById('rp-rincian').value            = data?.rpRincian        || '';
   document.getElementById('rp-vol').value                = data?.rpVol ?? '';
@@ -7586,6 +7636,7 @@ window.bukaModalVerifikasi = function(id, laporan, mode) {
     currentVerifMode === 'hasil' ? 'Simpan Perubahan' : 'Kirim Verifikasi';
 
   document.getElementById('vf-kategori').value        = laporan.lapKategori || '';
+  window._vfJenisPekerjaanManual = !!(laporan.jenisPekerjaan);
   document.getElementById('vf-jenis').value            = laporan.jenisPekerjaan || '';
   document.getElementById('vf-rincian').value          = laporan.rincian || '';
   document.getElementById('vf-penyulang').value        = laporan.lapPenyulang || '';
