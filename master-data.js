@@ -62,7 +62,27 @@ var ROSTER_ULP_TEAMS = {
   ]
 };
 
+// ══════════════════════════════════════════════════════════════
+// "Asal Tim ROW": daftar ULP ASAL Tim ROW (field terpisah dari Unit Kerja/
+// "NAMA ULP" biasa — lihat field-asal-timrow di petugas.html & kolom
+// "ASAL TIM ROW" di Rekap ROW index.html), tapi DITAMPILKAN dengan awalan
+// "ROW " (bukan "ULP "), mis. "ROW Genyem", "ROW Abepura", supaya jelas beda
+// dari ULP tujuan/Unit Kerja yang selalu pakai awalan "ULP " (mis. "ULP
+// Genyem" di kolom "NAMA ULP"). Sumber daftar ULP-nya tetap sama persis
+// (kunci ROSTER_ULP_TEAMS di atas, PT MITRA dikecualikan karena bukan ULP
+// fisik) — cuma label & value yang disimpan sebagai Asal Tim ROW yang
+// diganti awalannya, jadi TIDAK PERLU nambah daftar ULP terpisah di sini.
+//
+// ulpNamaKeAsalRow('ULP Genyem') -> 'ROW Genyem'
+function ulpNamaKeAsalRow(namaUlp) {
+  return (namaUlp || '').replace(/^ULP\s+/i, 'ROW ');
+}
+var ASAL_TIM_ROW_LIST = Object.keys(ROSTER_ULP_TEAMS)
+  .filter(u => u !== 'PT MITRA')
+  .map(ulpNamaKeAsalRow);
+
 var RP_KATEGORI_LIST = ['KONTRAK AO', 'KONTRAK AI', 'KONTRAK VARCOST', 'EMERGENCY', 'GREBEK'];
+
 
 var RP_HEALTH_INDEX_LIST = ['SEMPURNA', 'SEHAT', 'SAKIT', 'KRONIS'];
 

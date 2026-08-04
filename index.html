@@ -1694,6 +1694,57 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       </div>
     </div>
 
+    <!-- Modal Rekapitulasi Rabas & Tebang Tim ROW — sekarang berfungsi sebagai
+         "Preview & Konfirmasi", BUKAN tempat isi ulang filter dari nol.
+         Status Verifikasi / Mitra (PT) / Asal Tim ROW SELALU ikut apa yang lagi
+         aktif di panel Hasil Verifikasi (satu sumber kebenaran, sama seperti
+         alur Export PDF/Excel biasa) — kalau usher mau ganti, tutup modal ini,
+         ubah filternya di panel, lalu buka lagi. Bulan & Tahun tetap dropdown
+         DI SINI (bukan di panel) karena filter "Bulan" di panel sengaja
+         menggabung semua tahun jadi satu opsi per nama bulan (lihat hvBulanKey），
+         sedangkan rekap resmi ini butuh Bulan+Tahun spesifik untuk judul
+         laporan ("...TAHUN 2026"). -->
+    <div id="modal-rekap-row" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
+      <div style="background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);position:relative;margin:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:800">🌳 Rekapitulasi Rabas &amp; Tebang — Tim ROW</div>
+          <button onclick="tutupModalRekapRow()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px">✕</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:16px;line-height:1.5">
+          Satu sheet Excel akan dibuat otomatis untuk <b>tiap ULP</b> yang punya laporan Rabas/Tebang pada bulan terpilih (rumus GWG mengikuti pembagi ULP masing-masing), dan baris tabelnya <b>dikunci</b> supaya tidak bisa di-copy.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Bulan</label>
+            <select id="rekapRowBulan" onchange="updateRekapRowPreview()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none"></select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Tahun</label>
+            <select id="rekapRowTahun" onchange="updateRekapRowPreview()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none"></select>
+          </div>
+        </div>
+
+        <!-- Ringkasan filter aktif dari panel Hasil Verifikasi — teks/badge saja,
+             TIDAK bisa diubah di sini. Diisi oleh bukaModalRekapRow(). -->
+        <div style="margin-top:14px">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Filter aktif (dari panel Hasil Verifikasi)</label>
+          <div id="rekapRowFilterBadges" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          <div id="rekapRowFilterNote" style="font-size:11px;color:var(--text-3);margin-top:7px;line-height:1.4"></div>
+        </div>
+
+        <!-- Preview hasil: berapa laporan cocok, berapa sheet ULP, & warning
+             kalau ada ULP yang datanya tercampur >1 mitra. Diisi live oleh
+             updateRekapRowPreview() tiap kali Bulan/Tahun diganti. -->
+        <div id="rekapRowPreview" style="margin-top:14px;background:var(--surface-2,rgba(0,0,0,0.03));border:1px solid var(--line);border-radius:var(--radius-xs);padding:12px 13px;font-size:12.5px;line-height:1.6"></div>
+
+        <div id="rekapRowErr" style="display:none;background:var(--crit-bg);color:var(--crit);padding:9px 13px;border-radius:var(--radius-xs);font-size:12px;margin-top:14px;border:1px solid rgba(220,53,69,0.2)"></div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onclick="tutupModalRekapRow()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:var(--radius-xs);background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-2)">Batal</button>
+          <button id="rekapRowSubmitBtn" onclick="generateRekapitulasiRow()" style="flex:2;padding:11px;border:none;border-radius:var(--radius-xs);background:linear-gradient(135deg,var(--pln-yellow),var(--pln-yellow-deep));color:var(--ink-900);font-size:13px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-glow-yellow)">📥 Buat &amp; Unduh Excel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ REKAP LAPORAN VIEW ══ -->
     <div id="viewRekap" style="display:none;" class="firebase-view">
       <div class="fb-header">
@@ -2292,6 +2343,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span id="hasilVerifikasiCount" class="card-count">0 laporan</span>
+          <button onclick="bukaModalRekapRow()" style="background:linear-gradient(135deg,var(--pln-yellow),var(--pln-yellow-deep));color:var(--ink-900);border:none;border-radius:var(--radius-xs);padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(255,184,0,0.35)" title="Rekapitulasi Rabas &amp; Tebang Tim ROW per ULP, sesuai format resmi, siap kirim (baris dikunci)">🌳 Rekap ROW</button>
           <button onclick="exportHasilVerifikasiPDF()" style="background:linear-gradient(135deg,#DC3545,#B02A37);color:#fff;border:none;border-radius:var(--radius-xs);padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(220,53,69,0.25)">📄 Export PDF</button>
           <button onclick="exportHasilVerifikasiExcel()" style="background:linear-gradient(135deg,#1A8C3C,#136B2E);color:#fff;border:none;border-radius:var(--radius-xs);padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(26,140,60,0.25)">📊 Export Excel</button>
         </div>
@@ -2316,9 +2368,41 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
           </select>
         </div>
         <div>
-          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Jenis Pekerjaan</label>
-          <select id="hv-filter-jenis" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:200px">
-            <option value="">Semua Jenis Pekerjaan</option>
+          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Tim/Regu</label>
+          <select id="hv-filter-regu" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:200px">
+            <option value="">Semua Tim/Regu</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Mitra (PT)</label>
+          <select id="hv-filter-mitra" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
+            <option value="">Semua Mitra</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Bulan</label>
+          <select id="hv-filter-bulan" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:160px">
+            <option value="">Semua Bulan</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Penyulang</label>
+          <select id="hv-filter-penyulang" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
+            <option value="">Semua Penyulang</option>
+          </select>
+        </div>
+        <!-- Asal Tim ROW: KHUSUS laporan Tim ROW, field ini beda dari kolom ULP di
+             atas — Asal Tim ROW = ULP asal timnya sendiri (selalu 1 ULP tetap per
+             tim), sedangkan ULP di atas = ULP yang lagi dibantu hari itu (bisa
+             lintas-ULP). Sengaja ditaruh sejajar filter lain di panel ini (bukan
+             lagi di dalam modal Rekap ROW) supaya SEMUA filter, termasuk yang
+             khusus Tim ROW, ada di satu tempat — sama seperti alur Export PDF/Excel
+             biasa: laporan yang tidak punya Asal Tim ROW otomatis tidak ikut kalau
+             filter ini dipilih. -->
+        <div>
+          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Asal Tim ROW</label>
+          <select id="hv-filter-asal" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
+            <option value="">Semua Asal Tim ROW</option>
           </select>
         </div>
         <div style="flex:1;min-width:180px">
@@ -2330,8 +2414,11 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
           <select id="hv-groupby" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:150px">
             <option value="none">Tanpa Kelompok</option>
             <option value="ulp" selected>Per ULP</option>
-            <option value="jenis">Per Jenis Pekerjaan</option>
+            <option value="regu">Per Tim/Regu</option>
             <option value="status">Per Status</option>
+            <option value="mitra">Per Mitra (PT)</option>
+            <option value="bulan">Per Bulan</option>
+            <option value="penyulang">Per Penyulang</option>
           </select>
         </div>
         <div>
@@ -6362,6 +6449,455 @@ window.exportLaporanPDF = function() {
   }
 };
 
+// ══════════════════════════════════════════════════════════════════════
+// EXPORT REKAPITULASI RABAS & TEBANG — TIM ROW (per ULP), mengikuti format
+// resmi TEMPLATE_LAPORAN_RABAS_DAN_TEBANG.xlsx yang dipakai UP3 Jayapura.
+// Beda dari Export Laporan biasa di atas:
+// - SATU SHEET per ULP (hanya ULP yang punya laporan Rabas/Tebang di bulan
+//   terpilih yang dibuatkan sheet-nya), bukan 1 tabel gabungan semua ULP,
+//   karena format resminya memang begitu (1 rekap = 1 ULP/bulan).
+// - Satu baris = satu kombinasi (Tanggal, Regu, Penyulang) di ULP itu;
+//   kriteria K-1..K-5 & Tuntas dijumlahkan dari semua laporan Rabas/Tebang
+//   yang cocok pada kombinasi itu (petugas biasa lapor per-kriteria
+//   terpisah, jadi bisa >1 laporan untuk 1 baris rekap).
+// - Kolom RABAS POHON (GWG) memakai RUMUS Excel (bukan angka statis),
+//   persis pola template resmi: (K1/d1)+(K2/d2)+(K3/d3)+(K4/d4)+K5+Tuntas.
+//   Pembagi (d1..d4) BEDA per kelompok ULP, sesuai catatan di template asli:
+//     ULP Sarmi / Genyem / Arso        → dibagi 6, 6, 4, 4
+//     ULP Jayapura / Abepura / Sentani → dibagi 5, 5, 3, 3
+// - Setiap sheet DIKUNCI (Protect Sheet, opsi "select locked cells" OFF)
+//   supaya baris tabelnya tidak bisa di-select/di-copy oleh penerima.
+//
+// CATATAN PERBAIKAN dari file TEMPLATE_LAPORAN_RABAS_DAN_TEBANG.xlsx asli:
+// pada template sumber, header kolom TEBANG POHON punya 6 kolom (M:R) tapi
+// label "K-2" dobel (harusnya salah satunya "K-3") dan kolom ke-6 tidak
+// pernah dipakai (di data aplikasi/RINCIAN_SATUAN_MAP tidak ada "Tebang
+// Pohon Tuntas", cuma ada Kriteria-1..5). Supaya tidak ikut salah, export
+// ini disederhanakan jadi 5 kolom Tebang Pohon (K-1..K-5) sesuai data yang
+// benar-benar ada, kolom "Jumlah Anggota" pindah tepat setelahnya. Kalau
+// ternyata memang ada maksud lain untuk kolom ke-6 itu, tinggal bilang saja.
+// ══════════════════════════════════════════════════════════════════════
+const REKAP_ROW_ULP_URUTAN = ['ULP Jayapura','ULP Abepura','ULP Sentani','ULP Arso','ULP Genyem','ULP Sarmi'];
+const REKAP_ROW_DIVISOR = {
+  'ULP Sarmi':    [6,6,4,4],
+  'ULP Genyem':   [6,6,4,4],
+  'ULP Arso':     [6,6,4,4],
+  'ULP Jayapura': [5,5,3,3],
+  'ULP Abepura':  [5,5,3,3],
+  'ULP Sentani':  [5,5,3,3],
+};
+const REKAP_ROW_BULAN_NAMA = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+// Klasifikasi 1 laporan: masuk kriteria Rabas/Tebang yang mana. Rincian
+// generik tanpa kriteria ("Rabas Pohon" / "Tebang Pohon" polos) sengaja
+// TIDAK dimasukkan (dihitung di `terlewat`) karena tidak jelas masuk kolom
+// K berapa, supaya rekap tidak salah taruh angka.
+function rekapRowKlasifikasiRincian(rincian) {
+  const s = (rincian || '').trim();
+  let m = /^Rabas Pohon Kriteria-([1-5])$/i.exec(s);
+  if (m) return { jenis: 'rabas', kriteria: +m[1] };
+  if (/^Rabas Pohon Tuntas$/i.test(s)) return { jenis: 'rabas', tuntas: true };
+  m = /^Tebang Pohon Kriteria-([1-5])$/i.exec(s);
+  if (m) return { jenis: 'tebang', kriteria: +m[1] };
+  return null;
+}
+function fmtHariTanggalRow(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][d.getDay()];
+  const p = n => String(n).padStart(2, '0');
+  return `${hari}, ${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`;
+}
+
+// "Jumlah Anggota" di rekap resmi berarti JUMLAH (angka), bukan daftar nama.
+// anggotaHadir dari Laporan Petugas berisi nama-nama dipisah koma/titik-koma/
+// baris baru (sama persis pola split yang dipakai di tempat lain, mis.
+// tampilan kartu petugas), jadi tinggal dihitung jumlah nama yang terisi.
+function hitungJumlahAnggotaRow(anggotaHadir) {
+  if (!anggotaHadir) return 0;
+  return anggotaHadir.split(/\s*[,;•\n]\s*/).map(s => s.trim()).filter(Boolean).length;
+}
+
+// Kumpulan data mentah (raw entries -> grup baris rekap -> per ULP) yang
+// dipakai BERSAMA oleh preview (updateRekapRowPreview) dan export
+// sesungguhnya (generateRekapitulasiRow), supaya keduanya selalu konsisten
+// (apa yang usher lihat di preview = persis apa yang keluar di file Excel).
+function computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter) {
+  // Tombol "Rekap ROW" ada di halaman Hasil Verifikasi, jadi sumber datanya
+  // diambil dari situ (hasilVerifikasiEntries, diisi oleh listenVerifikasi()
+  // yang aktif saat halaman itu dibuka), bukan lagi lastLaporanEntries (yang
+  // cuma terisi kalau halaman Laporan Pekerjaan pernah dibuka).
+  // lastLaporanEntries tetap dipakai sebagai fallback.
+  const semua = (hasilVerifikasiEntries && hasilVerifikasiEntries.length ? hasilVerifikasiEntries : lastLaporanEntries) || [];
+  // grup: key -> { tglKey, waktu, ulp, penyulang, regu, asalTimRow, namaPt, anggotaHadir, rabas:{1..5,tuntas}, tebang:{1..5} }
+  const grup = {};
+  let terlewat = 0;
+  let matchedLaporan = 0;
+  for (const [, l] of semua) {
+    if (!l.waktu) continue;
+    const d = new Date(l.waktu);
+    if (d.getMonth() + 1 !== bulan || d.getFullYear() !== tahun) continue;
+    // Status Verifikasi & Mitra (PT) & Asal Tim ROW: filter export ikut apa
+    // yang aktif di panel Hasil Verifikasi (lihat rekapRowEffectiveFilters()),
+    // diterapkan SEBELUM klasifikasi rincian supaya laporan yang tidak lolos
+    // filter ini juga tidak ikut kena hitungan "terlewat".
+    if (statusFilter && l.statusVerifikasi !== statusFilter) continue;
+    if (mitraFilter && laporanNamaPT(l) !== mitraFilter) continue;
+    // Asal Tim ROW = ULP asal timnya (field terpisah dari ULP efektif/tujuan
+    // di bawah).
+    if (asalFilter && (l.asalTimRow || '') !== asalFilter) continue;
+    const klas = rekapRowKlasifikasiRincian(l.rincian);
+    if (!klas) {
+      if (/^(Rabas|Tebang) Pohon$/i.test((l.rincian || '').trim())) terlewat++;
+      continue;
+    }
+    matchedLaporan++;
+    // ULP efektif: kalau petugas login sbg "PT MITRA", ULP fisiknya ada di
+    // ulpMitra (ULP tujuan kerja), bukan "PT MITRA" itu sendiri.
+    const ulp = laporanUlpEfektif(l);
+    const tglKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const key = tglKey + '|' + ulp + '|' + (l.lapPenyulang || '—') + '|' + (l.regu || '—');
+    if (!grup[key]) {
+      grup[key] = {
+        tglKey, waktu: l.waktu, ulp, penyulang: l.lapPenyulang || '—', regu: l.regu || '—',
+        asalTimRow: l.asalTimRow || '', namaPt: laporanNamaPT(l), anggotaHadir: l.anggotaHadir || '',
+        rabas: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, tuntas: 0 }, tebang: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+      };
+    }
+    const g = grup[key];
+    if (!g.anggotaHadir && l.anggotaHadir) g.anggotaHadir = l.anggotaHadir;
+    if (!g.asalTimRow && l.asalTimRow) g.asalTimRow = l.asalTimRow;
+    if (!g.namaPt && laporanNamaPT(l)) g.namaPt = laporanNamaPT(l);
+    const nilai = parseFloat(l.realisasi) || 0;
+    if (klas.jenis === 'rabas') {
+      if (klas.tuntas) g.rabas.tuntas += nilai; else g.rabas[klas.kriteria] += nilai;
+    } else {
+      g.tebang[klas.kriteria] += nilai;
+    }
+  }
+
+  const semuaGrup = Object.values(grup);
+  const perUlp = {};
+  for (const g of semuaGrup) { (perUlp[g.ulp] = perUlp[g.ulp] || []).push(g); }
+  const urutanUlp = REKAP_ROW_ULP_URUTAN.filter(u => perUlp[u]).concat(Object.keys(perUlp).filter(u => !REKAP_ROW_ULP_URUTAN.includes(u)));
+
+  // Nama PT (mitra pelaksana) per sheet ULP, diambil dari Laporan Petugas,
+  // BUKAN diketik manual. Kalau dalam satu sheet ULP ada lebih dari satu PT
+  // yang lapor (jarang, tapi mungkin), dipakai yang paling sering muncul
+  // supaya kop & tanda tangan tetap konsisten satu nama — dan dikumpulkan
+  // jadi 1 peringatan (warnMultiMitra) supaya usher sadar sebelum export.
+  const mitraInfoPerUlp = {};
+  const warnMultiMitra = [];
+  for (const ulp of urutanUlp) {
+    const hitungMitra = {};
+    perUlp[ulp].forEach(g => { if (g.namaPt) hitungMitra[g.namaPt] = (hitungMitra[g.namaPt] || 0) + 1; });
+    const namaMitraEntries = Object.entries(hitungMitra).sort((a, b) => b[1] - a[1]);
+    const namaMitra = namaMitraEntries.length ? namaMitraEntries[0][0] : '';
+    const isMultiMitra = namaMitraEntries.length > 1;
+    mitraInfoPerUlp[ulp] = { namaMitra, isMultiMitra, namaMitraEntries };
+    if (isMultiMitra) {
+      warnMultiMitra.push(`${ulp}: ${namaMitraEntries.map(([n, c]) => `${n} (${c} baris)`).join(', ')}`);
+    }
+  }
+
+  return { semuaGrup, perUlp, urutanUlp, terlewat, matchedLaporan, mitraInfoPerUlp, warnMultiMitra };
+}
+
+// Status Verifikasi / Mitra (PT) / Asal Tim ROW modal Rekap ROW SELALU ikut
+// filter yang lagi aktif di panel Hasil Verifikasi (satu sumber kebenaran,
+// tidak ada dropdown terpisah lagi di dalam modal). Kalau panel masih
+// "Semua Status", rekap ini tetap default ke "Terverifikasi" (bukan ikut
+// kosong) karena dipakai untuk tanda tangan resmi Manager/Team Leader/PT,
+// jadi harus data yang sudah final — kalau usher memang mau rekap status
+// lain, pilih dulu status itu secara eksplisit di panel.
+function rekapRowEffectiveFilters() {
+  const panelStatus = document.getElementById('hv-filter-status')?.value || '';
+  const panelMitra  = document.getElementById('hv-filter-mitra')?.value || '';
+  const panelAsal   = document.getElementById('hv-filter-asal')?.value || '';
+  return {
+    statusFilter: panelStatus || 'Terverifikasi',
+    statusDefaulted: !panelStatus,
+    mitraFilter: panelMitra,
+    asalFilter: panelAsal
+  };
+}
+
+// Badge kecil buat 1 filter di ringkasan modal Rekap ROW ("Preview & Konfirmasi").
+function rekapRowBadge(label, value, extraNote) {
+  const isSemua = !value;
+  return `<span style="display:inline-flex;align-items:center;gap:4px;background:${isSemua ? 'rgba(0,0,0,0.05)' : 'rgba(0,87,184,0.1)'};color:${isSemua ? 'var(--text-2)' : 'var(--pln-blue)'};border:1px solid ${isSemua ? 'var(--line)' : 'rgba(0,87,184,0.25)'};border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600">${esc(label)}: ${esc(value || 'Semua')}${extraNote ? ` <span style="opacity:.7;font-weight:500">(${esc(extraNote)})</span>` : ''}</span>`;
+}
+
+window.bukaModalRekapRow = function() {
+  const now = new Date();
+  const selB = document.getElementById('rekapRowBulan');
+  const selT = document.getElementById('rekapRowTahun');
+  if (selB.options.length === 0) {
+    selB.innerHTML = REKAP_ROW_BULAN_NAMA.map((b,i) => `<option value="${i+1}">${b}</option>`).join('');
+  }
+  if (selT.options.length === 0) {
+    const y = now.getFullYear();
+    selT.innerHTML = [y-1,y,y+1].map(t => `<option value="${t}">${t}</option>`).join('');
+  }
+  selB.value = String(now.getMonth()+1);
+  selT.value = String(now.getFullYear());
+
+  document.getElementById('rekapRowErr').style.display = 'none';
+  document.getElementById('modal-rekap-row').style.display = 'flex';
+  updateRekapRowPreview();
+};
+window.tutupModalRekapRow = function() {
+  document.getElementById('modal-rekap-row').style.display = 'none';
+};
+
+// Modal ini sekarang "Preview & Konfirmasi": bagian atas cuma nunjukin
+// ringkasan filter yang aktif di panel (badge, tidak bisa diubah di sini)
+// + preview hasil (berapa laporan match, berapa sheet ULP, warning multi-
+// mitra) — dipanggil ulang tiap Bulan/Tahun diganti, TANPA reset dropdown
+// Bulan/Tahun itu sendiri.
+window.updateRekapRowPreview = function() {
+  const bulan = parseInt(document.getElementById('rekapRowBulan').value, 10);
+  const tahun = parseInt(document.getElementById('rekapRowTahun').value, 10);
+  const f = rekapRowEffectiveFilters();
+
+  const badgeWrap = document.getElementById('rekapRowFilterBadges');
+  badgeWrap.innerHTML =
+    rekapRowBadge('Status Verifikasi', f.statusFilter, f.statusDefaulted ? 'default aman, panel: Semua Status' : '') +
+    rekapRowBadge('Mitra (PT)', f.mitraFilter) +
+    rekapRowBadge('Asal Tim ROW', f.asalFilter);
+  document.getElementById('rekapRowFilterNote').textContent =
+    'Mengikuti filter yang sedang aktif di panel Hasil Verifikasi. Mau ganti? Tutup modal ini, ubah di panel, lalu buka lagi.';
+
+  const data = computeRekapRowData(bulan, tahun, f.statusFilter, f.mitraFilter, f.asalFilter);
+  const prevEl = document.getElementById('rekapRowPreview');
+  const btn = document.getElementById('rekapRowSubmitBtn');
+
+  if (data.semuaGrup.length === 0) {
+    prevEl.innerHTML = `<span style="color:var(--crit)">⚠ Tidak ada laporan Rabas/Tebang Tim ROW yang cocok untuk <b>${REKAP_ROW_BULAN_NAMA[bulan-1]} ${tahun}</b> dengan filter di atas.</span> Coba ganti Bulan/Tahun, atau longgarkan filter Status/Mitra/Asal Tim ROW di panel Hasil Verifikasi.`;
+    if (btn) { btn.disabled = true; btn.style.opacity = 0.5; btn.style.cursor = 'not-allowed'; }
+    return;
+  }
+  if (btn) { btn.disabled = false; btn.style.opacity = 1; btn.style.cursor = 'pointer'; }
+
+  let html = `✅ <b>${data.matchedLaporan} laporan</b> cocok → digabung jadi <b>${data.semuaGrup.length} baris</b> rekap, tersebar di <b>${data.urutanUlp.length} sheet ULP</b> (${data.urutanUlp.join(', ')}).`;
+  if (data.terlewat > 0) html += `<br><span style="color:var(--text-3)">${data.terlewat} laporan Rabas/Tebang tanpa kriteria spesifik akan dilewati (tidak masuk rekap).</span>`;
+  if (data.warnMultiMitra.length > 0) html += `<br><span style="color:#B8860B">⚠ ${data.warnMultiMitra.length} sheet ULP tercampur &gt;1 mitra: ${esc(data.warnMultiMitra.join(' | '))}. Cek dulu sebelum export, atau sempitkan filter Mitra (PT) di panel.</span>`;
+  prevEl.innerHTML = html;
+};
+
+window.generateRekapitulasiRow = async function() {
+  const bulan = parseInt(document.getElementById('rekapRowBulan').value, 10);
+  const tahun = parseInt(document.getElementById('rekapRowTahun').value, 10);
+  const f = rekapRowEffectiveFilters();
+  const statusFilter = f.statusFilter; // '' tidak mungkin lagi, selalu ada default 'Terverifikasi'
+  const mitraFilter  = f.mitraFilter;  // '' = Semua Mitra
+  const asalFilter   = f.asalFilter;   // '' = Semua Asal Tim ROW
+  const errEl = document.getElementById('rekapRowErr');
+  errEl.style.display = 'none';
+  if (typeof ExcelJS === 'undefined') { errEl.textContent = 'Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.'; errEl.style.display = 'block'; return; }
+
+  const data = computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter);
+  const { semuaGrup, perUlp, urutanUlp, terlewat, warnMultiMitra, mitraInfoPerUlp } = data;
+
+  if (semuaGrup.length === 0) {
+    let pesanKosong = `Tidak ada laporan Rabas/Tebang Pohon Tim ROW pada ${REKAP_ROW_BULAN_NAMA[bulan - 1]} ${tahun}`;
+    if (statusFilter) pesanKosong += ` dengan status "${statusFilter}"`;
+    if (mitraFilter) pesanKosong += ` dari mitra "${mitraFilter}"`;
+    if (asalFilter) pesanKosong += ` asal Tim ROW "${asalFilter}"`;
+    pesanKosong += '. Coba ganti Bulan/Tahun di atas, atau longgarkan filter Status/Mitra/Asal Tim ROW di panel Hasil Verifikasi.';
+    errEl.textContent = pesanKosong;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const wb = new ExcelJS.Workbook();
+    // Paksa aplikasi office (Excel/LibreOffice/WPS) mengkalkulasi ulang semua
+    // formula begitu file dibuka, sebagai jaring pengaman tambahan di luar
+    // cached `result` yang sudah ditulis langsung ke tiap formula (lihat
+    // kolom GWG & baris TOTAL di bawah) — jadi dobel aman: yang tidak
+    // recalculate tetap kelihatan angkanya (dari cache), yang recalculate
+    // pun hasilnya taruh sama.
+    wb.calcProperties.fullCalcOnLoad = true;
+    const thin = { style: 'thin', color: { argb: 'FF9AA7B8' } };
+    const border = { top: thin, bottom: thin, left: thin, right: thin };
+    const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003D82' } };
+    const headerFont = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10.5 };
+    const bannerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0057B8' } };
+
+    for (const ulp of urutanUlp) {
+      const rows = perUlp[ulp].sort((a, b) => a.tglKey.localeCompare(b.tglKey) || a.penyulang.localeCompare(b.penyulang) || a.regu.localeCompare(b.regu));
+      const div = REKAP_ROW_DIVISOR[ulp] || [5, 5, 3, 3]; // default kalau ada ULP di luar 6 ULP UP3 Jayapura
+      const namaSheet = (ulp.replace('ULP ', '') || 'ULP').slice(0, 28);
+      const ws = wb.addWorksheet(namaSheet, { properties: { defaultColWidth: 12 } });
+
+      // Nama PT & status multi-mitra sudah dihitung sekali di computeRekapRowData()
+      // (dipakai bareng sama preview), tinggal dibaca di sini.
+      const { namaMitra, isMultiMitra, namaMitraEntries } = mitraInfoPerUlp[ulp];
+
+      ws.columns = [
+        { key: 'no', width: 5 }, { key: 'tgl', width: 16 }, { key: 'asal', width: 16 },
+        { key: 'peny', width: 20 }, { key: 'ulp', width: 14 },
+        { key: 'gwg', width: 10 }, { key: 'k1', width: 7 }, { key: 'k2', width: 7 }, { key: 'k3', width: 7 }, { key: 'k4', width: 7 }, { key: 'k5', width: 7 }, { key: 'tuntas', width: 12 },
+        { key: 'tk1', width: 7 }, { key: 'tk2', width: 7 }, { key: 'tk3', width: 7 }, { key: 'tk4', width: 7 }, { key: 'tk5', width: 7 },
+        { key: 'anggota', width: 13 }
+      ];
+
+      ws.mergeCells('A1:R1');
+      ws.getCell('A1').value = `REKAPITULASI HARIAN PEKERJAAN RABAS DAN TEBANG BULAN ${REKAP_ROW_BULAN_NAMA[bulan - 1].toUpperCase()} ${ulp.toUpperCase()} TAHUN ${tahun}`;
+      ws.getCell('A1').font = { bold: true, size: 12 };
+      ws.getCell('A1').alignment = { horizontal: 'center' };
+      ws.mergeCells('A2:R2');
+      // Kalau sheet ULP ini tercampur >1 mitra (jarang, tapi mungkin), kop
+      // sengaja diberi tanda peringatan supaya usher tidak salah kirim rekap
+      // dengan nama PT yang belum tentu benar (bukan diam-diam pakai mitra
+      // yang paling sering muncul saja). Ringkasan lengkapnya ada di
+      // peringatan setelah file selesai diunduh.
+      ws.getCell('A2').value = isMultiMitra
+        ? `⚠ TERCAMPUR ${namaMitraEntries.length} MITRA — cek ulang / pakai filter Mitra (PT) sebelum export (PT. ${namaMitra} paling banyak)`
+        : (namaMitra ? `PT. ${namaMitra}` : 'PT. ..........................');
+      ws.getCell('A2').alignment = { horizontal: 'center' };
+      ws.getCell('A2').font = isMultiMitra ? { bold: true, color: { argb: 'FFC0293C' } } : undefined;
+      ws.getRow(1).height = 20;
+      ws.getRow(2).height = 16;
+
+      ws.mergeCells('A3:A4'); ws.getCell('A3').value = 'NO';
+      ws.mergeCells('B3:B4'); ws.getCell('B3').value = 'HARI/TANGGAL';
+      ws.mergeCells('C3:C4'); ws.getCell('C3').value = 'ASAL TIM ROW';
+      ws.mergeCells('D3:D4'); ws.getCell('D3').value = 'NAMA PENYULANG';
+      ws.mergeCells('E3:E4'); ws.getCell('E3').value = 'NAMA ULP';
+      ws.mergeCells('F3:F4'); ws.getCell('F3').value = 'RABAS POHON\n(GWG)';
+      ws.mergeCells('G3:L3'); ws.getCell('G3').value = 'RABAS POHON';
+      ws.mergeCells('M3:Q3'); ws.getCell('M3').value = 'TEBANG POHON';
+      ws.mergeCells('R3:R4'); ws.getCell('R3').value = 'JUMLAH ANGGOTA';
+      ['G','H','I','J','K','L'].forEach((c, i) => { ws.getCell(c + '4').value = ['K-1','K-2','K-3','K-4','K-5','RABAS TUNTAS'][i]; });
+      ['M','N','O','P','Q'].forEach((c, i) => { ws.getCell(c + '4').value = ['K-1','K-2','K-3','K-4','K-5'][i]; });
+
+      for (let r = 3; r <= 4; r++) {
+        for (let c = 1; c <= 18; c++) {
+          const cell = ws.getRow(r).getCell(c);
+          cell.font = headerFont;
+          cell.fill = (r === 3 && c >= 7 && c <= 17) ? bannerFill : headerFill;
+          cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+          cell.border = border;
+        }
+      }
+      ws.getRow(3).height = 20;
+      ws.getRow(4).height = 26;
+
+      let rIdx = 5;
+      const gwgValues = []; // dipakai buat cached result baris TOTAL (lihat catatan di bawah)
+      rows.forEach((g, i) => {
+        const row = ws.getRow(rIdx);
+        row.getCell(1).value = i + 1;
+        row.getCell(2).value = fmtHariTanggalRow(g.waktu);
+        row.getCell(3).value = g.asalTimRow || '-';
+        row.getCell(4).value = g.penyulang;
+        row.getCell(5).value = ulp;
+        // GWG dihitung juga di JS (bukan cuma ditulis sebagai formula Excel)
+        // supaya nilainya LANGSUNG kelihatan begitu file dibuka, tanpa
+        // tergantung aplikasi pembukanya mau recalculate formula atau tidak
+        // (banyak viewer, termasuk beberapa preview/quick-look & Excel Online
+        // versi tertentu, tidak auto-recalculate formula tanpa cached result,
+        // jadi kolom GWG kelihatan kosong meski datanya sebenarnya ada).
+        // `result` di bawah ini ADALAH nilai cache itu; formula-nya tetap ada
+        // supaya kalau usher edit angka K-1..K-5 manual di Excel, GWG ikut
+        // otomatis kalkulasi ulang seperti biasa.
+        const gwgVal = (g.rabas[1] / div[0]) + (g.rabas[2] / div[1]) + (g.rabas[3] / div[2]) + (g.rabas[4] / div[3]) + g.rabas[5] + g.rabas.tuntas;
+        gwgValues.push(gwgVal);
+        row.getCell(6).value = { formula: `(G${rIdx}/${div[0]})+(H${rIdx}/${div[1]})+(I${rIdx}/${div[2]})+(J${rIdx}/${div[3]})+(K${rIdx})+(L${rIdx})`, result: gwgVal };
+        row.getCell(7).value = g.rabas[1]; row.getCell(8).value = g.rabas[2]; row.getCell(9).value = g.rabas[3];
+        row.getCell(10).value = g.rabas[4]; row.getCell(11).value = g.rabas[5]; row.getCell(12).value = g.rabas.tuntas;
+        row.getCell(13).value = g.tebang[1]; row.getCell(14).value = g.tebang[2]; row.getCell(15).value = g.tebang[3];
+        row.getCell(16).value = g.tebang[4]; row.getCell(17).value = g.tebang[5];
+        row.getCell(18).value = hitungJumlahAnggotaRow(g.anggotaHadir);
+        for (let c = 1; c <= 18; c++) {
+          const cell = row.getCell(c);
+          cell.border = border;
+          cell.alignment = { vertical: 'middle', horizontal: c <= 5 ? 'left' : 'center' };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF2F5FA' : 'FFFFFFFF' } };
+          cell.font = { size: 10 };
+        }
+        rIdx++;
+      });
+
+      const baseRow = rIdx;
+      const totalRow = ws.getRow(baseRow);
+      ws.mergeCells(`A${baseRow}:E${baseRow}`);
+      totalRow.getCell(1).value = 'TOTAL';
+      // Sama seperti GWG per baris di atas: total tiap kolom juga dihitung
+      // langsung di JS jadi cached `result`, bukan cuma formula SUM() polos,
+      // supaya baris TOTAL juga langsung kelihatan angkanya begitu dibuka.
+      const totalSumCol = (colIdx) => rows.reduce((sum, g, i) => {
+        if (colIdx === 6) return sum + gwgValues[i];
+        if (colIdx === 7) return sum + g.rabas[1]; if (colIdx === 8) return sum + g.rabas[2];
+        if (colIdx === 9) return sum + g.rabas[3]; if (colIdx === 10) return sum + g.rabas[4];
+        if (colIdx === 11) return sum + g.rabas[5]; if (colIdx === 12) return sum + g.rabas.tuntas;
+        if (colIdx === 13) return sum + g.tebang[1]; if (colIdx === 14) return sum + g.tebang[2];
+        if (colIdx === 15) return sum + g.tebang[3]; if (colIdx === 16) return sum + g.tebang[4];
+        if (colIdx === 17) return sum + g.tebang[5];
+        return sum;
+      }, 0);
+      const totalColLetters = ['F','G','H','I','J','K','L','M','N','O','P','Q'];
+      totalColLetters.forEach((col, idx) => {
+        const colIdx = idx + 6; // F=6 .. Q=17
+        totalRow.getCell(col).value = { formula: `SUM(${col}5:${col}${baseRow - 1})`, result: totalSumCol(colIdx) };
+      });
+      for (let c = 1; c <= 18; c++) {
+        const cell = totalRow.getCell(c);
+        cell.font = { bold: true, size: 10.5 };
+        cell.border = border;
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7ECF4' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      }
+      rIdx += 2;
+
+      const ttdBaris = rIdx;
+      const ttd = [
+        ['D', 'E', 'Mengetahui,', 'Asman Jaringan dan Konstruksi'],
+        ['G', 'H', 'Mengetahui,', `Manager ${ulp}`],
+        ['J', 'L', 'Pemeriksa,', `Team Leader ${ulp}`],
+        ['N', 'Q', 'Pelaksana,', namaMitra ? `PT. ${namaMitra}` : 'PT...']
+      ];
+      ttd.forEach(([colStart, colEnd, l1, l2]) => {
+        ws.mergeCells(`${colStart}${ttdBaris}:${colEnd}${ttdBaris}`);
+        ws.getCell(`${colStart}${ttdBaris}`).value = l1;
+        ws.mergeCells(`${colStart}${ttdBaris + 1}:${colEnd}${ttdBaris + 1}`);
+        ws.getCell(`${colStart}${ttdBaris + 1}`).value = l2;
+        ws.mergeCells(`${colStart}${ttdBaris + 5}:${colEnd}${ttdBaris + 5}`);
+        ws.getCell(`${colStart}${ttdBaris + 5}`).value = '.............';
+        [ttdBaris, ttdBaris + 1, ttdBaris + 5].forEach(rr => { ws.getCell(`${colStart}${rr}`).alignment = { horizontal: 'center' }; });
+      });
+
+      // KUNCI SHEET: semua sel bawaan ExcelJS locked=true, proteksi TANPA opsi
+      // "select locked cells" → tabel tidak bisa di-select sama sekali,
+      // sehingga tidak bisa di-copy (Ctrl+C) oleh siapa pun yang membuka file.
+      await ws.protect('', {
+        selectLockedCells: false,
+        selectUnlockedCells: false,
+        formatCells: false, formatColumns: false, formatRows: false,
+        insertRows: false, insertColumns: false, deleteRows: false, deleteColumns: false,
+        sort: false, autoFilter: false, pivotTables: false
+      });
+    }
+
+    const namaFile = `Rekapitulasi_Rabas_Tebang_TimROW_${REKAP_ROW_BULAN_NAMA[bulan - 1]}${tahun}_${fmtFileStamp()}.xlsx`;
+    await ejUnduhWorkbook(wb, namaFile);
+    tutupModalRekapRow();
+    let pesan = `Rekapitulasi ${urutanUlp.length} ULP berhasil diunduh.`;
+    if (terlewat > 0) pesan += ` (${terlewat} laporan Rabas/Tebang tanpa kriteria spesifik dilewati, tidak masuk rekap.)`;
+    showToast(pesan, 'ok');
+    // Peringatan terpisah (bukan digabung ke toast "berhasil" di atas) supaya
+    // tetap kelihatan jelas meski toast utamanya sudah hilang duluan.
+    if (warnMultiMitra.length > 0) {
+      showToast(`Sheet tercampur >1 mitra, cek kop tiap sheet: ${warnMultiMitra.join(' | ')}`, 'warn', 9000);
+    }
+  } catch (e) {
+    errEl.textContent = 'Gagal membuat rekapitulasi: ' + e.message;
+    errEl.style.display = 'block';
+  }
+};
+
 // ── Edit Laporan (TL/Admin/Admin), #8: edit pasca-verifikasi wajib verifikasi ulang ──
 let currentEditLaporanId = null;
 let currentEditLaporanData = null;
@@ -8155,8 +8691,7 @@ function renderVerifikasiGrid() {
     return `<div class="laporan-card">
       <div class="laporan-card-header">
         <div style="flex:1;min-width:0">
-          <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${esc(l.ulp)||''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
-          <div class="laporan-card-meta" style="margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">${tiketBadge} ${statusBadge}</div>
+          <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${esc(l.ulp)||''}${l.asalTimRow ? ' · ↔ asal ' + esc(l.asalTimRow) : ''}${l.ulpMitra ? ' · 🏗️ untuk ' + esc(l.ulpMitra) : ''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
           <div class="laporan-card-meta">${waktu}</div>
         </div>
         ${delBtn}
@@ -8229,31 +8764,107 @@ function listenVerifikasi() {
 // ══════════════════════════════════════
 let hasilVerifikasiEntries = [];
 
+// Nama PT (perusahaan mitra) HANYA valid kalau petugas login dengan Unit
+// Kerja = "PT MITRA" — di kondisi itu, field Regu/Tim yang mereka isi berisi
+// nama PT-nya sendiri (bukan "asal Tim ROW", yang isinya ULP asal, dan bukan
+// juga field ulpMitra, yang isinya ULP TUJUAN kerja PT itu hari ini).
+// Lihat field-ulp-mitra & field-asal-timrow di petugas.html.
+// Nama PT (perusahaan mitra) bisa datang dari 2 pola data yang sama-sama
+// dipakai di lapangan:
+// 1) Petugas login dengan Unit Kerja = "PT MITRA" -> Regu/Tim yang mereka
+//    isi ADALAH nama PT-nya sendiri (mekanisme khusus PT MITRA, lihat
+//    field-ulp-mitra di petugas.html).
+// 2) Tim ROW yang login langsung di bawah ULP asli (bukan "PT MITRA"),
+//    dengan nama Regu/Tim berpola "Tim ROW <Nama PT>" (mis. "Tim ROW PT
+//    Intrabes") -> nama PT diambil dari teks setelah kata "ROW".
+function laporanNamaPT(l) {
+  if (!l) return '';
+  if (l.ulp === 'PT MITRA') return l.regu || '';
+  const regu = (l.regu || '').trim();
+  const m = /\bROW\b\s*[-–:]?\s*(.+)$/i.exec(regu);
+  return m ? m[1].trim() : '';
+}
+// ULP efektif tempat pekerjaan itu benar-benar dilakukan: kalau Unit Kerja
+// petugas "PT MITRA", ULP fisiknya ada di ulpMitra (ULP tujuan), bukan
+// "PT MITRA" itu sendiri (yang bukan ULP asli).
+function laporanUlpEfektif(l) {
+  if (!l) return '—';
+  return (l.ulp === 'PT MITRA' ? l.ulpMitra : l.ulp) || '—';
+}
+
+// Kunci "Bulan" cuma nomor bulan (1-12), TANPA tahun — sesuai permintaan,
+// filter Bulan ini menggabungkan semua tahun jadi satu opsi per nama bulan
+// (mis. semua laporan Agustus, dari tahun manapun, masuk satu filter
+// "Agustus"). Kalau nanti perlu dipisah per tahun juga, tinggal ganti balik
+// ke kunci M-YYYY.
+function hvBulanKey(waktu) {
+  if (!waktu) return null;
+  return new Date(waktu).getMonth() + 1;
+}
+function hvBulanLabel(key) {
+  return REKAP_ROW_BULAN_NAMA[key - 1];
+}
+
 function populateHasilVerifikasiFilters(entries) {
   const processed = entries.filter(([, l]) => !!l.statusVerifikasi);
-  const ulpSel   = document.getElementById('hv-filter-ulp');
-  const jenisSel = document.getElementById('hv-filter-jenis');
-  if (!ulpSel || !jenisSel) return;
+  const ulpSel      = document.getElementById('hv-filter-ulp');
+  const reguSel      = document.getElementById('hv-filter-regu');
+  const mitraSel     = document.getElementById('hv-filter-mitra');
+  const bulanSel     = document.getElementById('hv-filter-bulan');
+  const penyulangSel = document.getElementById('hv-filter-penyulang');
+  const asalSel      = document.getElementById('hv-filter-asal');
+  if (!ulpSel || !reguSel || !mitraSel || !bulanSel || !penyulangSel || !asalSel) return;
 
-  const keepUlp   = ulpSel.value;
-  const keepJenis = jenisSel.value;
+  const keepUlp       = ulpSel.value;
+  const keepRegu       = reguSel.value;
+  const keepMitra      = mitraSel.value;
+  const keepBulan      = bulanSel.value;
+  const keepPenyulang  = penyulangSel.value;
+  const keepAsal       = asalSel.value;
 
-  const ulpSet   = [...new Set(processed.map(([, l]) => l.ulp).filter(Boolean))].sort();
-  const jenisSet = [...new Set(processed.map(([, l]) => l.rincian).filter(Boolean))].sort();
+  const ulpSet       = [...new Set(processed.map(([, l]) => l.ulp).filter(Boolean))].sort();
+  const reguSet       = [...new Set(processed.map(([, l]) => l.regu).filter(Boolean))].sort();
+  // Mitra (PT) & Penyulang, sama seperti field lain di Hasil Verifikasi,
+  // diambil langsung dari data Laporan yang dikirim Petugas (l.ulpMitra /
+  // l.lapPenyulang), bukan input manual terpisah.
+  const mitraSet      = [...new Set(processed.map(([, l]) => laporanNamaPT(l)).filter(Boolean))].sort();
+  const penyulangSet  = [...new Set(processed.map(([, l]) => l.lapPenyulang).filter(Boolean))].sort();
+  // Asal Tim ROW: daftar ULP asal (l.asalTimRow), BEDA dari daftar ULP tujuan
+  // di atas (l.ulp). Cuma laporan Tim ROW yang punya nilai ini.
+  const asalSet       = [...new Set(processed.map(([, l]) => l.asalTimRow).filter(Boolean))].sort();
+  // Bulan: hanya nomor bulan (1-12), diurutkan Januari -> Desember, tanpa tahun.
+  const bulanKeys     = [...new Set(processed.map(([, l]) => hvBulanKey(l.waktu)).filter(Boolean))]
+    .sort((a, b) => a - b);
 
   ulpSel.innerHTML = '<option value="">Semua ULP</option>' +
     ulpSet.map(u => `<option value="${u}">${u}</option>`).join('');
-  jenisSel.innerHTML = '<option value="">Semua Jenis Pekerjaan</option>' +
-    jenisSet.map(j => `<option value="${j.replace(/"/g,'&quot;')}">${j}</option>`).join('');
+  reguSel.innerHTML = '<option value="">Semua Tim/Regu</option>' +
+    reguSet.map(r => `<option value="${r.replace(/"/g,'&quot;')}">${r}</option>`).join('');
+  mitraSel.innerHTML = '<option value="">Semua Mitra</option>' +
+    mitraSet.map(m => `<option value="${m.replace(/"/g,'&quot;')}">${m}</option>`).join('');
+  penyulangSel.innerHTML = '<option value="">Semua Penyulang</option>' +
+    penyulangSet.map(p => `<option value="${p.replace(/"/g,'&quot;')}">${p}</option>`).join('');
+  asalSel.innerHTML = '<option value="">Semua Asal Tim ROW</option>' +
+    asalSet.map(a => `<option value="${a.replace(/"/g,'&quot;')}">${a}</option>`).join('');
+  bulanSel.innerHTML = '<option value="">Semua Bulan</option>' +
+    bulanKeys.map(k => `<option value="${k}">${hvBulanLabel(k)}</option>`).join('');
 
   if (ulpSet.includes(keepUlp)) ulpSel.value = keepUlp;
-  if (jenisSet.includes(keepJenis)) jenisSel.value = keepJenis;
+  if (reguSet.includes(keepRegu)) reguSel.value = keepRegu;
+  if (mitraSet.includes(keepMitra)) mitraSel.value = keepMitra;
+  if (penyulangSet.includes(keepPenyulang)) penyulangSel.value = keepPenyulang;
+  if (asalSet.includes(keepAsal)) asalSel.value = keepAsal;
+  if (bulanKeys.map(String).includes(keepBulan)) bulanSel.value = keepBulan;
 }
 
 window.resetHasilVerifikasiFilter = function() {
   document.getElementById('hv-filter-status').value = '';
   document.getElementById('hv-filter-ulp').value = '';
-  document.getElementById('hv-filter-jenis').value = '';
+  document.getElementById('hv-filter-regu').value = '';
+  document.getElementById('hv-filter-mitra').value = '';
+  document.getElementById('hv-filter-bulan').value = '';
+  document.getElementById('hv-filter-penyulang').value = '';
+  document.getElementById('hv-filter-asal').value = '';
   document.getElementById('hv-filter-search').value = '';
   document.getElementById('hv-groupby').value = 'ulp';
   hasilVerifikasiPage = 1;
@@ -8301,7 +8912,7 @@ function renderHasilVerifikasiCard(id, l) {
   return `<div class="laporan-card">
       <div class="laporan-card-header">
         <div style="flex:1;min-width:0">
-          <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${esc(l.ulp)||''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
+          <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${esc(l.ulp)||''}${l.asalTimRow ? ' · ↔ asal ' + esc(l.asalTimRow) : ''}${l.ulpMitra ? ' · 🏗️ untuk ' + esc(l.ulpMitra) : ''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
           <div class="laporan-card-meta" style="margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">${tiketBadge} ${hvStatusBadge(l.statusVerifikasi)}</div>
           <div class="laporan-card-meta">${waktu}</div>
         </div>
@@ -8319,15 +8930,23 @@ function renderHasilVerifikasiCard(id, l) {
 }
 
 function getHasilVerifikasiFilteredEntries() {
-  const fStatus = document.getElementById('hv-filter-status')?.value || '';
-  const fUlp    = document.getElementById('hv-filter-ulp')?.value || '';
-  const fJenis  = document.getElementById('hv-filter-jenis')?.value || '';
-  const fSearch = (document.getElementById('hv-filter-search')?.value || '').toLowerCase().trim();
+  const fStatus    = document.getElementById('hv-filter-status')?.value || '';
+  const fUlp       = document.getElementById('hv-filter-ulp')?.value || '';
+  const fRegu      = document.getElementById('hv-filter-regu')?.value || '';
+  const fMitra     = document.getElementById('hv-filter-mitra')?.value || '';
+  const fBulan     = document.getElementById('hv-filter-bulan')?.value || '';
+  const fPenyulang = document.getElementById('hv-filter-penyulang')?.value || '';
+  const fAsal      = document.getElementById('hv-filter-asal')?.value || '';
+  const fSearch    = (document.getElementById('hv-filter-search')?.value || '').toLowerCase().trim();
 
   let entries = (hasilVerifikasiEntries || []).filter(([, l]) => !!l.statusVerifikasi);
-  if (fStatus) entries = entries.filter(([, l]) => l.statusVerifikasi === fStatus);
-  if (fUlp)    entries = entries.filter(([, l]) => l.ulp === fUlp);
-  if (fJenis)  entries = entries.filter(([, l]) => l.rincian === fJenis);
+  if (fStatus)    entries = entries.filter(([, l]) => l.statusVerifikasi === fStatus);
+  if (fUlp)       entries = entries.filter(([, l]) => l.ulp === fUlp);
+  if (fRegu)      entries = entries.filter(([, l]) => l.regu === fRegu);
+  if (fMitra)     entries = entries.filter(([, l]) => laporanNamaPT(l) === fMitra);
+  if (fPenyulang) entries = entries.filter(([, l]) => l.lapPenyulang === fPenyulang);
+  if (fAsal)      entries = entries.filter(([, l]) => (l.asalTimRow || '') === fAsal);
+  if (fBulan)     entries = entries.filter(([, l]) => String(hvBulanKey(l.waktu)) === fBulan);
   if (fSearch) entries = entries.filter(([, l]) => {
     const hay = `${l.regu||''} ${l.nomorTiket||''} ${l.rincian||''} ${l.verifCatatan||''} ${l.material||''}`.toLowerCase();
     return hay.includes(fSearch);
@@ -8379,8 +8998,11 @@ window.renderHasilVerifikasiGrid = function() {
     return;
   }
 
-  const groupKeyFn = groupBy === 'ulp'    ? (l => l.ulp || 'Tanpa ULP')
-                    : groupBy === 'jenis' ? (l => l.rincian || 'Tanpa Jenis Pekerjaan')
+  const groupKeyFn = groupBy === 'ulp'       ? (l => l.ulp || 'Tanpa ULP')
+                    : groupBy === 'regu'      ? (l => l.regu || 'Tanpa Tim/Regu')
+                    : groupBy === 'mitra'     ? (l => laporanNamaPT(l) || 'Tanpa Mitra')
+                    : groupBy === 'penyulang' ? (l => l.lapPenyulang || 'Tanpa Penyulang')
+                    : groupBy === 'bulan'     ? (l => { const k = hvBulanKey(l.waktu); return k ? hvBulanLabel(k) : 'Tanpa Waktu'; })
                     : (l => l.statusVerifikasi);
 
   const groups = {};
@@ -8803,7 +9425,7 @@ function riRenderCard(id, l) {
   return `<div class="laporan-card"${cardClickAttr}>
     <div class="laporan-card-header">
       <div style="flex:1;min-width:0">
-        <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${esc(l.ulp)||''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
+        <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${esc(l.ulp)||''}${l.asalTimRow ? ' · ↔ asal ' + esc(l.asalTimRow) : ''}${l.ulpMitra ? ' · 🏗️ untuk ' + esc(l.ulpMitra) : ''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
         <div class="laporan-card-meta" style="margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">${riStatusBadge(l)} ${ageBadge}</div>
         <div class="laporan-card-meta">${waktu}</div>
       </div>
