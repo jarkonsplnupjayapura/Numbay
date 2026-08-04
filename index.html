@@ -6878,20 +6878,40 @@ window.generateRekapitulasiRow = async function() {
       ];
       ttd.forEach(([colStart, colEnd, l1, l2]) => {
         ws.mergeCells(`${colStart}${ttdBaris}:${colEnd}${ttdBaris}`);
-        ws.getCell(`${colStart}${ttdBaris}`).value = l1;
+        const c1 = ws.getCell(`${colStart}${ttdBaris}`);
+        c1.value = l1;
+        c1.font = { bold: true, size: 11 };
         ws.mergeCells(`${colStart}${ttdBaris + 1}:${colEnd}${ttdBaris + 1}`);
-        ws.getCell(`${colStart}${ttdBaris + 1}`).value = l2;
+        const c2 = ws.getCell(`${colStart}${ttdBaris + 1}`);
+        c2.value = l2;
+        c2.font = { bold: false, size: 11 };
         ws.mergeCells(`${colStart}${ttdBaris + 5}:${colEnd}${ttdBaris + 5}`);
-        ws.getCell(`${colStart}${ttdBaris + 5}`).value = '.............';
+        const c3 = ws.getCell(`${colStart}${ttdBaris + 5}`);
+        c3.value = '.............';
+        c3.font = { bold: true, size: 11 };
         [ttdBaris, ttdBaris + 1, ttdBaris + 5].forEach(rr => { ws.getCell(`${colStart}${rr}`).alignment = { horizontal: 'center' }; });
       });
+
+      // Blok tanda tangan (Mengetahui/Pemeriksa/Pelaksana, termasuk baris
+      // kosong di antaranya & baris "............." tempat tanda tangan)
+      // sengaja DIBUKA KUNCINYA (locked=false), beda dari blok tabel di
+      // atas yang tetap terkunci — supaya usher masih bisa mengetik/ubah
+      // nama jabatan atau tempat tanda tangan langsung di Excel setelah
+      // file diunduh.
+      for (let rr = ttdBaris; rr <= ttdBaris + 5; rr++) {
+        for (let c = 1; c <= 18; c++) {
+          ws.getRow(rr).getCell(c).protection = { locked: false };
+        }
+      }
 
       // KUNCI SHEET: semua sel bawaan ExcelJS locked=true, proteksi TANPA opsi
       // "select locked cells" → tabel tidak bisa di-select sama sekali,
       // sehingga tidak bisa di-copy (Ctrl+C) oleh siapa pun yang membuka file.
+      // "select unlocked cells" tetap DIIZINKAN supaya blok tanda tangan di
+      // atas (yang sudah locked=false) masih bisa diklik & diedit.
       await ws.protect('', {
         selectLockedCells: false,
-        selectUnlockedCells: false,
+        selectUnlockedCells: true,
         formatCells: false, formatColumns: false, formatRows: false,
         insertRows: false, insertColumns: false, deleteRows: false, deleteColumns: false,
         sort: false, autoFilter: false, pivotTables: false
