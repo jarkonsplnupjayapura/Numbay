@@ -6870,13 +6870,14 @@ window.generateRekapitulasiRow = async function() {
       rIdx += 2;
 
       const ttdBaris = rIdx;
-      // Kolom "Mengetahui, / Manager ULP..." (G:H) paling sempit dari 4
-      // blok tanda tangan, sedangkan teks "Manager ULP <Nama>" bisa cukup
-      // panjang (mis. "Manager ULP Jayapura") — jadi kolom I (spacer)
-      // dipinjam supaya blok ini jadi G:I, lebih lega.
+      // Kolom "Mengetahui, / Manager ULP..." (awalnya G:H) digeser satu
+      // kolom ke kiri jadi F:H supaya jaraknya ke blok "Asman Jaringan dan
+      // Konstruksi" di sebelah kirinya tidak terlalu lebar (spasi kosong
+      // kolom G3.5 dipakai balik ke blok tanda tangan, bukan dibiarkan
+      // jadi jarak kosong).
       const ttd = [
         ['D', 'E', 'Mengetahui,', 'Asman Jaringan dan Konstruksi'],
-        ['G', 'I', 'Mengetahui,', `Manager ${ulp}`],
+        ['F', 'H', 'Mengetahui,', `Manager ${ulp}`],
         ['J', 'L', 'Pemeriksa,', `Team Leader ${ulp}`],
         ['N', 'Q', 'Pelaksana,', namaMitra ? `PT. ${fmtNamaPTRow(namaMitra)}` : 'PT...']
       ];
@@ -6884,7 +6885,7 @@ window.generateRekapitulasiRow = async function() {
       // PT, sedangkan lebar kolomnya tetap — supaya tidak terpotong, teks
       // di-wrap DAN tinggi baris disesuaikan otomatis mengikuti teks
       // terpanjang di antara ke-4 blok (bukan tinggi baris tetap).
-      const charPerLineRoleRow = 15; // perkiraan kasar jumlah karakter yang muat per baris pada blok tersempit (G:I), font size 11 bold
+      const charPerLineRoleRow = 15; // perkiraan kasar jumlah karakter yang muat per baris pada blok tersempit (F:H), font size 11 bold
       const baseRowHeight = 15;
       let maxLines = 1;
       ttd.forEach(([, , , l2]) => { maxLines = Math.max(maxLines, Math.ceil(l2.length / charPerLineRoleRow)); });
