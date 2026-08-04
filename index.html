@@ -6768,7 +6768,7 @@ window.generateRekapitulasiRow = async function() {
         ? `⚠ TERCAMPUR ${namaMitraEntries.length} MITRA — cek ulang / pakai filter Mitra (PT) sebelum export (PT. ${fmtNamaPTRow(namaMitra)} paling banyak)`
         : (namaMitra ? `PT. ${fmtNamaPTRow(namaMitra)}` : 'PT. ..........................');
       ws.getCell('A2').alignment = { horizontal: 'center' };
-      ws.getCell('A2').font = isMultiMitra ? { bold: true, color: { argb: 'FFC0293C' } } : undefined;
+      ws.getCell('A2').font = isMultiMitra ? { bold: true, color: { argb: 'FFC0293C' } } : { bold: true };
       ws.getRow(1).height = 20;
       ws.getRow(2).height = 16;
 
@@ -6870,12 +6870,25 @@ window.generateRekapitulasiRow = async function() {
       rIdx += 2;
 
       const ttdBaris = rIdx;
+      // Kolom "Mengetahui, / Manager ULP..." (G:H) paling sempit dari 4
+      // blok tanda tangan, sedangkan teks "Manager ULP <Nama>" bisa cukup
+      // panjang (mis. "Manager ULP Jayapura") — jadi kolom I (spacer)
+      // dipinjam supaya blok ini jadi G:I, lebih lega.
       const ttd = [
         ['D', 'E', 'Mengetahui,', 'Asman Jaringan dan Konstruksi'],
-        ['G', 'H', 'Mengetahui,', `Manager ${ulp}`],
+        ['G', 'I', 'Mengetahui,', `Manager ${ulp}`],
         ['J', 'L', 'Pemeriksa,', `Team Leader ${ulp}`],
         ['N', 'Q', 'Pelaksana,', namaMitra ? `PT. ${fmtNamaPTRow(namaMitra)}` : 'PT...']
       ];
+      // Teks baris jabatan/nama panjangnya beda-beda tergantung ULP & nama
+      // PT, sedangkan lebar kolomnya tetap — supaya tidak terpotong, teks
+      // di-wrap DAN tinggi baris disesuaikan otomatis mengikuti teks
+      // terpanjang di antara ke-4 blok (bukan tinggi baris tetap).
+      const charPerLineRoleRow = 15; // perkiraan kasar jumlah karakter yang muat per baris pada blok tersempit (G:I), font size 11 bold
+      const baseRowHeight = 15;
+      let maxLines = 1;
+      ttd.forEach(([, , , l2]) => { maxLines = Math.max(maxLines, Math.ceil(l2.length / charPerLineRoleRow)); });
+
       ttd.forEach(([colStart, colEnd, l1, l2]) => {
         ws.mergeCells(`${colStart}${ttdBaris}:${colEnd}${ttdBaris}`);
         const c1 = ws.getCell(`${colStart}${ttdBaris}`);
@@ -6884,23 +6897,34 @@ window.generateRekapitulasiRow = async function() {
         ws.mergeCells(`${colStart}${ttdBaris + 1}:${colEnd}${ttdBaris + 1}`);
         const c2 = ws.getCell(`${colStart}${ttdBaris + 1}`);
         c2.value = l2;
-        c2.font = { bold: false, size: 11 };
+        c2.font = { bold: true, size: 11 };
+        c2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         ws.mergeCells(`${colStart}${ttdBaris + 5}:${colEnd}${ttdBaris + 5}`);
         const c3 = ws.getCell(`${colStart}${ttdBaris + 5}`);
         c3.value = '.............';
         c3.font = { bold: true, size: 11 };
-        [ttdBaris, ttdBaris + 1, ttdBaris + 5].forEach(rr => { ws.getCell(`${colStart}${rr}`).alignment = { horizontal: 'center' }; });
+        [ttdBaris, ttdBaris + 5].forEach(rr => { ws.getCell(`${colStart}${rr}`).alignment = { horizontal: 'center' }; });
       });
+      // Tinggi baris jabatan/nama (ttdBaris+1) mengikuti teks terpanjang di
+      // antara ke-4 blok, supaya kalau ULP-nya nama panjang (mis. "Manager
+      // ULP Sentani") atau nama PT-nya panjang, teksnya tidak terpotong.
+      ws.getRow(ttdBaris + 1).height = baseRowHeight * maxLines + 6;
 
       // Blok tanda tangan (Mengetahui/Pemeriksa/Pelaksana, termasuk baris
       // kosong di antaranya & baris "............." tempat tanda tangan)
       // sengaja DIBUKA KUNCINYA (locked=false), beda dari blok tabel di
       // atas yang tetap terkunci — supaya usher masih bisa mengetik/ubah
       // nama jabatan atau tempat tanda tangan langsung di Excel setelah
-      // file diunduh.
+      // file diunduh. CATATAN: fitur "unlock sel tertentu di sheet yang
+      // diproteksi" ini bagian dari standar format .xlsx (OOXML) dan
+      // didukung penuh oleh Microsoft Excel asli; sebagian aplikasi lain
+      // (mis. Google Sheets, sebagian versi WPS) kadang tidak sepenuhnya
+      // menghormati pengecualian per-sel ini saat import .xlsx — kalau
+      // masih tidak bisa diedit, coba buka file-nya langsung di Microsoft
+      // Excel (bukan preview/aplikasi office online lain).
       for (let rr = ttdBaris; rr <= ttdBaris + 5; rr++) {
         for (let c = 1; c <= 18; c++) {
-          ws.getRow(rr).getCell(c).protection = { locked: false };
+          ws.getRow(rr).getCell(c).protection = { locked: false, hidden: false };
         }
       }
 
