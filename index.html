@@ -6518,6 +6518,17 @@ function hitungJumlahAnggotaRow(anggotaHadir) {
   return anggotaHadir.split(/\s*[,;•\n]\s*/).map(s => s.trim()).filter(Boolean).length;
 }
 
+// Nama PT mentah dari laporanNamaPT() kadang SUDAH mengandung kata "PT"
+// di depannya (mis. dari "Tim ROW PT Intrabes" -> "PT Intrabes"), jadi
+// kalau ditulis lagi sebagai "PT. ${namaMitra}" hasilnya dobel
+// ("PT. PT Intrabes"). Fungsi ini membuang prefix "PT"/"PT."/"PT " yang
+// sudah ada di depan nama supaya kop, tanda tangan, & pesan peringatan
+// selalu konsisten "PT. <Nama>" (cuma sekali).
+function fmtNamaPTRow(namaMitra) {
+  if (!namaMitra) return '';
+  return namaMitra.trim().replace(/^PT\.?\s+/i, '');
+}
+
 // Kumpulan data mentah (raw entries -> grup baris rekap -> per ULP) yang
 // dipakai BERSAMA oleh preview (updateRekapRowPreview) dan export
 // sesungguhnya (generateRekapitulasiRow), supaya keduanya selalu konsisten
@@ -6596,7 +6607,7 @@ function computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter
     const isMultiMitra = namaMitraEntries.length > 1;
     mitraInfoPerUlp[ulp] = { namaMitra, isMultiMitra, namaMitraEntries };
     if (isMultiMitra) {
-      warnMultiMitra.push(`${ulp}: ${namaMitraEntries.map(([n, c]) => `${n} (${c} baris)`).join(', ')}`);
+      warnMultiMitra.push(`${ulp}: ${namaMitraEntries.map(([n, c]) => `PT. ${fmtNamaPTRow(n)} (${c} baris)`).join(', ')}`);
     }
   }
 
@@ -6754,8 +6765,8 @@ window.generateRekapitulasiRow = async function() {
       // yang paling sering muncul saja). Ringkasan lengkapnya ada di
       // peringatan setelah file selesai diunduh.
       ws.getCell('A2').value = isMultiMitra
-        ? `⚠ TERCAMPUR ${namaMitraEntries.length} MITRA — cek ulang / pakai filter Mitra (PT) sebelum export (PT. ${namaMitra} paling banyak)`
-        : (namaMitra ? `PT. ${namaMitra}` : 'PT. ..........................');
+        ? `⚠ TERCAMPUR ${namaMitraEntries.length} MITRA — cek ulang / pakai filter Mitra (PT) sebelum export (PT. ${fmtNamaPTRow(namaMitra)} paling banyak)`
+        : (namaMitra ? `PT. ${fmtNamaPTRow(namaMitra)}` : 'PT. ..........................');
       ws.getCell('A2').alignment = { horizontal: 'center' };
       ws.getCell('A2').font = isMultiMitra ? { bold: true, color: { argb: 'FFC0293C' } } : undefined;
       ws.getRow(1).height = 20;
@@ -6838,9 +6849,15 @@ window.generateRekapitulasiRow = async function() {
         if (colIdx === 17) return sum + g.tebang[5];
         return sum;
       }, 0);
-      const totalColLetters = ['F','G','H','I','J','K','L','M','N','O','P','Q'];
-      totalColLetters.forEach((col, idx) => {
-        const colIdx = idx + 6; // F=6 .. Q=17
+      // Di TEMPLATE_LAPORAN_RABAS_DAN_TEBANG.xlsx asli, baris TOTAL cuma
+      // punya rumus SUM untuk kolom GWG (F) dan Tebang Pohon (M..Q) — kolom
+      // Rabas Pohon K-1..K-5 & Rabas Tuntas (G..L) SENGAJA tidak dijumlah
+      // (cek F13, M13:R13 vs G13:L13 kosong di template). Jadi di sini pun
+      // kolom G..L dilewati, sel-nya tetap ada (bordered) tapi tanpa angka.
+      const totalColLetters = ['F','M','N','O','P','Q'];
+      const totalColIdx = { F: 6, M: 13, N: 14, O: 15, P: 16, Q: 17 };
+      totalColLetters.forEach((col) => {
+        const colIdx = totalColIdx[col];
         totalRow.getCell(col).value = { formula: `SUM(${col}5:${col}${baseRow - 1})`, result: totalSumCol(colIdx) };
       });
       for (let c = 1; c <= 18; c++) {
@@ -6857,7 +6874,7 @@ window.generateRekapitulasiRow = async function() {
         ['D', 'E', 'Mengetahui,', 'Asman Jaringan dan Konstruksi'],
         ['G', 'H', 'Mengetahui,', `Manager ${ulp}`],
         ['J', 'L', 'Pemeriksa,', `Team Leader ${ulp}`],
-        ['N', 'Q', 'Pelaksana,', namaMitra ? `PT. ${namaMitra}` : 'PT...']
+        ['N', 'Q', 'Pelaksana,', namaMitra ? `PT. ${fmtNamaPTRow(namaMitra)}` : 'PT...']
       ];
       ttd.forEach(([colStart, colEnd, l1, l2]) => {
         ws.mergeCells(`${colStart}${ttdBaris}:${colEnd}${ttdBaris}`);
