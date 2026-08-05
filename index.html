@@ -705,6 +705,21 @@ tbody tr:hover td { background: var(--surface-2); }
 @keyframes toast-out { from { opacity: 1; transform: translateX(0); max-height: 200px; margin-bottom: 0; } to { opacity: 0; transform: translateX(24px); max-height: 0; margin-bottom: -10px; } }
 @keyframes toast-shrink { from { width: 100%; } to { width: 0%; } }
 
+/* Kartu "Hasil Verifikasi" yang barusan diubah TL/Admin: karena list ini
+   diurutkan berdasarkan Waktu Verifikasi terbaru, kartu yang barusan disimpan
+   otomatis lompat posisi (biasanya ke atas) begitu tersimpan — highlight +
+   auto-scroll (lihat renderHasilVerifikasiGrid) supaya usher langsung lihat
+   di mana kartunya mendarat, tidak perlu cari-cari sendiri. */
+.hv-just-updated {
+  animation: hv-updated-flash 2.2s ease-out;
+  scroll-margin: 90px;
+}
+@keyframes hv-updated-flash {
+  0%   { box-shadow: 0 0 0 3px rgba(255,184,0,0.9), 0 4px 18px rgba(255,184,0,0.35); }
+  70%  { box-shadow: 0 0 0 3px rgba(255,184,0,0.9), 0 4px 18px rgba(255,184,0,0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(255,184,0,0); }
+}
+
 /* ══════════════════════════════════════
    CONFIRM MODAL, pengganti confirm() bawaan browser
 ══════════════════════════════════════ */
@@ -6505,9 +6520,11 @@ const REKAP_ROW_DIVISOR = {
 const REKAP_ROW_BULAN_NAMA = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
 // Klasifikasi 1 laporan: masuk kriteria Rabas/Tebang yang mana. Rincian
-// generik tanpa kriteria ("Rabas Pohon" / "Tebang Pohon" polos) sengaja
-// TIDAK dimasukkan (dihitung di `terlewat`) karena tidak jelas masuk kolom
-// K berapa, supaya rekap tidak salah taruh angka.
+// generik tanpa kriteria spesifik ("Rabas Pohon" / "Tebang Pohon" polos,
+// petugas tidak pilih Kriteria-1..5) masuk otomatis ke kolom "default"
+// sesuai jenisnya: Rabas Pohon polos -> RABAS TUNTAS, Tebang Pohon polos ->
+// TEBANG POHON K-5. Jadi tidak ada lagi laporan yang hilang/terlewat dari
+// rekap hanya gara-gara petugas tidak sempat pilih kriteria spesifik.
 function rekapRowKlasifikasiRincian(rincian) {
   const s = (rincian || '').trim();
   let m = /^Rabas Pohon Kriteria-([1-5])$/i.exec(s);
@@ -6515,6 +6532,8 @@ function rekapRowKlasifikasiRincian(rincian) {
   if (/^Rabas Pohon Tuntas$/i.test(s)) return { jenis: 'rabas', tuntas: true };
   m = /^Tebang Pohon Kriteria-([1-5])$/i.exec(s);
   if (m) return { jenis: 'tebang', kriteria: +m[1] };
+  if (/^Rabas Pohon$/i.test(s)) return { jenis: 'rabas', tuntas: true };
+  if (/^Tebang Pohon$/i.test(s)) return { jenis: 'tebang', kriteria: 5 };
   return null;
 }
 function fmtHariTanggalRow(ts) {
@@ -6583,7 +6602,9 @@ function computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter
     if (reguFilter && l.regu !== reguFilter) continue;
     const klas = rekapRowKlasifikasiRincian(l.rincian);
     if (!klas) {
-      if (/^(Rabas|Tebang) Pohon$/i.test((l.rincian || '').trim())) terlewat++;
+      // Sekarang "Rabas Pohon"/"Tebang Pohon" polos sudah diklasifikasi
+      // (lihat rekapRowKlasifikasiRincian), jadi yang sampai sini betul-
+      // betul rincian di luar pola Rabas/Tebang ROW (mis. pekerjaan lain).
       continue;
     }
     matchedLaporan++;
@@ -8632,6 +8653,12 @@ window.submitVerifikasi = async function() {
       } catch(e) { console.warn('Auto-tutup tiket gagal:', e.message); }
     }
 
+    // Simpan id laporan yang barusan diubah supaya halaman Hasil Verifikasi
+    // bisa highlight + auto-scroll ke kartunya begitu list ter-render ulang
+    // (list itu diurutkan berdasar Waktu Verifikasi terbaru, jadi kartu yang
+    // barusan disimpan otomatis pindah posisi — lihat renderHasilVerifikasiGrid).
+    window._hvHighlightId = currentVerifId;
+
     tutupModalVerifikasi();
   } catch(e) {
     errEl.textContent = 'Gagal menyimpan: ' + e.message;
@@ -8885,6 +8912,16 @@ function laporanNamaPT(l) {
   const m = /\bROW\b\s*[-–:]?\s*(.+)$/i.exec(regu);
   return m ? m[1].trim() : '';
 }
+// Deteksi "ini laporan Tim ROW atau bukan", PERSIS pola yang sama dipakai
+// petugas.html buat nampilin field wajib "Asal Tim ROW" (lihat toggleAsalTimRowField
+// di petugas.html) — kata "ROW" berdiri sendiri (word boundary) di nama
+// Regu/Tim. Dipakai supaya tab "🌳 Tim ROW" di Hasil Verifikasi benar-benar
+// cuma nampilin laporan Tim ROW, bukan semua laporan tanpa disaring (bug lama:
+// tab itu dulu cuma ganti tampilan filter, tapi datanya tidak ikut disaring,
+// jadi tim lain seperti "Tim Pemeliharaan..." ikut nongol).
+function isLaporanTimRow(l) {
+  return /\bROW\b/i.test((l && l.regu) || '') || (l && l.ulp === 'PT MITRA');
+}
 // ULP efektif tempat pekerjaan itu benar-benar dilakukan: kalau Unit Kerja
 // petugas "PT MITRA", ULP fisiknya ada di ulpMitra (ULP tujuan), bukan
 // "PT MITRA" itu sendiri (yang bukan ULP asli).
@@ -9033,7 +9070,7 @@ function renderHasilVerifikasiCard(id, l) {
       <button onclick="bukaModalVerifikasiById('${id}','hasil')" style="flex:1;background:var(--pln-blue);color:#fff;border:1px solid var(--pln-blue);border-radius:var(--radius-xs);padding:8px 12px;font-size:11.5px;font-weight:700;cursor:pointer">✏️ Ubah Hasil Verifikasi</button>
     </div>`;
 
-  return `<div class="laporan-card">
+  return `<div class="laporan-card" id="hv-card-${id}">
       <div class="laporan-card-header">
         <div style="flex:1;min-width:0">
           <div class="laporan-card-name">👷 ${esc(l.regu)||'—'} <span style="font-weight:400;color:var(--text-3);font-size:11px">${esc(l.ulp)||''}${l.asalTimRow ? ' · ↔ asal ' + esc(l.asalTimRow) : ''}${l.ulpMitra ? ' · 🏗️ untuk ' + esc(l.ulpMitra) : ''}${l.anggotaHadir ? ' · ' + esc(l.anggotaHadir) : ''}</span></div>
@@ -9062,8 +9099,13 @@ function getHasilVerifikasiFilteredEntries() {
   const fPenyulang = document.getElementById('hv-filter-penyulang')?.value || '';
   const fAsal      = document.getElementById('hv-filter-asal')?.value || '';
   const fSearch    = (document.getElementById('hv-filter-search')?.value || '').toLowerCase().trim();
+  // Tab "🌳 Tim ROW" harus benar-benar menyaring datanya (dulu cuma ganti
+  // tampilan filter, isi listnya tetap "Semua Laporan" apa adanya — makanya
+  // tim non-ROW seperti "Tim Pemeliharaan..." ikut nongol). lihat isLaporanTimRow().
+  const isRowTab   = document.getElementById('hv-tab-row')?.classList.contains('active');
 
   let entries = (hasilVerifikasiEntries || []).filter(([, l]) => !!l.statusVerifikasi);
+  if (isRowTab)   entries = entries.filter(([, l]) => isLaporanTimRow(l));
   if (fStatus)    entries = entries.filter(([, l]) => l.statusVerifikasi === fStatus);
   if (fUlp)       entries = entries.filter(([, l]) => l.ulp === fUlp);
   if (fRegu)      entries = entries.filter(([, l]) => l.regu === fRegu);
@@ -9077,6 +9119,25 @@ function getHasilVerifikasiFilteredEntries() {
   });
   entries.sort((a,b) => (b[1].verifWaktu||b[1].waktu||0) - (a[1].verifWaktu||a[1].waktu||0));
   return entries;
+}
+
+// Kartu yang barusan diubah (window._hvHighlightId, diisi oleh
+// simpanVerifikasi/simpanHasilVerifikasi begitu update Firebase berhasil)
+// otomatis pindah posisi karena list ini diurutkan berdasar Waktu Verifikasi
+// terbaru — jadi tiap render, loncat dulu ke halaman yang memuat kartu itu
+// (kalau perlu), lalu setelah kartunya benar-benar ada di DOM, scroll ke
+// situ & kasih highlight sebentar supaya usher tidak bingung cari sendiri.
+function applyHvHighlight() {
+  const targetId = window._hvHighlightId;
+  if (!targetId) return;
+  window._hvHighlightId = null; // konsumsi sekali saja, jangan highlight ulang di render berikutnya
+  requestAnimationFrame(() => {
+    const el = document.getElementById('hv-card-' + targetId);
+    if (!el) return; // tidak ketemu (mis. tersaring keluar oleh filter aktif) -> diamkan saja
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('hv-just-updated');
+    setTimeout(() => el.classList.remove('hv-just-updated'), 2200);
+  });
 }
 
 window.renderHasilVerifikasiGrid = function() {
@@ -9094,6 +9155,14 @@ window.renderHasilVerifikasiGrid = function() {
     wrap.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:13px;">Tidak ada laporan yang cocok dengan filter ini</div>';
     if (pagBar) pagBar.style.display = 'none';
     return;
+  }
+
+  // Kalau ada kartu yang barusan diubah, loncat otomatis ke halaman yang
+  // memuatnya SEBELUM menghitung slice pagination di bawah, supaya usher
+  // tidak perlu klik halaman berikutnya sendiri untuk menemukannya.
+  if (window._hvHighlightId) {
+    const idx = entries.findIndex(([id]) => id === window._hvHighlightId);
+    if (idx >= 0) hasilVerifikasiPage = Math.floor(idx / hasilVerifikasiPageSize) + 1;
   }
 
   // Pagination: hitung total halaman & jaga halaman aktif tetap valid
@@ -9119,6 +9188,7 @@ window.renderHasilVerifikasiGrid = function() {
     wrap.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;">
       ${pageEntries.map(([id, l]) => renderHasilVerifikasiCard(id, l)).join('')}
     </div>`;
+    applyHvHighlight();
     return;
   }
 
@@ -9146,6 +9216,7 @@ window.renderHasilVerifikasiGrid = function() {
       </div>
     </div>
   `).join('');
+  applyHvHighlight();
 };
 
 function renderHasilVerifikasiPaginationControls(totalEntries) {
