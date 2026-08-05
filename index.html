@@ -1696,10 +1696,10 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
     <!-- Modal Rekapitulasi Rabas & Tebang Tim ROW — sekarang berfungsi sebagai
          "Preview & Konfirmasi", BUKAN tempat isi ulang filter dari nol.
-         Status Verifikasi / Mitra (PT) / Asal Tim ROW SELALU ikut apa yang lagi
-         aktif di panel Hasil Verifikasi (satu sumber kebenaran, sama seperti
-         alur Export PDF/Excel biasa) — kalau usher mau ganti, tutup modal ini,
-         ubah filternya di panel, lalu buka lagi. Bulan & Tahun tetap dropdown
+         Status Verifikasi / ULP / Tim-Regu / Mitra (PT) / Asal Tim ROW SELALU
+         ikut apa yang lagi aktif di panel Hasil Verifikasi (satu sumber
+         kebenaran, sama seperti alur Export PDF/Excel biasa) — kalau usher mau
+         ganti, tutup modal ini, ubah filternya di panel, lalu buka lagi. Bulan & Tahun tetap dropdown
          DI SINI (bukan di panel) karena filter "Bulan" di panel sengaja
          menggabung semua tahun jadi satu opsi per nama bulan (lihat hvBulanKey），
          sedangkan rekap resmi ini butuh Bulan+Tahun spesifik untuk judul
@@ -2351,7 +2351,19 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
       <div id="hv-export-progress" style="display:none;margin-top:10px;background:var(--info-bg);color:var(--info);border-radius:var(--radius-xs);padding:9px 13px;font-size:12px;font-weight:600"></div>
 
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;margin-bottom:4px;align-items:flex-end">
+      <!-- Tab "Semua Laporan" vs "Tim ROW": dipisah karena dua kebutuhan beda —
+           audit/cari arsip laporan umum (ULP, Tim/Regu, Penyulang) vs bikin
+           Rekap ROW resmi (Mitra PT, Asal Tim ROW). Filter yang dipakai
+           bersama (Status/Bulan/Cari/Kelompokkan) tetap 1 set elemen saja,
+           cuma filter yang KHUSUS per tab yang ditampilkan/disembunyikan
+           lewat switchHvTab() — supaya tidak ada filter "tersembunyi" yang
+           diam-diam masih aktif waktu ganti tab (langsung direset). -->
+      <div class="tab-bar" style="margin:14px 0 4px 0;margin-left:0">
+        <button class="tab-btn active" id="hv-tab-semua" onclick="switchHvTab('semua')">📋 Semua Laporan</button>
+        <button class="tab-btn" id="hv-tab-row" onclick="switchHvTab('row')">🌳 Tim ROW</button>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:4px;align-items:flex-end">
         <div>
           <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Status</label>
           <select id="hv-filter-status" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
@@ -2361,48 +2373,52 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
             <option value="Ditolak">✕ Ditolak</option>
           </select>
         </div>
-        <div>
-          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">ULP</label>
-          <select id="hv-filter-ulp" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:150px">
-            <option value="">Semua ULP</option>
-          </select>
+
+        <!-- Khusus tab "Semua Laporan" -->
+        <div id="hv-filters-semua-only" style="display:contents">
+          <div>
+            <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">ULP</label>
+            <select id="hv-filter-ulp" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:150px">
+              <option value="">Semua ULP</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Tim/Regu</label>
+            <select id="hv-filter-regu" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:200px">
+              <option value="">Semua Tim/Regu</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Penyulang</label>
+            <select id="hv-filter-penyulang" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
+              <option value="">Semua Penyulang</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Tim/Regu</label>
-          <select id="hv-filter-regu" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:200px">
-            <option value="">Semua Tim/Regu</option>
-          </select>
+
+        <!-- Khusus tab "Tim ROW": Mitra (PT) & Asal Tim ROW dipakai langsung
+             oleh modal Rekap ROW (lihat rekapRowEffectiveFilters()), jadi
+             sengaja disatukan di tab ini juga supaya filter yang kelihatan
+             di layar = filter yang kepakai waktu generate rekap. -->
+        <div id="hv-filters-row-only" style="display:none">
+          <div>
+            <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Mitra (PT)</label>
+            <select id="hv-filter-mitra" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
+              <option value="">Semua Mitra</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Asal Tim ROW</label>
+            <select id="hv-filter-asal" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
+              <option value="">Semua Asal Tim ROW</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Mitra (PT)</label>
-          <select id="hv-filter-mitra" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
-            <option value="">Semua Mitra</option>
-          </select>
-        </div>
+
         <div>
           <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Bulan</label>
           <select id="hv-filter-bulan" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:160px">
             <option value="">Semua Bulan</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Penyulang</label>
-          <select id="hv-filter-penyulang" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
-            <option value="">Semua Penyulang</option>
-          </select>
-        </div>
-        <!-- Asal Tim ROW: KHUSUS laporan Tim ROW, field ini beda dari kolom ULP di
-             atas — Asal Tim ROW = ULP asal timnya sendiri (selalu 1 ULP tetap per
-             tim), sedangkan ULP di atas = ULP yang lagi dibantu hari itu (bisa
-             lintas-ULP). Sengaja ditaruh sejajar filter lain di panel ini (bukan
-             lagi di dalam modal Rekap ROW) supaya SEMUA filter, termasuk yang
-             khusus Tim ROW, ada di satu tempat — sama seperti alur Export PDF/Excel
-             biasa: laporan yang tidak punya Asal Tim ROW otomatis tidak ikut kalau
-             filter ini dipilih. -->
-        <div>
-          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Asal Tim ROW</label>
-          <select id="hv-filter-asal" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
-            <option value="">Semua Asal Tim ROW</option>
           </select>
         </div>
         <div style="flex:1;min-width:180px">
@@ -6533,7 +6549,7 @@ function fmtNamaPTRow(namaMitra) {
 // dipakai BERSAMA oleh preview (updateRekapRowPreview) dan export
 // sesungguhnya (generateRekapitulasiRow), supaya keduanya selalu konsisten
 // (apa yang usher lihat di preview = persis apa yang keluar di file Excel).
-function computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter) {
+function computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter, ulpFilter, reguFilter) {
   // Tombol "Rekap ROW" ada di halaman Hasil Verifikasi, jadi sumber datanya
   // diambil dari situ (hasilVerifikasiEntries, diisi oleh listenVerifikasi()
   // yang aktif saat halaman itu dibuka), bukan lagi lastLaporanEntries (yang
@@ -6557,6 +6573,14 @@ function computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter
     // Asal Tim ROW = ULP asal timnya (field terpisah dari ULP efektif/tujuan
     // di bawah).
     if (asalFilter && (l.asalTimRow || '') !== asalFilter) continue;
+    // ULP (tujuan) & Tim/Regu: dulu 2 filter ini di panel Hasil Verifikasi
+    // TIDAK ikut dibawa ke rekap, jadi kalau usher mempersempit ke satu
+    // ULP/Tim/Regu tertentu di panel (mis. "Tim ROW PT APP"), rekap yang
+    // di-export tetap menarik SEMUA regu lain yang kebetulan sama Asal Tim
+    // ROW-nya -> muncul >1 mitra tercampur padahal panel kelihatan sudah 1
+    // PT saja. Sekarang keduanya ikut jadi satu sumber kebenaran juga.
+    if (ulpFilter && l.ulp !== ulpFilter) continue;
+    if (reguFilter && l.regu !== reguFilter) continue;
     const klas = rekapRowKlasifikasiRincian(l.rincian);
     if (!klas) {
       if (/^(Rabas|Tebang) Pohon$/i.test((l.rincian || '').trim())) terlewat++;
@@ -6614,22 +6638,31 @@ function computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter
   return { semuaGrup, perUlp, urutanUlp, terlewat, matchedLaporan, mitraInfoPerUlp, warnMultiMitra };
 }
 
-// Status Verifikasi / Mitra (PT) / Asal Tim ROW modal Rekap ROW SELALU ikut
-// filter yang lagi aktif di panel Hasil Verifikasi (satu sumber kebenaran,
-// tidak ada dropdown terpisah lagi di dalam modal). Kalau panel masih
-// "Semua Status", rekap ini tetap default ke "Terverifikasi" (bukan ikut
-// kosong) karena dipakai untuk tanda tangan resmi Manager/Team Leader/PT,
-// jadi harus data yang sudah final — kalau usher memang mau rekap status
-// lain, pilih dulu status itu secara eksplisit di panel.
+// Status Verifikasi / ULP / Tim-Regu / Mitra (PT) / Asal Tim ROW modal Rekap
+// ROW SELALU ikut filter yang lagi aktif di panel Hasil Verifikasi (satu
+// sumber kebenaran, tidak ada dropdown terpisah lagi di dalam modal). Kalau
+// panel masih "Semua Status", rekap ini tetap default ke "Terverifikasi"
+// (bukan ikut kosong) karena dipakai untuk tanda tangan resmi Manager/Team
+// Leader/PT, jadi harus data yang sudah final — kalau usher memang mau
+// rekap status lain, pilih dulu status itu secara eksplisit di panel.
+// ULP & Tim/Regu WAJIB ikut juga (sebelumnya tidak), supaya kalau usher
+// mempersempit ke satu Tim/Regu tertentu (mis. "Tim ROW PT APP") di panel,
+// export tidak diam-diam menarik regu lain yang kebetulan Asal Tim ROW-nya
+// sama — itu penyebab peringatan "tercampur >1 mitra" yang salah muncul
+// padahal panel sudah kelihatan 1 PT saja.
 function rekapRowEffectiveFilters() {
   const panelStatus = document.getElementById('hv-filter-status')?.value || '';
   const panelMitra  = document.getElementById('hv-filter-mitra')?.value || '';
   const panelAsal   = document.getElementById('hv-filter-asal')?.value || '';
+  const panelUlp    = document.getElementById('hv-filter-ulp')?.value || '';
+  const panelRegu   = document.getElementById('hv-filter-regu')?.value || '';
   return {
     statusFilter: panelStatus || 'Terverifikasi',
     statusDefaulted: !panelStatus,
     mitraFilter: panelMitra,
-    asalFilter: panelAsal
+    asalFilter: panelAsal,
+    ulpFilter: panelUlp,
+    reguFilter: panelRegu
   };
 }
 
@@ -6674,12 +6707,14 @@ window.updateRekapRowPreview = function() {
   const badgeWrap = document.getElementById('rekapRowFilterBadges');
   badgeWrap.innerHTML =
     rekapRowBadge('Status Verifikasi', f.statusFilter, f.statusDefaulted ? 'default aman, panel: Semua Status' : '') +
+    rekapRowBadge('ULP', f.ulpFilter) +
+    rekapRowBadge('Tim/Regu', f.reguFilter) +
     rekapRowBadge('Mitra (PT)', f.mitraFilter) +
     rekapRowBadge('Asal Tim ROW', f.asalFilter);
   document.getElementById('rekapRowFilterNote').textContent =
     'Mengikuti filter yang sedang aktif di panel Hasil Verifikasi. Mau ganti? Tutup modal ini, ubah di panel, lalu buka lagi.';
 
-  const data = computeRekapRowData(bulan, tahun, f.statusFilter, f.mitraFilter, f.asalFilter);
+  const data = computeRekapRowData(bulan, tahun, f.statusFilter, f.mitraFilter, f.asalFilter, f.ulpFilter, f.reguFilter);
   const prevEl = document.getElementById('rekapRowPreview');
   const btn = document.getElementById('rekapRowSubmitBtn');
 
@@ -6703,19 +6738,23 @@ window.generateRekapitulasiRow = async function() {
   const statusFilter = f.statusFilter; // '' tidak mungkin lagi, selalu ada default 'Terverifikasi'
   const mitraFilter  = f.mitraFilter;  // '' = Semua Mitra
   const asalFilter   = f.asalFilter;   // '' = Semua Asal Tim ROW
+  const ulpFilter    = f.ulpFilter;    // '' = Semua ULP
+  const reguFilter   = f.reguFilter;   // '' = Semua Tim/Regu
   const errEl = document.getElementById('rekapRowErr');
   errEl.style.display = 'none';
   if (typeof ExcelJS === 'undefined') { errEl.textContent = 'Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.'; errEl.style.display = 'block'; return; }
 
-  const data = computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter);
+  const data = computeRekapRowData(bulan, tahun, statusFilter, mitraFilter, asalFilter, ulpFilter, reguFilter);
   const { semuaGrup, perUlp, urutanUlp, terlewat, warnMultiMitra, mitraInfoPerUlp } = data;
 
   if (semuaGrup.length === 0) {
     let pesanKosong = `Tidak ada laporan Rabas/Tebang Pohon Tim ROW pada ${REKAP_ROW_BULAN_NAMA[bulan - 1]} ${tahun}`;
     if (statusFilter) pesanKosong += ` dengan status "${statusFilter}"`;
+    if (ulpFilter) pesanKosong += ` di ULP "${ulpFilter}"`;
+    if (reguFilter) pesanKosong += ` Tim/Regu "${reguFilter}"`;
     if (mitraFilter) pesanKosong += ` dari mitra "${mitraFilter}"`;
     if (asalFilter) pesanKosong += ` asal Tim ROW "${asalFilter}"`;
-    pesanKosong += '. Coba ganti Bulan/Tahun di atas, atau longgarkan filter Status/Mitra/Asal Tim ROW di panel Hasil Verifikasi.';
+    pesanKosong += '. Coba ganti Bulan/Tahun di atas, atau longgarkan filter di panel Hasil Verifikasi.';
     errEl.textContent = pesanKosong;
     errEl.style.display = 'block';
     return;
@@ -8931,6 +8970,29 @@ window.resetHasilVerifikasiFilter = function() {
   document.getElementById('hv-groupby').value = 'ulp';
   hasilVerifikasiPage = 1;
   renderHasilVerifikasiGrid();
+};
+
+// Tab "Semua Laporan" vs "Tim ROW" di panel Hasil Verifikasi: cuma tampilan
+// filter mana yang kelihatan yang berubah (elemen filter yang sama tetap
+// dipakai, tidak digandakan), supaya logika baca filter yang sudah ada
+// (rekapRowEffectiveFilters, renderHasilVerifikasiGrid, dst) tidak perlu
+// diubah. Yang berubah cuma: filter khusus tab yang SEDANG TIDAK aktif
+// otomatis direset ke kosong, supaya tidak ada filter "tersembunyi" yang
+// diam-diam masih menyaring data tanpa disadari usher waktu pindah tab.
+window.switchHvTab = function(tab) {
+  document.getElementById('hv-tab-semua').classList.toggle('active', tab === 'semua');
+  document.getElementById('hv-tab-row').classList.toggle('active', tab === 'row');
+  document.getElementById('hv-filters-semua-only').style.display = tab === 'semua' ? 'contents' : 'none';
+  document.getElementById('hv-filters-row-only').style.display = tab === 'row' ? 'contents' : 'none';
+  if (tab === 'semua') {
+    document.getElementById('hv-filter-mitra').value = '';
+    document.getElementById('hv-filter-asal').value = '';
+  } else {
+    document.getElementById('hv-filter-ulp').value = '';
+    document.getElementById('hv-filter-regu').value = '';
+    document.getElementById('hv-filter-penyulang').value = '';
+  }
+  onHasilVerifikasiFilterChange();
 };
 
 // Filter/kelompok berubah -> selalu kembali ke halaman 1 supaya user tidak
