@@ -1665,7 +1665,7 @@ import { getDatabase, ref, set, get, onValue, update, onDisconnect, serverTimest
 // ══════════════════════════════════════
 // PENTING: naikkan angka ini SETIAP KALI rilis versi baru ke GitHub Releases,
 // dan pastikan tag Release di GitHub sama persis dengan angka ini.
-const CURRENT_VERSION = '1.0.6';
+const CURRENT_VERSION = '1.0.8';
 const GITHUB_REPO = 'jarkonsplnupjayapura/Numbay';
 
 // Update yang sudah selesai diunduh, MENUNGGU dikonfirmasi/diterapkan lewat
@@ -1676,9 +1676,15 @@ let _otaDeferToastShown = false;
 let _otaCountdownInterval = null;
 
 async function cekUpdateOTA() {
+  addLog(`[OTA] Mulai cek update. Versi terpasang: ${CURRENT_VERSION}`, 'info');
   const Updater = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater;
   if (!Updater) {
-    console.log('[OTA] Plugin CapacitorUpdater belum terpasang, lewati pengecekan update.');
+    // PENYEBAB PALING SERING kenapa OTA "diam saja": plugin CapacitorUpdater
+    // belum ada di dalam APK yang sedang terpasang di HP (APK-nya dibuild
+    // SEBELUM fitur OTA ini ditambahkan). Solusinya WAJIB rebuild APK native
+    // sekali lagi (bukan lewat OTA) dan install manual ke HP, baru setelah
+    // itu update berikutnya bisa lewat GitHub Release seperti biasa.
+    addLog('[OTA] Plugin CapacitorUpdater TIDAK terdeteksi di APK ini. Perlu rebuild & install APK native sekali lagi supaya OTA bisa jalan.', 'warn');
     return;
   }
   try {
@@ -1687,13 +1693,27 @@ async function cekUpdateOTA() {
     await Updater.notifyAppReady();
 
     const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
-    if (!res.ok) return; // belum ada Release, atau sedang offline, diam saja, app tetap jalan normal
+    if (!res.ok) {
+      addLog(`[OTA] Gagal ambil data Release dari GitHub (status ${res.status}). Cek koneksi HP / pastikan Release berstatus "Published" (bukan Draft/Pre-release).`, 'warn');
+      return;
+    }
     const rilisTerbaru = await res.json();
     const versiTerbaru = rilisTerbaru.tag_name;
-    if (!versiTerbaru || versiTerbaru === CURRENT_VERSION) return;
+    if (!versiTerbaru) {
+      addLog('[OTA] Release ditemukan tapi tidak punya tag_name.', 'warn');
+      return;
+    }
+    if (versiTerbaru === CURRENT_VERSION) {
+      addLog(`[OTA] Sudah versi terbaru (${CURRENT_VERSION}), tidak ada update.`, 'ok');
+      return;
+    }
+    addLog(`[OTA] Ada versi baru di GitHub: ${versiTerbaru} (terpasang: ${CURRENT_VERSION})`, 'info');
 
     const fileZip = (rilisTerbaru.assets || []).find(a => a.name.endsWith('.zip'));
-    if (!fileZip) return;
+    if (!fileZip) {
+      addLog('[OTA] Release ditemukan tapi tidak ada file .zip di Assets-nya. Upload ulang .zip sebagai Release asset.', 'warn');
+      return;
+    }
 
     console.log('[OTA] Update ditemukan:', versiTerbaru, ', mendownload...');
     // Kasih tahu petugas dari awal (bukan diam-diam), supaya kalau nanti
@@ -1707,7 +1727,7 @@ async function cekUpdateOTA() {
     // penjelasan apa-apa), tawarkan dulu lewat popup yang jelas ke petugas.
     tampilkanPopupUpdateSiap(versionInfo, versiTerbaru, rilisTerbaru.body || '');
   } catch (err) {
-    console.log('[OTA] Gagal cek update, app tetap pakai versi yang ada:', err);
+    addLog('[OTA] Gagal cek/download update: ' + (err && err.message ? err.message : err), 'warn');
   }
 }
 if (isNativeApp()) {
@@ -4022,7 +4042,12 @@ async function startGPS() {
     addLog('GPS tracking (mode browser) dimulai', 'ok');
   }
 
-  sendTimer = setInterval(() => { if (lastPos) pushLocation(lastPos); }, 15000);
+  // Interval kirim lokasi ke Firebase: 30 detik (sebelumnya 15 detik).
+  // Ini penyumbang terbesar trafik download RTDB di dashboard admin, karena
+  // tiap kirim disiarkan real-time ke semua admin yang sedang membuka tab
+  // "Petugas Aktif". 30 detik masih cukup real-time untuk pemantauan lapangan,
+  // tapi kirimannya jadi separuh dari sebelumnya.
+  sendTimer = setInterval(() => { if (lastPos) pushLocation(lastPos); }, 30000);
   mulaiHeartbeatMonitor();
   mulaiNativeSync();
 }
@@ -6044,11 +6069,43 @@ showOnboardingIfNeeded();
 
 // ── Service Worker: supaya aplikasi tetap bisa DIBUKA walau HP sedang
 //    tanpa sinyal (file sw.js wajib ada di folder yang sama dengan petugas.html) ──
+// PENTING (fix bug "update tidak muncul di HP"): Service Worker punya cache
+// sendiri yang terpisah dari file fisik di HP. Kalau tidak dipaksa cek ulang
+// & langsung ambil alih, HP bisa terus menyajikan petugas.html/master-data.js
+// versi LAMA dari cache walau file barunya sudah masuk lewat update OTA.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => addLog('Mode offline aktif (app-shell tersimpan di HP)', 'ok'))
+    // updateViaCache:'none' -> file sw.js sendiri jangan pernah diambil dari
+    // HTTP cache, supaya browser selalu tahu kalau sw.js berubah.
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+      .then((reg) => {
+        addLog('Mode offline aktif (app-shell tersimpan di HP)', 'ok');
+        // Paksa cek versi SW terbaru setiap kali app dibuka.
+        reg.update().catch(() => {});
+        // Kalau ada SW baru yang sudah selesai diinstall tapi masih menunggu
+        // (waiting), langsung suruh ambil alih sekarang juga.
+        if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+        reg.addEventListener('updatefound', () => {
+          const swBaru = reg.installing;
+          if (!swBaru) return;
+          swBaru.addEventListener('statechange', () => {
+            if (swBaru.state === 'installed' && navigator.serviceWorker.controller) {
+              swBaru.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+      })
       .catch((e) => addLog('Service worker gagal aktif: ' + e.message, 'warn'));
+
+    // Begitu SW baru resmi ambil alih (controllerchange), reload SEKALI
+    // supaya halaman langsung pakai versi baru secara utuh (tidak campur
+    // HTML lama dengan aset baru atau sebaliknya).
+    let _swSudahReload = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (_swSudahReload) return;
+      _swSudahReload = true;
+      location.reload();
+    });
   });
 }
 </script>

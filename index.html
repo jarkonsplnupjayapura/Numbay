@@ -430,6 +430,14 @@ body {
 ══════════════════════════════════════ */
 .grid-2-3 { display: grid; grid-template-columns: 3fr 1.15fr; gap: 18px; margin-bottom: 22px; align-items: start; }
 .grid-2   { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+/* Grid item default punya min-width:auto, artinya track TIDAK mau menyusut
+   di bawah lebar konten internalnya (tabel, chart, teks panjang tanpa
+   wrap). Di layar lebar ini tidak kelihatan karena ruang selalu cukup,
+   tapi di laptop dengan resolusi lebih kecil track jadi "ngotot" selebar
+   kontennya dan mendorong layout meluber/berantakan. min-width:0 di semua
+   turunan langsung grid ini yang bikin track boleh menyusut wajar &
+   mengikuti fr yang sudah ditentukan, di ukuran layar berapa pun. */
+.grid-2-3 > *, .grid-2 > * { min-width: 0; }
 
 #viewMap .grid-2-3 { align-items: stretch; height: 100%; }
 
@@ -943,13 +951,22 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
    browser yang di-resize tidak full-width), sidebar dipadatkan & rasio
    peta:panel-samping dibuat lebih longgar supaya panel kanan tidak
    berdesakan seperti kalau pakai rasio laptop lebar. */
-@media (max-width: 1279px) and (min-width: 961px) {
+@media (max-width: 1439px) and (min-width: 961px) {
   :root { --sidebar-w: 220px; }
   .content    { padding: 18px 20px 26px; }
   .grid-2-3   { grid-template-columns: 1.6fr 1fr; gap: 14px; }
   .grid-2     { gap: 14px; }
   .kpi-row    { gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
   .sidebar .nav-label { font-size: 12.5px; }
+}
+
+/* Laptop 13"–14" umum (native ≈1280–1366px, sering dipakai usher/admin di
+   lapangan). Rasio 1.6fr:1fr di atas masih agak lebar untuk panel kanan di
+   ukuran ini, jadi didorong lebih longgar lagi + sidebar dipadatkan lebih
+   jauh supaya konten utama tidak berdesakan. */
+@media (max-width: 1366px) and (min-width: 961px) {
+  :root { --sidebar-w: 200px; }
+  .grid-2-3 { grid-template-columns: 1.35fr 1fr; }
 }
 
 /* Layar dengan tinggi terbatas (mis. laptop 1366×768 / 1280×800), padatkan
@@ -2403,18 +2420,15 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               <option value="">Semua Tim/Regu</option>
             </select>
           </div>
-          <div>
-            <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Penyulang</label>
-            <select id="hv-filter-penyulang" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
-              <option value="">Semua Penyulang</option>
-            </select>
-          </div>
         </div>
 
         <!-- Khusus tab "Tim ROW": Mitra (PT) & Asal Tim ROW dipakai langsung
              oleh modal Rekap ROW (lihat rekapRowEffectiveFilters()), jadi
              sengaja disatukan di tab ini juga supaya filter yang kelihatan
-             di layar = filter yang kepakai waktu generate rekap. -->
+             di layar = filter yang kepakai waktu generate rekap. Penyulang
+             juga dipindah ke sini (bukan di tab "Semua Laporan") karena
+             yang butuh menyaring per-Penyulang khususnya rekap pekerjaan
+             Rabas/Tebang Tim ROW. -->
         <div id="hv-filters-row-only" style="display:none">
           <div>
             <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Mitra (PT)</label>
@@ -2426,6 +2440,12 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
             <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Asal Tim ROW</label>
             <select id="hv-filter-asal" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
               <option value="">Semua Asal Tim ROW</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:5px">Penyulang</label>
+            <select id="hv-filter-penyulang" onchange="onHasilVerifikasiFilterChange()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:8px 11px;font-size:12.5px;outline:none;min-width:170px">
+              <option value="">Semua Penyulang</option>
             </select>
           </div>
         </div>
@@ -3860,21 +3880,23 @@ let fbListeners = {};
 // kalau dipanggil manual. Tanpa ini, listener lama tetap menyala walau user
 // sudah pindah tab, sehingga Firebase terus mengirim update ke listener yang
 // tidak dipakai siapa-siapa.
-// listener yang dipakai bersama beberapa tab (rekap dipakai beranda/rekap/tiket,
-// verifikasi dipakai verifikasi/hasil-verifikasi/riwayat-inspeksi) hanya dilepas
-// kalau SEMUA tab pemakainya sedang ditinggalkan, supaya pindah antar tab yang
-// masih 1 grup tidak memutus & memasang ulang listener secara sia-sia.
-// 'petugasBadge' sengaja TIDAK dimasukkan, itu listener global badge sidebar
-// yang memang harus menyala terus di semua tab (lihat komentar di listenPetugasBadge()).
+// listener yang dipakai bersama beberapa tab (tiket dipakai beranda/tiket)
+// hanya dilepas kalau SEMUA tab pemakainya sedang ditinggalkan, supaya
+// pindah antar tab yang masih 1 grup tidak memutus & memasang ulang
+// listener secara sia-sia.
+// 'petugasBadge' DAN 'laporanShared' sengaja TIDAK dimasukkan di sini,
+// keduanya listener global yang memang harus menyala terus di semua tab
+// (lihat komentar di listenPetugasBadge() & ensureLaporanSharedListener()).
+// key 'laporan'/'verifikasi'/'rekap' yang DULU ada di sini sudah dihapus,
+// karena sekarang ketiganya tidak lagi punya onValue() sendiri-sendiri --
+// semuanya baca dari listener bersama 'laporanShared' (lihat
+// ensureLaporanSharedListener()), jadi tidak ada lagi yang perlu di-detach.
 const LISTENER_VIEW_MAP = {
   akun:              ['akun'],
   petugas:           ['petugas'],
   laporanCheckpoint: ['petugas'],
   absensi:           ['absensi'],
-  laporan:           ['laporan'],
-  tiket:             ['beranda', 'tiket'],
-  verifikasi:        ['verifikasi', 'hasil-verifikasi', 'riwayat-inspeksi'],
-  rekap:             ['beranda', 'rekap', 'tiket']
+  tiket:             ['beranda', 'tiket']
 };
 
 function lepaskanListenerTidakAktif(viewTujuan) {
@@ -5642,15 +5664,31 @@ window.addEventListener('resize', () => {
 });
 
 // ── Absensi ───────────────────────────
+// CATATAN (hemat kuota RTDB): dulu fungsi ini narik SELURUH isi node
+// 'absensi' (semua riwayat sejak aplikasi dipakai) padahal cuma dipakai
+// untuk data HARI INI saja (sisanya dibuang lagi di JS lewat .filter()).
+// Makin lama aplikasi dipakai, node 'absensi' makin besar, dan setiap kali
+// listener ini nyala, semua riwayat lama itu ikut ke-download ulang --
+// padahal tidak pernah dipakai. Sekarang query-nya dibatasi dari sisi
+// server (orderByChild('waktu') + startAt(todayStart)), jadi Firebase
+// hanya mengirim entri hari ini saja, sama seperti hasil filter yang lama,
+// hasil akhirnya identik, cuma bytes yang dikirim jauh lebih sedikit.
 function listenAbsensi() {
   if (fbListeners.absensi) return;
-  const ref = window._fbRef(fbDb, 'absensi');
-  fbListeners.absensi = window._fbOnValue(ref, snap => {
+  const baseRef = window._fbRef(fbDb, 'absensi');
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const canQuery = window._fbQuery && window._fbOrderByChild && window._fbStartAt;
+  const target = canQuery
+    ? window._fbQuery(baseRef, window._fbOrderByChild('waktu'), window._fbStartAt(todayStart.getTime()))
+    : baseRef; // fallback kalau query helper belum siap: sama seperti perilaku lama (tarik semua, filter di JS)
+
+  fbListeners.absensi = window._fbOnValue(target, snap => {
     const data = snap.val() || {};
     const entries = Object.entries(data);
 
-    // filter hari ini
-    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    // filter hari ini tetap dipertahankan di JS sebagai jaring pengaman
+    // (mis. kalau fallback tanpa query di atas terpakai, atau ada jam
+    // perangkat yang meleset), bukan lagi sumber utama penghematan.
     const todayEntries = scopeFilterEntries(entries
       .filter(([,v]) => v.waktu && v.waktu >= todayStart.getTime()))
       .sort((a,b) => (b[1].waktu||0)-(a[1].waktu||0));
@@ -6095,7 +6133,7 @@ function laporanDetailFieldsHtml(l) {
   return `
       <b>Pekerjaan:</b> ${esc(l.rincian) || '—'}${l.jenisPekerjaan ? ` <span style="color:var(--text-3);font-weight:400">(${esc(l.jenisPekerjaan)})</span>` : ''}<br>
       <b>Target:</b> ${targetTxt} &nbsp;|&nbsp; <b>Realisasi:</b> ${realisasiTxt}
-      ${lokasi ? `<br><b>Lokasi JTM/Gardu:</b> ${lokasi}` : ''}
+      ${lokasi ? `<br><b>Penyulang:</b> ${lokasi}` : ''}
       ${l.lapHealthIndex ? `<br><b>Health Index:</b> ${esc(l.lapHealthIndex)}` : ''}
       ${l.lapKategori ? `<br><b>Kategori:</b> ${esc(l.lapKategori)}` : ''}
       ${l.lapPdkb ? `<br><b>PDKB:</b> ${esc(l.lapPdkb)}` : ''}
@@ -6208,16 +6246,28 @@ window.goToLaporanPage = function(n) {
 };
 
 // ── Laporan Pekerjaan ─────────────────
-function listenLaporan() {
-  if (fbListeners.laporan) return;
-  const ref = window._fbRef(fbDb, 'laporan');
-  fbListeners.laporan = window._fbOnValue(ref, snap => {
-    const data = snap.val() || {};
-    const entries = scopeFilterEntries(Object.entries(data)).sort((a,b) => (b[1].waktu||0)-(a[1].waktu||0));
+// CATATAN PENTING (hemat kuota RTDB): fungsi ini TIDAK LAGI memasang onValue()
+// sendiri ke node 'laporan'. Sebelumnya listenLaporan(), listenVerifikasi(),
+// listenRekap(), dan listenVerifikasiBadge() masing-masing punya onValue()
+// TERPISAH ke node 'laporan' yang SAMA -> setiap kali salah satu tab itu
+// dibuka, Firebase mengirim ulang SELURUH isi node 'laporan' dari awal, bisa
+// dobel/triple untuk data yang identik (ini penyumbang terbesar lonjakan
+// Downloads di Firebase Console). Sekarang HANYA ADA SATU onValue aktif ke
+// node 'laporan' (lihat ensureLaporanSharedListener() di bawah), datanya
+// di-cache di lastLaporanSnapshot lalu dibagikan ke semua tab yang butuh.
+// Fungsi listenLaporan/listenVerifikasi/listenRekap/listenVerifikasiBadge
+// SENGAJA dipertahankan namanya dan tetap dipanggil dari tempat yang sama
+// persis seperti sebelumnya (lihat switchView() & boot di bawah), supaya
+// tidak ada pemanggil lain yang perlu diubah.
+function applyLaporanTab(data) {
+  const entries = scopeFilterEntries(Object.entries(data || {})).sort((a,b) => (b[1].waktu||0)-(a[1].waktu||0));
+  document.getElementById('laporanCount').textContent = entries.length + ' laporan';
+  renderLaporanGrid(entries);
+}
 
-    document.getElementById('laporanCount').textContent = entries.length + ' laporan';
-    renderLaporanGrid(entries);
-  });
+function listenLaporan() {
+  ensureLaporanSharedListener();
+  if (lastLaporanSnapshot) applyLaporanTab(lastLaporanSnapshot);
 }
 
 // ── Export Laporan Pekerjaan (Excel & PDF) ─────────────────
@@ -8871,20 +8921,23 @@ window.goToVerifikasiPage = function(n) {
   document.getElementById('verifikasiGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
+function applyVerifikasiTab(data) {
+  const entries = scopeFilterEntries(Object.entries(data || {})).sort((a,b) => (b[1].waktu||0)-(a[1].waktu||0));
+  verifikasiRawEntries = entries;
+  populateVerifikasiFilters(entries);
+  renderVerifikasiGrid();
+  hasilVerifikasiEntries = entries;
+  populateHasilVerifikasiFilters(entries);
+  renderHasilVerifikasiGrid();
+  renderRiwayatInspeksi(); // sama sumber (verifikasiRawEntries), tidak perlu listener Firebase baru
+}
+
+// Dipakai tab Verifikasi, Hasil Verifikasi, dan Riwayat Inspeksi (reuse sama
+// seperti sebelumnya) -> sekarang cuma baca dari cache shared listener,
+// bukan pasang onValue baru lagi.
 function listenVerifikasi() {
-  if (fbListeners.verifikasi) return;
-  const r = window._fbRef(fbDb, 'laporan');
-  fbListeners.verifikasi = window._fbOnValue(r, snap => {
-    const data = snap.val() || {};
-    const entries = scopeFilterEntries(Object.entries(data)).sort((a,b) => (b[1].waktu||0)-(a[1].waktu||0));
-    verifikasiRawEntries = entries;
-    populateVerifikasiFilters(entries);
-    renderVerifikasiGrid();
-    hasilVerifikasiEntries = entries;
-    populateHasilVerifikasiFilters(entries);
-    renderHasilVerifikasiGrid();
-    renderRiwayatInspeksi(); // sama sumber (verifikasiRawEntries), tidak perlu listener Firebase baru
-  });
+  ensureLaporanSharedListener();
+  if (lastLaporanSnapshot) applyVerifikasiTab(lastLaporanSnapshot);
 }
 
 // ══════════════════════════════════════
@@ -9024,10 +9077,10 @@ window.switchHvTab = function(tab) {
   if (tab === 'semua') {
     document.getElementById('hv-filter-mitra').value = '';
     document.getElementById('hv-filter-asal').value = '';
+    document.getElementById('hv-filter-penyulang').value = '';
   } else {
     document.getElementById('hv-filter-ulp').value = '';
     document.getElementById('hv-filter-regu').value = '';
-    document.getElementById('hv-filter-penyulang').value = '';
   }
   onHasilVerifikasiFilterChange();
 };
@@ -10014,16 +10067,9 @@ initFirebase().then(async ok => {
   // di HTML) selalu menunggu login manual, sesuai permintaan.
 });
 
-function listenVerifikasiBadge() {
-  const r = window._fbRef(fbDb, 'laporan');
-  window._fbOnValue(r, snap => {
-    const data = snap.val() || {};
-    const menunggu = scopeFilterEntries(Object.entries(data)).filter(([, l]) => !l.statusVerifikasi).length;
-    const badge = document.getElementById('nav-badge-verifikasi');
-    if (menunggu > 0) { badge.textContent = menunggu; badge.style.display = ''; }
-    else badge.style.display = 'none';
-  });
-}
+// (listenVerifikasiBadge() didefinisikan sekali saja, digabung jadi bagian
+// dari LISTENER BERSAMA NODE 'laporan' di dekat listenRekap() di bawah —
+// lihat komentar di sana untuk penjelasan lengkapnya)
 
 // ══════════════════════════════════════
 // REKAP LAPORAN
@@ -10177,13 +10223,69 @@ function renderRekap(entries) {
   renderTiketProgres();
 }
 
+function applyRekapTab(data) {
+  renderRekap(scopeFilterEntries(Object.entries(data || {})));
+}
+
+// Dipakai tab Beranda, Rekap, dan Tiket (reuse allLaporanCache seperti
+// sebelumnya) -> sekarang cuma baca dari cache shared listener.
 function listenRekap() {
-  if (fbListeners.rekap) { renderRekap(allLaporanCache); return; }
+  ensureLaporanSharedListener();
+  if (lastLaporanSnapshot) applyRekapTab(lastLaporanSnapshot);
+  else renderRekap(allLaporanCache); // fallback: snapshot belum pernah datang, tampilkan cache lama (kalau ada) sambil menunggu
+}
+
+// ══════════════════════════════════════
+// LISTENER BERSAMA NODE 'laporan' (satu-satunya onValue aktif ke node ini)
+// ══════════════════════════════════════
+// Dipasang SEKALI saja sejak boot (sama seperti listenPetugasBadge()), lalu
+// dibagikan ke badge sidebar + tab Laporan/Verifikasi/HasilVerifikasi/
+// RiwayatInspeksi/Beranda/Rekap/Tiket via applyLaporanTab/applyVerifikasiTab/
+// applyRekapTab di atas. Ini menggantikan 4 onValue terpisah yang lama
+// (listenLaporan, listenVerifikasi, listenRekap, listenVerifikasiBadge),
+// yang semuanya menonton node 'laporan' yang SAMA secara independen dan jadi
+// penyebab utama boros Downloads di Firebase Console.
+let lastLaporanSnapshot = null; // data mentah (snap.val()) terakhir node 'laporan', null = belum pernah menerima data
+
+function applyLaporanBadge(data) {
+  const entries = scopeFilterEntries(Object.entries(data || {}));
+  const menunggu = entries.filter(([, l]) => !l.statusVerifikasi).length;
+  const badge = document.getElementById('nav-badge-verifikasi');
+  if (menunggu > 0) { badge.textContent = menunggu; badge.style.display = ''; }
+  else badge.style.display = 'none';
+}
+
+function ensureLaporanSharedListener() {
+  if (fbListeners.laporanShared) return; // sudah aktif (idempotent), tidak perlu pasang lagi
   const r = window._fbRef(fbDb, 'laporan');
-  fbListeners.rekap = window._fbOnValue(r, snap => {
-    const data = snap.val() || {};
-    renderRekap(scopeFilterEntries(Object.entries(data)));
+  fbListeners.laporanShared = window._fbOnValue(r, snap => {
+    lastLaporanSnapshot = snap.val() || {};
+    // Badge sidebar SELALU diupdate tiap ada perubahan, persis seperti
+    // listenVerifikasiBadge() versi lama yang memang harus menyala terus.
+    applyLaporanBadge(lastLaporanSnapshot);
+    // Render ulang SEMUA tab konsumen data 'laporan' setiap kali datanya
+    // berubah -- persis seperti perilaku lama saat beberapa listener itu
+    // kebetulan aktif bersamaan (mis. buka tab Rekap lalu Verifikasi tanpa
+    // menutup Beranda). Ini murni operasi di memori (bukan permintaan
+    // jaringan baru), jadi tidak menambah beban Firebase sama sekali --
+    // yang dihemat adalah PENGAMBILAN datanya (1x, bukan sampai 4x).
+    // Kalau suatu tab belum pernah dibuka di sesi ini, hasil apply-nya
+    // memang belum dipakai UI manapun (tersimpan di cache saja) sampai
+    // listenLaporan()/listenVerifikasi()/listenRekap() dipanggil saat tab
+    // itu dibuka lewat switchView() -> tidak ada perubahan perilaku.
+    applyLaporanTab(lastLaporanSnapshot);
+    applyVerifikasiTab(lastLaporanSnapshot);
+    applyRekapTab(lastLaporanSnapshot);
   });
+}
+
+// Dipanggil dari boot (lihat initFirebase().then(...) di bagian bawah file,
+// sama seperti listenPetugasBadge()) supaya badge "Verifikasi" langsung
+// menyala sejak halaman dibuka, sekaligus jadi titik pemasangan pertama
+// listener bersama di atas.
+function listenVerifikasiBadge() {
+  ensureLaporanSharedListener();
+  if (lastLaporanSnapshot) applyLaporanBadge(lastLaporanSnapshot);
 }
 
 // ── Export Rekap Laporan (Excel & PDF), ikut periode aktif (Hari/Minggu/Bulan) ──
