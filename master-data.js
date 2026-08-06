@@ -116,7 +116,7 @@ var RP_RINCIAN_GROUPS = {
     'Pembersihan Corong', 'Pembersihan Jaring Layang-layang', 'Sisip Tiang', 'Perbaikan Konstruksi Schoor',
     'Perbaikan Tiang Miring', 'Perbaikan Traves', 'Penggantian Traves', 'Penggantian Tiang Keropos/Rusak TM',
     'Pemasangan Pondasi Tiang', 'Pemasangan Top Ties', 'Konsul Phasa S', 'Perubahan Konstruksi Segitiga',
-    'Pengecatan Tiang', 'Perbaikan Sambungan SUTM', 'Pemasangan Gembok PHBTR', 'Penggantian Dudukan PHBTR'
+    'Pengecatan Tiang', 'Perbaikan Sambungan SUTM', 
   ],
   'Switching / Proteksi / Kubikel': [
     'Perbaikan Kawat Rantas', 'Penggantian Isolator Tarik', 'Penggantian Isolator Tumpu',
@@ -135,7 +135,7 @@ var RP_RINCIAN_GROUPS = {
     'Penyesuaian Rating (Fuse Link)', 'Penyesuaian Rating (NH Fuse)', 'Pemasangan Cover LA & Bushing Gardu', 'Penyesuaian tegangan drop',
     'Downrating trafo', 'Uprating Trafo', 'Pemasangan Cover Cut Out Gardu', 'SLO Gardu Distribusi',
     'Pengecekan Pintu PHBTR', 'Pengecekan trafo rembes', 'Manuver beban gardu', 'Rehabilitasi Gardu',
-    'Pengisian Minyak trafo pada Trafo'
+    'Pengisian Minyak trafo pada Trafo', 'Pemasangan Gembok PHBTR', 'Penggantian Holder'
   ],
   'Jaringan JTR': [
     'Inspeksi (JTR)', 'Perampalan Pohon (JTR)', 'Joinisasi/Perbaikan Sambungan (JTR)',
@@ -275,6 +275,8 @@ var RP_RINCIAN_JENIS_PEKERJAAN = {
   'Manuver beban gardu': 'Sempurna Proteksi',
   'Rehabilitasi Gardu': 'Sempurna Proteksi',
   'Pengisian Minyak trafo pada Trafo': 'Sempurna Proteksi',
+  'Pemasangan Gembok PHBTR' : 'Sempurna Material',
+  'Penggantian Holder' : 'Sempurna Material'
   // Jaringan JTR
   'Inspeksi (JTR)': 'Sempurna Konstruksi',
   'Perampalan Pohon (JTR)': 'Sempurna ROW',
