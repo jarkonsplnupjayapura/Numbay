@@ -116,7 +116,7 @@ var RP_RINCIAN_GROUPS = {
     'Pembersihan Corong', 'Pembersihan Jaring Layang-layang', 'Sisip Tiang', 'Perbaikan Konstruksi Schoor',
     'Perbaikan Tiang Miring', 'Perbaikan Traves', 'Penggantian Traves', 'Penggantian Tiang Keropos/Rusak TM',
     'Pemasangan Pondasi Tiang', 'Pemasangan Top Ties', 'Konsul Phasa S', 'Perubahan Konstruksi Segitiga',
-    'Pengecatan Tiang', 'Perbaikan Sambungan SUTM'
+    'Pengecatan Tiang', 'Perbaikan Sambungan SUTM', 'Pemasangan Gembok PHBTR', 'Penggantian Dudukan PHBTR'
   ],
   'Switching / Proteksi / Kubikel': [
     'Perbaikan Kawat Rantas', 'Penggantian Isolator Tarik', 'Penggantian Isolator Tumpu',
