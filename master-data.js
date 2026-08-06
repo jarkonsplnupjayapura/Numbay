@@ -125,7 +125,7 @@ var RP_RINCIAN_GROUPS = {
     'Pemeliharaan LBS', 'Pemeliharaan Recloser', 'Pemasangan Cover LBS', 'Pemasangan Cover Recloser',
     'Relokasi LBS', 'Relokasi Recloser', 'Pemasangan DS', 'Penggantian Rectifier Rusak',
     'Penggantian Relay Rusak (Peremajaan)', 'Pemasangan Directional Relay', 'Integrasi Keypoint ke SCADA', 'Assesment Keypoint',
-    'Pemeliharaan berbasis PDKB', 'SLO JTM', 'Perbaikan Tiang (las tiang/dll)', 'Pemasangan Klem H'
+    'Pemeliharaan berbasis PDKB', 'SLO JTM', 'Perbaikan Tiang (las tiang/dll)', 'Pemasangan Klem H', 'Pemasangan Corong'
   ],
   'Gardu & Trafo': [
     'Inspeksi Tier 1', 'Inspeksi Tier 2', 'Pengukuran Beban', 'Pengukuran Tahanan Isolasi', 'Penyeimbangan Beban', 'Manajemen/Mutasi Trafo',
@@ -135,7 +135,7 @@ var RP_RINCIAN_GROUPS = {
     'Penyesuaian Rating (Fuse Link)', 'Penyesuaian Rating (NH Fuse)', 'Pemasangan Cover LA & Bushing Gardu', 'Penyesuaian tegangan drop',
     'Downrating trafo', 'Uprating Trafo', 'Pemasangan Cover Cut Out Gardu', 'SLO Gardu Distribusi',
     'Pengecekan Pintu PHBTR', 'Pengecekan trafo rembes', 'Manuver beban gardu', 'Rehabilitasi Gardu',
-    'Pengisian Minyak trafo pada Trafo'
+    'Pengisian Minyak trafo pada Trafo', 'Penggantian Holder', 'Pemasangan Gembok PHBTR'
   ],
   'Jaringan JTR': [
     'Inspeksi (JTR)', 'Perampalan Pohon (JTR)', 'Joinisasi/Perbaikan Sambungan (JTR)',
@@ -244,6 +244,8 @@ var RP_RINCIAN_JENIS_PEKERJAAN = {
   'SLO JTM': 'Sempurna Konstruksi',
   'Perbaikan Tiang (las tiang/dll)': 'Sempurna Konstruksi',
   'Pemasangan Klem H': 'Sempurna Konstruksi',
+  'Pemasangan Corong': 'Sempurna Proteksi',
+  
   // Gardu & Trafo
   'Inspeksi Tier 1': 'Sempurna Inspeksi',
   'Inspeksi Tier 2': 'Sempurna Inspeksi',
@@ -309,6 +311,8 @@ var RP_RINCIAN_JENIS_PEKERJAAN = {
   'Uprating SUTR': 'Investasi JTR',
   'Pembangunan LBS Threeway': 'Investasi JTM',
   'Pembangunan Recloser': 'Investasi JTM',
+  'Penggantian Holder': 'Sempurna Material',
+  'Pemasangan Gembok PHBTR': 'Sempurna Material',
 };
 
 // ══════════════════════════════════════════════════════════════
