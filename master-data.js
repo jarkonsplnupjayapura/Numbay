@@ -125,7 +125,7 @@ var RP_RINCIAN_GROUPS = {
     'Pemeliharaan LBS', 'Pemeliharaan Recloser', 'Pemasangan Cover LBS', 'Pemasangan Cover Recloser',
     'Relokasi LBS', 'Relokasi Recloser', 'Pemasangan DS', 'Penggantian Rectifier Rusak',
     'Penggantian Relay Rusak (Peremajaan)', 'Pemasangan Directional Relay', 'Integrasi Keypoint ke SCADA', 'Assesment Keypoint',
-    'Pemeliharaan berbasis PDKB', 'SLO JTM', 'Perbaikan Tiang (las tiang/dll)', 'Pemasangan Klem H'
+    'Pemeliharaan berbasis PDKB', 'SLO JTM', 'Perbaikan Tiang (las tiang/dll)', 'Pemasangan Klem H' ,
   ],
   'Gardu & Trafo': [
     'Inspeksi Tier 1', 'Inspeksi Tier 2', 'Pengukuran Beban', 'Pengukuran Tahanan Isolasi', 'Penyeimbangan Beban', 'Manajemen/Mutasi Trafo',
@@ -135,7 +135,7 @@ var RP_RINCIAN_GROUPS = {
     'Penyesuaian Rating (Fuse Link)', 'Penyesuaian Rating (NH Fuse)', 'Pemasangan Cover LA & Bushing Gardu', 'Penyesuaian tegangan drop',
     'Downrating trafo', 'Uprating Trafo', 'Pemasangan Cover Cut Out Gardu', 'SLO Gardu Distribusi',
     'Pengecekan Pintu PHBTR', 'Pengecekan trafo rembes', 'Manuver beban gardu', 'Rehabilitasi Gardu',
-    'Pengisian Minyak trafo pada Trafo', 'Pemasangan Gembok PHBTR', 'Penggantian Holder'
+    'Pengisian Minyak trafo pada Trafo', 'Pemasangan Gembok PHBTR', 'Penggantian Holder' ,
   ],
   'Jaringan JTR': [
     'Inspeksi (JTR)', 'Perampalan Pohon (JTR)', 'Joinisasi/Perbaikan Sambungan (JTR)',
