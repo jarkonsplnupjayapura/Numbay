@@ -276,7 +276,7 @@ var RP_RINCIAN_JENIS_PEKERJAAN = {
   'Rehabilitasi Gardu': 'Sempurna Proteksi',
   'Pengisian Minyak trafo pada Trafo': 'Sempurna Proteksi',
   'Pemasangan Gembok PHBTR' : 'Sempurna Material',
-  'Penggantian Holder' : 'Sempurna Material'
+  'Penggantian Holder' : 'Sempurna Material',
   // Jaringan JTR
   'Inspeksi (JTR)': 'Sempurna Konstruksi',
   'Perampalan Pohon (JTR)': 'Sempurna ROW',
