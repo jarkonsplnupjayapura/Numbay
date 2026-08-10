@@ -2772,32 +2772,64 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
 
       <!-- ── Export Rekap Database Lengkap: Petugas + Absensi/Jam Kerja + Rincian Pekerjaan dalam 1 file Excel ── -->
       <div class="card" style="margin-top:14px;">
-        <div class="fb-header" style="padding:16px 18px;border-bottom:1px solid var(--line);">
+        <div style="padding:16px 18px;border-bottom:1px solid var(--line);">
+          <div class="card-title" style="font-size:14.5px">📦 Export Rekap Database Lengkap</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">1 file Excel: daftar petugas (kelihatan siapa yang tidak ada aktivitas/kemungkinan sakit-izin), riwayat absen &amp; jam kerja, dan rincian pekerjaan. Teks saja, tanpa foto.</div>
+        </div>
+
+        <!-- Opsi 1: SEMUA data, 1 klik langsung, tanpa perlu atur tanggal -->
+        <div style="padding:16px 18px;border-bottom:1px solid var(--line);background:var(--surface-2);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
           <div>
-            <div class="card-title" style="font-size:14.5px">📦 Export Rekap Database Lengkap</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">1 file Excel: daftar petugas (kelihatan siapa yang tidak ada aktivitas/kemungkinan sakit-izin), riwayat absen & jam kerja, dan rincian pekerjaan. Teks saja, tanpa foto.</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text-1)">Mau export SEMUA data langsung?</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Ambil seluruh riwayat sejak sistem dipakai sampai hari ini, tidak perlu atur tanggal apa-apa.</div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="tab-btn active" id="dbexport-tab-hari" onclick="setDbExportPeriode('hari',this)">Hari Ini</button>
-            <button class="tab-btn" id="dbexport-tab-minggu" onclick="setDbExportPeriode('minggu',this)">Minggu Ini</button>
-            <button class="tab-btn" id="dbexport-tab-bulan" onclick="setDbExportPeriode('bulan',this)">Bulan Ini</button>
-            <button class="btn-export xlsx" id="dbexport-btn" onclick="exportDatabaseLengkap()" title="Export rekap database periode ini ke Excel">📥 Export Excel</button>
+          <button class="btn-export xlsx" id="dbexport-full-btn" onclick="exportDatabaseLengkapFull()" title="Export seluruh isi database, semua tanggal" style="padding:11px 22px;font-size:13.5px;white-space:nowrap;">📦 Export SELURUH Database</button>
+        </div>
+
+        <!-- Opsi 2: rentang tanggal tertentu -->
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--text-1)">Atau, export untuk rentang tanggal tertentu saja:</div>
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:8px">Pilihan Cepat</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="tab-btn active" id="dbexport-quick-hari" onclick="setDbExportQuick('hari',this)">Hari Ini</button>
+              <button class="tab-btn" id="dbexport-quick-minggu" onclick="setDbExportQuick('minggu',this)">Minggu Ini</button>
+              <button class="tab-btn" id="dbexport-quick-bulan" onclick="setDbExportQuick('bulan',this)">Bulan Ini</button>
+              <button class="tab-btn" id="dbexport-quick-7hari" onclick="setDbExportQuick('7hari',this)">7 Hari Terakhir</button>
+              <button class="tab-btn" id="dbexport-quick-30hari" onclick="setDbExportQuick('30hari',this)">30 Hari Terakhir</button>
+            </div>
           </div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Dari Tanggal</label>
+              <input type="date" id="dbexportDari" onchange="dbExportMarkCustom()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none">
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Sampai Tanggal</label>
+              <input type="date" id="dbexportSampai" onchange="dbExportMarkCustom()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none">
+            </div>
+            <button class="btn-export xlsx" id="dbexport-btn" onclick="exportDatabaseLengkap()" title="Export rekap database sesuai rentang tanggal di atas" style="padding:10px 20px;">📥 Export Sesuai Tanggal</button>
+          </div>
+          <div id="dbexport-range-label" style="font-size:11.5px;color:var(--text-3)"></div>
         </div>
       </div>
 
       <div class="card" style="margin-top:14px;">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--line);">
+          <div class="card-title" style="font-size:14.5px">🔎 Lihat &amp; Cari Data Mentah (untuk pengecekan lanjutan)</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Kalau cuma butuh rekap absensi/pekerjaan/petugas, tidak perlu ke sini, langsung pakai tombol Export di atas. Bagian ini untuk mengecek satu data spesifik.</div>
+        </div>
         <div style="padding:16px 18px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
           <div>
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Node Firebase</label>
-            <select id="dbvNode" onchange="dbvLoadNode()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;font-family:var(--mono);outline:none;min-width:180px">
-              <option value="">— pilih node —</option>
-              <option value="laporan">laporan</option>
-              <option value="absensi">absensi</option>
-              <option value="petugas">petugas</option>
-              <option value="users">users (akun regu)</option>
-              <option value="penugasan">penugasan</option>
-              <option value="penugasanCounter">penugasanCounter</option>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Jenis Data</label>
+            <select id="dbvNode" onchange="dbvLoadNode()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;min-width:220px">
+              <option value="">— pilih jenis data —</option>
+              <option value="laporan">Rincian Pekerjaan (Laporan)</option>
+              <option value="absensi">Absensi / Kehadiran</option>
+              <option value="petugas">Posisi Live Petugas (GPS)</option>
+              <option value="users">Akun Regu (Master Petugas)</option>
+              <option value="penugasan">Penugasan / Tiket Pekerjaan</option>
+              <option value="penugasanCounter">Nomor Urut Penugasan (data teknis internal)</option>
             </select>
           </div>
           <div style="flex:1;min-width:200px">
@@ -2809,7 +2841,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
         </div>
 
         <div class="card-header">
-          <div class="card-title">Isi Node</div>
+          <div class="card-title">Isi Data</div>
           <span class="card-count" id="dbvCount">0 baris</span>
         </div>
         <div class="table-container" style="max-height:none;">
@@ -3717,6 +3749,9 @@ function switchView(view) {
     if (!isSuperadmin()) { showToast('Database Viewer hanya bisa diakses oleh Superadmin.', 'warn'); switchView('beranda'); return; }
     document.getElementById('viewDbViewer').style.display = '';
     document.getElementById('nav-db-viewer').classList.add('active');
+    if (!document.getElementById('dbexportDari').value) {
+      setDbExportQuick('hari', document.getElementById('dbexport-quick-hari'));
+    }
     initFirebase();
   }
 }
@@ -10514,17 +10549,72 @@ window.exportRekapPDF = function() {
 // EXPORT REKAP DATABASE LENGKAP (Database Viewer, khusus Superadmin)
 // ══════════════════════════════════════
 // 1 file Excel berisi 4 sheet: Ringkasan, Master Petugas & Kehadiran (SEMUA
-// akun regu ditampilkan, termasuk yang TIDAK ADA aktivitas di periode ini,
+// akun regu ditampilkan, termasuk yang TIDAK ADA aktivitas di rentang ini,
 // supaya kelihatan mana yang kemungkinan sakit/izin/alpa), Absensi & Riwayat
 // Jam Kerja (per sesi login per hari), dan Rincian Pekerjaan (laporan).
 // Teks saja, tanpa foto, biar ringan & cepat untuk export skala database.
-let dbExportPeriode = 'hari';
+//
+// Filter rentang tanggal (bukan lagi tab Hari/Minggu/Bulan tetap) supaya
+// staf PLN bisa pilih bebas dari tanggal berapa sampai tanggal berapa,
+// lewat 2 input tanggal + tombol pilihan cepat sebagai jalan pintas.
+function dbExportLocalDateStr(d) {
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
 
-window.setDbExportPeriode = function(p, btn) {
-  dbExportPeriode = p;
-  document.querySelectorAll('#viewDbViewer .tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+// Isi 2 input tanggal sesuai preset, lalu tandai tombol yang aktif.
+window.setDbExportQuick = function(jenis, btn) {
+  const now = new Date();
+  let dari = new Date(now), sampai = new Date(now);
+  if (jenis === 'hari') {
+    // dari = sampai = hari ini
+  } else if (jenis === 'minggu') {
+    const day = now.getDay() || 7;
+    dari.setDate(now.getDate() - day + 1); // Senin minggu ini
+  } else if (jenis === 'bulan') {
+    dari = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (jenis === '7hari') {
+    dari.setDate(now.getDate() - 6);
+  } else if (jenis === '30hari') {
+    dari.setDate(now.getDate() - 29);
+  } else if (jenis === 'semua') {
+    dari = new Date(2020, 0, 1); // jauh ke belakang, praktis mengambil seluruh riwayat
+  }
+  document.getElementById('dbexportDari').value = dbExportLocalDateStr(dari);
+  document.getElementById('dbexportSampai').value = dbExportLocalDateStr(sampai);
+  document.querySelectorAll('#viewDbViewer .card:nth-of-type(1) .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  dbExportUpdateRangeLabel();
 };
+
+// Dipanggil saat staf mengetik/mengganti tanggal manual, supaya tombol
+// pilihan cepat yang tadinya aktif tidak lagi terlihat aktif (biar tidak
+// menyesatkan seolah masih memakai preset itu).
+window.dbExportMarkCustom = function() {
+  document.querySelectorAll('#viewDbViewer .card:nth-of-type(1) .tab-btn').forEach(b => b.classList.remove('active'));
+  dbExportUpdateRangeLabel();
+};
+
+function dbExportUpdateRangeLabel() {
+  const el = document.getElementById('dbexport-range-label');
+  if (!el) return;
+  const { label } = getDbExportRange();
+  el.textContent = label ? ('Rentang yang akan di-export: ' + label) : '';
+}
+
+// Baca 2 input tanggal jadi rentang waktu siap pakai untuk query Firebase.
+// "Sampai Tanggal" otomatis dihitung sampai akhir hari itu (23:59:59) supaya
+// data di tanggal terakhir yang dipilih ikut lengkap, bukan terpotong jam 00:00.
+function getDbExportRange() {
+  const dariVal = document.getElementById('dbexportDari')?.value;
+  const sampaiVal = document.getElementById('dbexportSampai')?.value;
+  if (!dariVal || !sampaiVal) return { start: 0, end: Date.now(), label: '' };
+  const start = new Date(dariVal + 'T00:00:00').getTime();
+  const end = new Date(sampaiVal + 'T23:59:59.999').getTime();
+  const fmt = ts => new Date(ts).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  const label = dariVal === sampaiVal ? fmt(start) : (fmt(start) + ' – ' + fmt(end));
+  return { start: Math.min(start, end), end: Math.max(start, end), label };
+}
 
 // Cocokkan akun regu (node 'users', key=username) dengan grup absensi (dari
 // buildLogAbsensiGroups) berdasarkan pasangan ULP+Regu -- BUKAN petugasId,
@@ -10537,41 +10627,61 @@ function cocokkanAkunDenganAbsensi(username, u, groups) {
 }
 
 window.exportDatabaseLengkap = async function() {
-  const btn = document.getElementById('dbexport-btn');
+  const { start, end, label } = getDbExportRange();
+  if (!label) { showToast('Pilih dulu tanggal "Dari" dan "Sampai", atau pakai tombol Pilihan Cepat.', 'warn'); return; }
+  if (start > Date.now()) { showToast('Tanggal "Dari" tidak boleh di masa depan.', 'warn'); return; }
+  await jalankanExportDatabaseLengkap(start, end, label, 'dbexport-btn', '');
+};
+
+// Export SELURUH isi database dalam 1 klik, tanpa perlu pilih tanggal sama
+// sekali -- dipakai kalau staf memang mau semua data dari awal aplikasi
+// dipakai sampai sekarang (bukan per rentang tertentu).
+window.exportDatabaseLengkapFull = async function() {
+  const start = 0; // dari awal mula data ada
+  const end = Date.now();
+  await jalankanExportDatabaseLengkap(start, end, 'Seluruh Data (Semua Periode)', 'dbexport-full-btn', '_SemuaData');
+};
+
+async function jalankanExportDatabaseLengkap(start, end, label, btnId, fileSuffix) {
+  const btn = document.getElementById(btnId);
   if (typeof ExcelJS === 'undefined') { showToast('Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.', 'err'); return; }
   if (!fbDb) { showToast('Koneksi database belum siap, coba lagi sebentar.', 'warn'); return; }
   const labelBtn = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Menyiapkan...'; }
   try {
     showToast('Menyiapkan rekap database lengkap...', 'ok');
-    const { start, label } = getDateRange(dbExportPeriode);
-    const now = Date.now();
 
     // 1) Akun regu (master petugas) -- selalu tarik langsung dari node 'users',
     //    tidak bergantung pada cache tab "Akun Regu" sudah pernah dibuka atau belum.
+
     const usersSnap = await window._fbGet(window._fbRef(fbDb, 'users'));
     const akunEntries = Object.entries(usersSnap.val() || {});
 
-    // 2) Absensi dalam rentang periode terpilih, ambil langsung dengan query
-    //    (bukan seluruh riwayat) supaya tetap ringan untuk data besar.
+    // 2) Absensi dalam rentang tanggal terpilih, ambil langsung dengan query
+    //    (bukan seluruh riwayat) supaya tetap ringan untuk data besar. Untuk
+    //    export SELURUH database (start = 0), query tetap dipakai apa adanya
+    //    (startAt(0) = dari data paling awal), jadi tetap 1 jalur kode yang sama.
     const canQuery = window._fbQuery && window._fbOrderByChild && window._fbStartAt && window._fbEndAt;
     const absensiTarget = canQuery
-      ? window._fbQuery(window._fbRef(fbDb, 'absensi'), window._fbOrderByChild('waktu'), window._fbStartAt(start), window._fbEndAt(now))
+      ? window._fbQuery(window._fbRef(fbDb, 'absensi'), window._fbOrderByChild('waktu'), window._fbStartAt(start), window._fbEndAt(end))
       : window._fbRef(fbDb, 'absensi');
     const absensiSnap = await window._fbGet(absensiTarget);
-    const absensiEntriesRaw = Object.entries(absensiSnap.val() || {}).filter(([, v]) => v && v.waktu && v.waktu >= start);
+    const absensiEntriesRaw = Object.entries(absensiSnap.val() || {}).filter(([, v]) => v && v.waktu && v.waktu >= start && v.waktu <= end);
     const groups = buildLogAbsensiGroups(absensiEntriesRaw).sort((a, b) =>
       (b.tanggal !== a.tanggal ? (b.tanggal > a.tanggal ? 1 : -1) : b.lastWaktu - a.lastWaktu));
 
-    // 3) Rincian pekerjaan (laporan) periode ini, dari cache bersama yang
-    //    sudah aktif sejak boot (ensureLaporanSharedListener()).
-    const laporanFiltered = (allLaporanCache || []).filter(([, l]) => (l.waktu || 0) >= start)
+    // 3) Rincian pekerjaan (laporan) rentang tanggal terpilih, dari cache bersama
+    //    yang sudah aktif sejak boot (ensureLaporanSharedListener()) -- cache ini
+    //    memang menyimpan SELURUH node 'laporan', jadi export SELURUH database
+    //    juga otomatis tercakup tanpa fetch tambahan.
+    const laporanFiltered = (allLaporanCache || []).filter(([, l]) => (l.waktu || 0) >= start && (l.waktu || 0) <= end)
       .sort((a, b) => (b[1].waktu || 0) - (a[1].waktu || 0));
 
     if (!akunEntries.length && !groups.length && !laporanFiltered.length) {
-      showToast('Belum ada data untuk di-export pada periode ini.', 'warn');
+      showToast('Belum ada data untuk di-export.', 'warn');
       return;
     }
+
 
     const wb = new ExcelJS.Workbook();
 
@@ -10692,14 +10802,15 @@ window.exportDatabaseLengkap = async function() {
       ejStyleDataRow(wsLaporan.getRow(rowIdx), i % 2 === 0);
     });
 
-    await ejUnduhWorkbook(wb, `Rekap_Database_Lengkap_NUMBAY_${dbExportPeriode}_${fmtFileStamp()}.xlsx`);
+    await ejUnduhWorkbook(wb, `Rekap_Database_Lengkap_NUMBAY${fileSuffix}_${fmtFileStamp()}.xlsx`);
     showToast('Export rekap database lengkap berhasil.', 'ok');
   } catch (e) {
     showToast('Gagal export database: ' + e.message, 'err');
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = labelBtn; }
   }
-};
+}
+
 
 </script>
 <!-- FOTO FULLSCREEN MODAL -->
