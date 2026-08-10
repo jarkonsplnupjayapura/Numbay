@@ -2766,29 +2766,35 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
       <div class="fb-header">
         <div>
           <div class="card-title" style="font-size:16px">🗄 Database Viewer</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Lihat isi node Firebase sebagai tabel, bukan pengganti Firebase Console, hanya bantuan lihat data sehari-hari</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Export rekap seluruh data absensi, jam kerja, dan pekerjaan dalam 1 file Excel</div>
         </div>
       </div>
 
-      <!-- ── Export Rekap Database Lengkap: Petugas + Absensi/Jam Kerja + Rincian Pekerjaan dalam 1 file Excel ── -->
+      <!-- ── Export Rekap Database Lengkap: Absensi/Jam Kerja + Rincian Pekerjaan dalam 1 file Excel ── -->
       <div class="card" style="margin-top:14px;">
         <div style="padding:16px 18px;border-bottom:1px solid var(--line);">
           <div class="card-title" style="font-size:14.5px">📦 Export Rekap Database Lengkap</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">1 file Excel: daftar petugas (kelihatan siapa yang tidak ada aktivitas/kemungkinan sakit-izin), riwayat absen &amp; jam kerja, dan rincian pekerjaan. Teks saja, tanpa foto.</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">1 file Excel: riwayat absen &amp; jam kerja, dan rincian pekerjaan. Teks saja, tanpa foto.</div>
         </div>
 
         <!-- Opsi 1: SEMUA data, 1 klik langsung, tanpa perlu atur tanggal -->
-        <div style="padding:16px 18px;border-bottom:1px solid var(--line);background:var(--surface-2);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
-          <div>
+        <div style="padding:16px 18px;border-bottom:1px solid var(--line);background:var(--surface-2);display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;">
+          <div style="min-width:220px">
             <div style="font-size:13px;font-weight:700;color:var(--text-1)">Mau export SEMUA data langsung?</div>
             <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Ambil seluruh riwayat sejak sistem dipakai sampai hari ini, tidak perlu atur tanggal apa-apa.</div>
           </div>
-          <button class="btn-export xlsx" id="dbexport-full-btn" onclick="exportDatabaseLengkapFull()" title="Export seluruh isi database, semua tanggal" style="padding:11px 22px;font-size:13.5px;white-space:nowrap;">📦 Export SELURUH Database</button>
+          <button class="btn-export xlsx" id="dbexport-full-btn" onclick="exportDatabaseLengkapFull()" title="Export seluruh isi database, semua tanggal" style="padding:11px 22px;font-size:13.5px;white-space:nowrap;flex-shrink:0;">📦 Export SELURUH Database</button>
+        </div>
+
+        <!-- Pembatas ATAU -->
+        <div style="display:flex;align-items:center;gap:12px;padding:0 18px;margin-top:16px;">
+          <div style="flex:1;height:1px;background:var(--line);"></div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text-3);text-transform:uppercase;">atau pilih rentang tanggal</div>
+          <div style="flex:1;height:1px;background:var(--line);"></div>
         </div>
 
         <!-- Opsi 2: rentang tanggal tertentu -->
-        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;">
-          <div style="font-size:12.5px;font-weight:700;color:var(--text-1)">Atau, export untuk rentang tanggal tertentu saja:</div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;">
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:8px">Pilihan Cepat</label>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -2799,7 +2805,7 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               <button class="tab-btn" id="dbexport-quick-30hari" onclick="setDbExportQuick('30hari',this)">30 Hari Terakhir</button>
             </div>
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;border-top:1px solid var(--line);padding-top:14px;">
             <div>
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Dari Tanggal</label>
               <input type="date" id="dbexportDari" onchange="dbExportMarkCustom()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none">
@@ -2808,78 +2814,12 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
               <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Sampai Tanggal</label>
               <input type="date" id="dbexportSampai" onchange="dbExportMarkCustom()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none">
             </div>
-            <button class="btn-export xlsx" id="dbexport-btn" onclick="exportDatabaseLengkap()" title="Export rekap database sesuai rentang tanggal di atas" style="padding:10px 20px;">📥 Export Sesuai Tanggal</button>
-          </div>
-          <div id="dbexport-range-label" style="font-size:11.5px;color:var(--text-3)"></div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:14px;">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--line);">
-          <div class="card-title" style="font-size:14.5px">🔎 Lihat &amp; Cari Data Mentah (untuk pengecekan lanjutan)</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Kalau cuma butuh rekap absensi/pekerjaan/petugas, tidak perlu ke sini, langsung pakai tombol Export di atas. Bagian ini untuk mengecek satu data spesifik.</div>
-        </div>
-        <div style="padding:16px 18px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
-          <div>
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Jenis Data</label>
-            <select id="dbvNode" onchange="dbvLoadNode()" style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none;min-width:220px">
-              <option value="">— pilih jenis data —</option>
-              <option value="laporan">Rincian Pekerjaan (Laporan)</option>
-              <option value="absensi">Absensi / Kehadiran</option>
-              <option value="petugas">Posisi Live Petugas (GPS)</option>
-              <option value="users">Akun Regu (Master Petugas)</option>
-              <option value="penugasan">Penugasan / Tiket Pekerjaan</option>
-              <option value="penugasanCounter">Nomor Urut Penugasan (data teknis internal)</option>
-            </select>
-          </div>
-          <div style="flex:1;min-width:200px">
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);display:block;margin-bottom:6px">Cari (semua kolom)</label>
-            <input id="dbvSearch" type="text" placeholder="Ketik untuk memfilter baris..." oninput="dbvApplyFilter()" style="width:100%;border:1px solid var(--line);border-radius:var(--radius-xs);padding:9px 12px;font-size:13px;outline:none">
-          </div>
-          <button class="topbar-btn" onclick="dbvLoadNode()" style="font-size:13px;padding:9px 16px;background:var(--surface2);color:var(--pln-blue);border:1px solid var(--border);">🔄 Muat Ulang</button>
-          <button class="topbar-btn-yellow" onclick="dbvExportCsv()" style="font-size:13px;padding:9px 16px">⬇ Export CSV</button>
-        </div>
-
-        <div class="card-header">
-          <div class="card-title">Isi Data</div>
-          <span class="card-count" id="dbvCount">0 baris</span>
-        </div>
-        <div class="table-container" style="max-height:none;">
-          <div class="table-wrap">
-            <table id="dbvTable">
-              <thead><tr id="dbvHeadRow"></tr></thead>
-              <tbody id="dbvBody"><tr><td class="empty">Pilih node di atas untuk mulai melihat data.</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="pagination-bar" id="dbvPagination" style="display:none;">
-          <div class="pagination-info" id="dbvPgInfo">—</div>
-          <div class="pagination-controls">
-            <select class="pg-size" id="dbvPgSize" onchange="dbvOnPageSizeChange()">
-              <option value="20">20 / hal</option>
-              <option value="50" selected>50 / hal</option>
-              <option value="100">100 / hal</option>
-              <option value="250">250 / hal</option>
-            </select>
-            <button class="pg-btn" onclick="dbvGoToPage(1)" title="Halaman pertama">«</button>
-            <button class="pg-btn" onclick="dbvGoToPage(dbvState.page-1)" title="Sebelumnya">‹</button>
-            <span id="dbvPgLabel" style="font-size:12px;color:var(--text-2);padding:0 6px">—</span>
-            <button class="pg-btn" onclick="dbvGoToPage(dbvState.page+1)" title="Berikutnya">›</button>
-            <button class="pg-btn" onclick="dbvGoToPage(dbvState.totalPages)" title="Halaman terakhir">»</button>
+            <button class="btn-export xlsx" id="dbexport-btn" onclick="exportDatabaseLengkap()" title="Export rekap database sesuai rentang tanggal di atas" style="padding:9px 20px;height:38px;box-sizing:border-box;">📥 Export Sesuai Tanggal</button>
+            <div id="dbexport-range-label" style="font-size:11.5px;color:var(--text-3);width:100%;"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modal Detail JSON, Database Viewer -->
-    <div id="modal-dbv-detail" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,0.55);align-items:center;justify-content:center;">
-      <div style="background:var(--surface);border-radius:var(--radius-lg);padding:22px;width:100%;max-width:620px;max-height:80vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);margin:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div id="dbv-modal-title" style="font-family:var(--font-display);font-size:15px;font-weight:800">Detail Record</div>
-          <button onclick="dbvCloseDetail()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px">✕</button>
-        </div>
-        <pre id="dbv-modal-json" style="margin:0;overflow:auto;background:var(--surface-2);border-radius:var(--radius-xs);padding:14px;font-size:12px;font-family:var(--mono);line-height:1.5;white-space:pre-wrap;word-break:break-all;"></pre>
-      </div>
     </div>
 
   </div><!-- /content -->
@@ -10548,10 +10488,8 @@ window.exportRekapPDF = function() {
 // ══════════════════════════════════════
 // EXPORT REKAP DATABASE LENGKAP (Database Viewer, khusus Superadmin)
 // ══════════════════════════════════════
-// 1 file Excel berisi 4 sheet: Ringkasan, Master Petugas & Kehadiran (SEMUA
-// akun regu ditampilkan, termasuk yang TIDAK ADA aktivitas di rentang ini,
-// supaya kelihatan mana yang kemungkinan sakit/izin/alpa), Absensi & Riwayat
-// Jam Kerja (per sesi login per hari), dan Rincian Pekerjaan (laporan).
+// 1 file Excel berisi 3 sheet: Ringkasan, Absensi & Riwayat Jam Kerja
+// (per sesi login per hari), dan Rincian Pekerjaan (laporan).
 // Teks saja, tanpa foto, biar ringan & cepat untuk export skala database.
 //
 // Filter rentang tanggal (bukan lagi tab Hari/Minggu/Bulan tetap) supaya
@@ -10729,40 +10667,7 @@ async function jalankanExportDatabaseLengkap(start, end, label, btnId, fileSuffi
       });
     }
 
-    // ── Sheet 2: Master Petugas & Kehadiran ──
-    // SEMUA akun regu ditampilkan (bukan cuma yang punya data absensi), supaya
-    // yang tidak muncul aktivitasnya di periode ini kelihatan jelas -- bisa
-    // dicek lebih lanjut apakah sakit/izin/alpa/atau memang belum ditugaskan.
-    const wsPetugas = wb.addWorksheet('Master Petugas & Kehadiran');
-    const headersPetugas = ['No', 'Username Akun', 'Regu / Tim', 'ULP', 'Status Akun', 'Status Kehadiran Periode Ini', 'Jumlah Hari Ada Aktivitas', 'Anggota Hadir (terakhir tercatat)', 'Fase Terakhir', 'Waktu Fase Terakhir', 'Total Durasi Kerja (akumulasi periode)'];
-    const widthsPetugas = [5, 20, 20, 16, 12, 30, 12, 26, 16, 18, 20];
-    wsPetugas.columns = headersPetugas.map((h, i) => ({ header: h, key: 'p' + i, width: widthsPetugas[i] }));
-    ejStyleHeaderRow(wsPetugas.getRow(1));
-    wsPetugas.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headersPetugas.length } };
-
-    const akunSorted = akunEntries.slice().sort((a, b) => (a[1].regu || '').localeCompare(b[1].regu || '') || (a[1].ulp || '').localeCompare(b[1].ulp || ''));
-    akunSorted.forEach(([username, u], i) => {
-      const rowIdx = i + 2;
-      const cocok = cocokkanAkunDenganAbsensi(username, u, groups);
-      const adaAktivitas = cocok.length > 0;
-      const totalDurMin = cocok.map(hitungDurasiTotal).filter(Boolean).reduce((s, d) => s + d.durMin, 0);
-      const terbaru = cocok.slice().sort((a, b) => b.lastWaktu - a.lastWaktu)[0];
-      const lastFase = terbaru ? (FASE_ORDER.slice().reverse().find(f => terbaru.fases[f]) || '—') : '—';
-      const lastFaseWaktu = terbaru && lastFase !== '—' ? fmtWaktuFull(terbaru.fases[lastFase].waktu) : '—';
-      wsPetugas.getRow(rowIdx).values = [
-        i + 1, username, u.regu || '—', u.ulp || '—', u.aktif !== false ? 'Aktif' : 'Nonaktif',
-        adaAktivitas ? 'Ada Aktivitas' : '⚠ Tidak Ada Data (cek Sakit/Izin/Alpa)',
-        cocok.length, terbaru ? (terbaru.anggotaHadir || '—') : '—',
-        lastFase, lastFaseWaktu, adaAktivitas ? formatDurasiMenit(totalDurMin) : '—'
-      ];
-      ejStyleDataRow(wsPetugas.getRow(rowIdx), i % 2 === 0);
-      if (!adaAktivitas) {
-        wsPetugas.getRow(rowIdx).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCEBEC' } }; });
-        wsPetugas.getCell('F' + rowIdx).font = { bold: true, size: 10.5, color: { argb: 'FFB02A37' } };
-      }
-    });
-
-    // ── Sheet 3: Absensi & Riwayat Jam Kerja ──
+    // ── Sheet 2: Absensi & Riwayat Jam Kerja ──
     const wsAbsensi = wb.addWorksheet('Absensi & Jam Kerja');
     const headersAbsensi = ['No', 'Tanggal', 'Regu / Tim', 'ULP', 'Anggota Hadir', 'Jam Standby', 'Jam Perjalanan', 'Jam Aktif Bekerja', 'Jam Selesai', 'Total Durasi Kerja', 'Status'];
     const widthsAbsensi = [5, 14, 20, 16, 26, 12, 13, 15, 12, 16, 14];
@@ -10783,7 +10688,7 @@ async function jalankanExportDatabaseLengkap(start, end, label, btnId, fileSuffi
       ejStyleDataRow(wsAbsensi.getRow(rowIdx), i % 2 === 0);
     });
 
-    // ── Sheet 4: Rincian Pekerjaan (Laporan) ──
+    // ── Sheet 3: Rincian Pekerjaan (Laporan) ──
     const wsLaporan = wb.addWorksheet('Rincian Pekerjaan');
     const headersLaporan = ['No', 'Waktu', 'Regu', 'ULP', 'Anggota Hadir', 'No Penugasan', 'Rincian Pekerjaan', 'Material', 'Target', 'Realisasi', 'Capaian (%)', 'Status Verifikasi', 'Diverifikasi Oleh', 'Waktu Verifikasi', 'Catatan Verifikasi'];
     const widthsLaporan = [5, 16, 20, 12, 22, 12, 36, 30, 9, 9, 11, 16, 16, 16, 26];
