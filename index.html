@@ -2770,6 +2770,22 @@ td.truncate  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; whit
         </div>
       </div>
 
+      <!-- ── Export Rekap Database Lengkap: Petugas + Absensi/Jam Kerja + Rincian Pekerjaan dalam 1 file Excel ── -->
+      <div class="card" style="margin-top:14px;">
+        <div class="fb-header" style="padding:16px 18px;border-bottom:1px solid var(--line);">
+          <div>
+            <div class="card-title" style="font-size:14.5px">📦 Export Rekap Database Lengkap</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">1 file Excel: daftar petugas (kelihatan siapa yang tidak ada aktivitas/kemungkinan sakit-izin), riwayat absen & jam kerja, dan rincian pekerjaan. Teks saja, tanpa foto.</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="tab-btn active" id="dbexport-tab-hari" onclick="setDbExportPeriode('hari',this)">Hari Ini</button>
+            <button class="tab-btn" id="dbexport-tab-minggu" onclick="setDbExportPeriode('minggu',this)">Minggu Ini</button>
+            <button class="tab-btn" id="dbexport-tab-bulan" onclick="setDbExportPeriode('bulan',this)">Bulan Ini</button>
+            <button class="btn-export xlsx" id="dbexport-btn" onclick="exportDatabaseLengkap()" title="Export rekap database periode ini ke Excel">📥 Export Excel</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card" style="margin-top:14px;">
         <div style="padding:16px 18px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
           <div>
@@ -10491,6 +10507,197 @@ window.exportRekapPDF = function() {
     showToast('Export PDF berhasil.', 'ok');
   } catch (e) {
     showToast('Gagal export PDF: ' + e.message, 'err');
+  }
+};
+
+// ══════════════════════════════════════
+// EXPORT REKAP DATABASE LENGKAP (Database Viewer, khusus Superadmin)
+// ══════════════════════════════════════
+// 1 file Excel berisi 4 sheet: Ringkasan, Master Petugas & Kehadiran (SEMUA
+// akun regu ditampilkan, termasuk yang TIDAK ADA aktivitas di periode ini,
+// supaya kelihatan mana yang kemungkinan sakit/izin/alpa), Absensi & Riwayat
+// Jam Kerja (per sesi login per hari), dan Rincian Pekerjaan (laporan).
+// Teks saja, tanpa foto, biar ringan & cepat untuk export skala database.
+let dbExportPeriode = 'hari';
+
+window.setDbExportPeriode = function(p, btn) {
+  dbExportPeriode = p;
+  document.querySelectorAll('#viewDbViewer .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+};
+
+// Cocokkan akun regu (node 'users', key=username) dengan grup absensi (dari
+// buildLogAbsensiGroups) berdasarkan pasangan ULP+Regu -- BUKAN petugasId,
+// karena petugasId dibuat ulang tiap sesi login (lihat petugas.html) jadi
+// tidak bisa dipakai mencocokkan ke akun. ULP+Regu adalah identitas yang
+// dipakai konsisten di seluruh app (Rekap per Tim juga begitu).
+function cocokkanAkunDenganAbsensi(username, u, groups) {
+  const key = normalizeUlp(u.ulp || '') + '|||' + (u.regu || '').trim().toLowerCase();
+  return groups.filter(g => (normalizeUlp(g.ulp || '') + '|||' + (g.regu || '').trim().toLowerCase()) === key);
+}
+
+window.exportDatabaseLengkap = async function() {
+  const btn = document.getElementById('dbexport-btn');
+  if (typeof ExcelJS === 'undefined') { showToast('Gagal memuat modul Excel. Cek koneksi internet lalu coba lagi.', 'err'); return; }
+  if (!fbDb) { showToast('Koneksi database belum siap, coba lagi sebentar.', 'warn'); return; }
+  const labelBtn = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Menyiapkan...'; }
+  try {
+    showToast('Menyiapkan rekap database lengkap...', 'ok');
+    const { start, label } = getDateRange(dbExportPeriode);
+    const now = Date.now();
+
+    // 1) Akun regu (master petugas) -- selalu tarik langsung dari node 'users',
+    //    tidak bergantung pada cache tab "Akun Regu" sudah pernah dibuka atau belum.
+    const usersSnap = await window._fbGet(window._fbRef(fbDb, 'users'));
+    const akunEntries = Object.entries(usersSnap.val() || {});
+
+    // 2) Absensi dalam rentang periode terpilih, ambil langsung dengan query
+    //    (bukan seluruh riwayat) supaya tetap ringan untuk data besar.
+    const canQuery = window._fbQuery && window._fbOrderByChild && window._fbStartAt && window._fbEndAt;
+    const absensiTarget = canQuery
+      ? window._fbQuery(window._fbRef(fbDb, 'absensi'), window._fbOrderByChild('waktu'), window._fbStartAt(start), window._fbEndAt(now))
+      : window._fbRef(fbDb, 'absensi');
+    const absensiSnap = await window._fbGet(absensiTarget);
+    const absensiEntriesRaw = Object.entries(absensiSnap.val() || {}).filter(([, v]) => v && v.waktu && v.waktu >= start);
+    const groups = buildLogAbsensiGroups(absensiEntriesRaw).sort((a, b) =>
+      (b.tanggal !== a.tanggal ? (b.tanggal > a.tanggal ? 1 : -1) : b.lastWaktu - a.lastWaktu));
+
+    // 3) Rincian pekerjaan (laporan) periode ini, dari cache bersama yang
+    //    sudah aktif sejak boot (ensureLaporanSharedListener()).
+    const laporanFiltered = (allLaporanCache || []).filter(([, l]) => (l.waktu || 0) >= start)
+      .sort((a, b) => (b[1].waktu || 0) - (a[1].waktu || 0));
+
+    if (!akunEntries.length && !groups.length && !laporanFiltered.length) {
+      showToast('Belum ada data untuk di-export pada periode ini.', 'warn');
+      return;
+    }
+
+    const wb = new ExcelJS.Workbook();
+
+    // ── Sheet 1: Ringkasan ──
+    const totalAktif = akunEntries.filter(([, u]) => u.aktif !== false).length;
+    const totalAdaAktivitas = akunEntries.filter(([un, u]) => cocokkanAkunDenganAbsensi(un, u, groups).length > 0).length;
+    const totalTanpaAktivitas = akunEntries.length - totalAdaAktivitas;
+    const totalLaporan = laporanFiltered.length;
+    const totalVerif = laporanFiltered.filter(([, l]) => l.statusVerifikasi === 'Terverifikasi').length;
+
+    const wsRingkasan = wb.addWorksheet('Ringkasan');
+    wsRingkasan.columns = [{ width: 32 }, { width: 34 }];
+    wsRingkasan.mergeCells('A1:B1');
+    wsRingkasan.getCell('A1').value = 'Rekap Database Lengkap: Field Force Management PLN UP3 Jayapura';
+    const ringkasanRows = [
+      ['Periode', label],
+      ['Dicetak', new Date().toLocaleString('id-ID')],
+      [],
+      ['Total Akun Regu Terdaftar', akunEntries.length],
+      ['Akun Aktif', totalAktif],
+      ['Akun Nonaktif', akunEntries.length - totalAktif],
+      ['Regu Ada Aktivitas di Periode Ini', totalAdaAktivitas],
+      ['Regu TIDAK Ada Aktivitas (cek Sakit/Izin/Alpa)', totalTanpaAktivitas],
+      [],
+      ['Total Log Absen (sesi × hari)', groups.length],
+      ['Total Laporan Pekerjaan', totalLaporan],
+      ['Laporan Terverifikasi', totalVerif],
+      ['Laporan Menunggu/Belum Terverifikasi', totalLaporan - totalVerif],
+    ];
+    ringkasanRows.forEach((r, i) => { wsRingkasan.getRow(i + 2).values = [r[0] ?? '', r[1] ?? '']; });
+    ['A1', 'B1'].forEach(addr => {
+      wsRingkasan.getCell(addr).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+      wsRingkasan.getCell(addr).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003D82' } };
+      wsRingkasan.getCell(addr).alignment = { vertical: 'middle', horizontal: 'left' };
+    });
+    for (let r = 2; r <= ringkasanRows.length + 1; r++) {
+      ['A', 'B'].forEach(col => {
+        const cell = wsRingkasan.getCell(col + r);
+        if (cell.value === undefined || cell.value === null || cell.value === '') return;
+        const isTanpaAktivitas = cell.value === 'Regu TIDAK Ada Aktivitas (cek Sakit/Izin/Alpa)';
+        cell.font = { bold: col === 'A', size: 10.5, color: { argb: isTanpaAktivitas ? 'FFB02A37' : 'FF1F2A37' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: (r % 2 === 0) ? 'FFF2F5FA' : 'FFFFFFFF' } };
+        cell.border = ejBorder();
+        cell.alignment = { vertical: 'middle' };
+      });
+    }
+
+    // ── Sheet 2: Master Petugas & Kehadiran ──
+    // SEMUA akun regu ditampilkan (bukan cuma yang punya data absensi), supaya
+    // yang tidak muncul aktivitasnya di periode ini kelihatan jelas -- bisa
+    // dicek lebih lanjut apakah sakit/izin/alpa/atau memang belum ditugaskan.
+    const wsPetugas = wb.addWorksheet('Master Petugas & Kehadiran');
+    const headersPetugas = ['No', 'Username Akun', 'Regu / Tim', 'ULP', 'Status Akun', 'Status Kehadiran Periode Ini', 'Jumlah Hari Ada Aktivitas', 'Anggota Hadir (terakhir tercatat)', 'Fase Terakhir', 'Waktu Fase Terakhir', 'Total Durasi Kerja (akumulasi periode)'];
+    const widthsPetugas = [5, 20, 20, 16, 12, 30, 12, 26, 16, 18, 20];
+    wsPetugas.columns = headersPetugas.map((h, i) => ({ header: h, key: 'p' + i, width: widthsPetugas[i] }));
+    ejStyleHeaderRow(wsPetugas.getRow(1));
+    wsPetugas.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headersPetugas.length } };
+
+    const akunSorted = akunEntries.slice().sort((a, b) => (a[1].regu || '').localeCompare(b[1].regu || '') || (a[1].ulp || '').localeCompare(b[1].ulp || ''));
+    akunSorted.forEach(([username, u], i) => {
+      const rowIdx = i + 2;
+      const cocok = cocokkanAkunDenganAbsensi(username, u, groups);
+      const adaAktivitas = cocok.length > 0;
+      const totalDurMin = cocok.map(hitungDurasiTotal).filter(Boolean).reduce((s, d) => s + d.durMin, 0);
+      const terbaru = cocok.slice().sort((a, b) => b.lastWaktu - a.lastWaktu)[0];
+      const lastFase = terbaru ? (FASE_ORDER.slice().reverse().find(f => terbaru.fases[f]) || '—') : '—';
+      const lastFaseWaktu = terbaru && lastFase !== '—' ? fmtWaktuFull(terbaru.fases[lastFase].waktu) : '—';
+      wsPetugas.getRow(rowIdx).values = [
+        i + 1, username, u.regu || '—', u.ulp || '—', u.aktif !== false ? 'Aktif' : 'Nonaktif',
+        adaAktivitas ? 'Ada Aktivitas' : '⚠ Tidak Ada Data (cek Sakit/Izin/Alpa)',
+        cocok.length, terbaru ? (terbaru.anggotaHadir || '—') : '—',
+        lastFase, lastFaseWaktu, adaAktivitas ? formatDurasiMenit(totalDurMin) : '—'
+      ];
+      ejStyleDataRow(wsPetugas.getRow(rowIdx), i % 2 === 0);
+      if (!adaAktivitas) {
+        wsPetugas.getRow(rowIdx).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCEBEC' } }; });
+        wsPetugas.getCell('F' + rowIdx).font = { bold: true, size: 10.5, color: { argb: 'FFB02A37' } };
+      }
+    });
+
+    // ── Sheet 3: Absensi & Riwayat Jam Kerja ──
+    const wsAbsensi = wb.addWorksheet('Absensi & Jam Kerja');
+    const headersAbsensi = ['No', 'Tanggal', 'Regu / Tim', 'ULP', 'Anggota Hadir', 'Jam Standby', 'Jam Perjalanan', 'Jam Aktif Bekerja', 'Jam Selesai', 'Total Durasi Kerja', 'Status'];
+    const widthsAbsensi = [5, 14, 20, 16, 26, 12, 13, 15, 12, 16, 14];
+    wsAbsensi.columns = headersAbsensi.map((h, i) => ({ header: h, key: 'a' + i, width: widthsAbsensi[i] }));
+    ejStyleHeaderRow(wsAbsensi.getRow(1));
+    wsAbsensi.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headersAbsensi.length } };
+
+    const jamFase = (g, f) => g.fases[f] ? new Date(g.fases[f].waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
+    groups.forEach((g, i) => {
+      const rowIdx = i + 2;
+      const dur = hitungDurasiTotal(g);
+      const tanggalStr = new Date(g.tanggal + 'T00:00:00').toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+      wsAbsensi.getRow(rowIdx).values = [
+        i + 1, tanggalStr, g.regu || '—', g.ulp || '—', g.anggotaHadir || '—',
+        jamFase(g, 'Standby'), jamFase(g, 'Perjalanan'), jamFase(g, 'Aktif Bekerja'), jamFase(g, 'Selesai'),
+        dur ? formatDurasiMenit(dur.durMin) : '—', g.fases['Selesai'] ? 'Selesai' : 'Belum Selesai'
+      ];
+      ejStyleDataRow(wsAbsensi.getRow(rowIdx), i % 2 === 0);
+    });
+
+    // ── Sheet 4: Rincian Pekerjaan (Laporan) ──
+    const wsLaporan = wb.addWorksheet('Rincian Pekerjaan');
+    const headersLaporan = ['No', 'Waktu', 'Regu', 'ULP', 'Anggota Hadir', 'No Penugasan', 'Rincian Pekerjaan', 'Material', 'Target', 'Realisasi', 'Capaian (%)', 'Status Verifikasi', 'Diverifikasi Oleh', 'Waktu Verifikasi', 'Catatan Verifikasi'];
+    const widthsLaporan = [5, 16, 20, 12, 22, 12, 36, 30, 9, 9, 11, 16, 16, 16, 26];
+    wsLaporan.columns = headersLaporan.map((h, i) => ({ header: h, key: 'l' + i, width: widthsLaporan[i] }));
+    ejStyleHeaderRow(wsLaporan.getRow(1));
+    wsLaporan.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headersLaporan.length } };
+
+    laporanFiltered.forEach(([, l], i) => {
+      const rowIdx = i + 2;
+      wsLaporan.getRow(rowIdx).values = [
+        i + 1, fmtWaktuFull(l.waktu), l.regu || '—', l.ulp || '—', l.anggotaHadir || '—', l.nomorTiket || '—',
+        l.rincian || '—', l.material || '—', l.target || '—', l.realisasi || '—',
+        laporanCapaianPct(l) !== null ? laporanCapaianPct(l) : '—', laporanStatusLabel(l),
+        l.verifOleh || '—', fmtWaktuFull(l.verifWaktu), l.verifCatatan || '—'
+      ];
+      ejStyleDataRow(wsLaporan.getRow(rowIdx), i % 2 === 0);
+    });
+
+    await ejUnduhWorkbook(wb, `Rekap_Database_Lengkap_NUMBAY_${dbExportPeriode}_${fmtFileStamp()}.xlsx`);
+    showToast('Export rekap database lengkap berhasil.', 'ok');
+  } catch (e) {
+    showToast('Gagal export database: ' + e.message, 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = labelBtn; }
   }
 };
 
