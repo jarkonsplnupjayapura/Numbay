@@ -10488,9 +10488,10 @@ window.exportRekapPDF = function() {
 // ══════════════════════════════════════
 // EXPORT REKAP DATABASE LENGKAP (Database Viewer, khusus Superadmin)
 // ══════════════════════════════════════
-// 1 file Excel berisi 3 sheet: Ringkasan, Absensi & Riwayat Jam Kerja
-// (per sesi login per hari), dan Rincian Pekerjaan (laporan).
-// Teks saja, tanpa foto, biar ringan & cepat untuk export skala database.
+// 1 file Excel berisi 2 sheet: Ringkasan, dan Rincian Pekerjaan & Jam Kerja
+// (tiap laporan pekerjaan langsung disandingkan dengan jam kerja/absensi
+// regu pada hari yang sama). Teks saja, tanpa foto, biar ringan & cepat
+// untuk export skala database.
 //
 // Filter rentang tanggal (bukan lagi tab Hari/Minggu/Bulan tetap) supaya
 // staf PLN bisa pilih bebas dari tanggal berapa sampai tanggal berapa,
@@ -10667,40 +10668,40 @@ async function jalankanExportDatabaseLengkap(start, end, label, btnId, fileSuffi
       });
     }
 
-    // ── Sheet 2: Absensi & Riwayat Jam Kerja ──
-    const wsAbsensi = wb.addWorksheet('Absensi & Jam Kerja');
-    const headersAbsensi = ['No', 'Tanggal', 'Regu / Tim', 'ULP', 'Anggota Hadir', 'Jam Standby', 'Jam Perjalanan', 'Jam Aktif Bekerja', 'Jam Selesai', 'Total Durasi Kerja', 'Status'];
-    const widthsAbsensi = [5, 14, 20, 16, 26, 12, 13, 15, 12, 16, 14];
-    wsAbsensi.columns = headersAbsensi.map((h, i) => ({ header: h, key: 'a' + i, width: widthsAbsensi[i] }));
-    ejStyleHeaderRow(wsAbsensi.getRow(1));
-    wsAbsensi.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headersAbsensi.length } };
-
-    const jamFase = (g, f) => g.fases[f] ? new Date(g.fases[f].waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
-    groups.forEach((g, i) => {
-      const rowIdx = i + 2;
-      const dur = hitungDurasiTotal(g);
-      const tanggalStr = new Date(g.tanggal + 'T00:00:00').toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-      wsAbsensi.getRow(rowIdx).values = [
-        i + 1, tanggalStr, g.regu || '—', g.ulp || '—', g.anggotaHadir || '—',
-        jamFase(g, 'Standby'), jamFase(g, 'Perjalanan'), jamFase(g, 'Aktif Bekerja'), jamFase(g, 'Selesai'),
-        dur ? formatDurasiMenit(dur.durMin) : '—', g.fases['Selesai'] ? 'Selesai' : 'Belum Selesai'
-      ];
-      ejStyleDataRow(wsAbsensi.getRow(rowIdx), i % 2 === 0);
+    // ── Sheet 2: Rincian Pekerjaan & Jam Kerja ──
+    // Digabung dari 2 sheet terpisah sebelumnya (Rincian Pekerjaan + Absensi &
+    // Jam Kerja) supaya tiap laporan pekerjaan langsung kelihatan jam kerja
+    // regu di hari yang sama, tanpa perlu cek-silang ke sheet lain.
+    // Jam kerja dicocokkan ke absensi lewat kunci ULP + Regu + Tanggal (bukan
+    // petugasId, karena petugasId dibuat ulang tiap sesi login).
+    const jamFase = (g, f) => g && g.fases[f] ? new Date(g.fases[f].waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
+    const absensiByKey = {};
+    groups.forEach(g => {
+      const key = normalizeUlp(g.ulp || '') + '|||' + (g.regu || '').trim().toLowerCase() + '|||' + g.tanggal;
+      absensiByKey[key] = g;
     });
+    const cariAbsensiUntukLaporan = l => {
+      const tgl = localDateKey(l.waktu || 0);
+      const key = normalizeUlp(l.ulp || '') + '|||' + (l.regu || '').trim().toLowerCase() + '|||' + tgl;
+      return absensiByKey[key];
+    };
 
-    // ── Sheet 3: Rincian Pekerjaan (Laporan) ──
-    const wsLaporan = wb.addWorksheet('Rincian Pekerjaan');
-    const headersLaporan = ['No', 'Waktu', 'Regu', 'ULP', 'Anggota Hadir', 'No Penugasan', 'Rincian Pekerjaan', 'Material', 'Target', 'Realisasi', 'Capaian (%)', 'Status Verifikasi', 'Diverifikasi Oleh', 'Waktu Verifikasi', 'Catatan Verifikasi'];
-    const widthsLaporan = [5, 16, 20, 12, 22, 12, 36, 30, 9, 9, 11, 16, 16, 16, 26];
+    const wsLaporan = wb.addWorksheet('Rincian Pekerjaan & Jam Kerja');
+    const headersLaporan = ['No', 'Waktu', 'Regu', 'ULP', 'Anggota Hadir', 'Jam Standby', 'Jam Perjalanan', 'Jam Aktif Bekerja', 'Jam Selesai', 'Total Durasi Kerja', 'No Penugasan', 'Rincian Pekerjaan', 'Material', 'Target', 'Realisasi', 'Capaian (%)', 'Status Verifikasi', 'Diverifikasi Oleh', 'Waktu Verifikasi', 'Catatan Verifikasi'];
+    const widthsLaporan = [5, 16, 20, 12, 22, 12, 13, 15, 12, 16, 12, 36, 30, 9, 9, 11, 16, 16, 16, 26];
     wsLaporan.columns = headersLaporan.map((h, i) => ({ header: h, key: 'l' + i, width: widthsLaporan[i] }));
     ejStyleHeaderRow(wsLaporan.getRow(1));
     wsLaporan.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headersLaporan.length } };
 
     laporanFiltered.forEach(([, l], i) => {
       const rowIdx = i + 2;
+      const g = cariAbsensiUntukLaporan(l);
+      const dur = g ? hitungDurasiTotal(g) : null;
       wsLaporan.getRow(rowIdx).values = [
-        i + 1, fmtWaktuFull(l.waktu), l.regu || '—', l.ulp || '—', l.anggotaHadir || '—', l.nomorTiket || '—',
-        l.rincian || '—', l.material || '—', l.target || '—', l.realisasi || '—',
+        i + 1, fmtWaktuFull(l.waktu), l.regu || '—', l.ulp || '—', l.anggotaHadir || '—',
+        jamFase(g, 'Standby'), jamFase(g, 'Perjalanan'), jamFase(g, 'Aktif Bekerja'), jamFase(g, 'Selesai'),
+        dur ? formatDurasiMenit(dur.durMin) : '—',
+        l.nomorTiket || '—', l.rincian || '—', l.material || '—', l.target || '—', l.realisasi || '—',
         laporanCapaianPct(l) !== null ? laporanCapaianPct(l) : '—', laporanStatusLabel(l),
         l.verifOleh || '—', fmtWaktuFull(l.verifWaktu), l.verifCatatan || '—'
       ];
