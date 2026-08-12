@@ -5126,14 +5126,28 @@ function renderPetugasMapMarkers(entries) {
   document.getElementById('petugasMapCount').title = 'Aktif = status bukan "Offline" (masih Standby/Perjalanan/Aktif Bekerja/Tidak Terhubung). Jumlah di sini mengikuti filter Cari/ULP/Status yang aktif di panel kanan.';
 }
 
+// HEMAT KUOTA RTDB: dulu di sini onValue(ref(db,'petugas')) tanpa batas.
+// Node ini di-update tiap petugas ~tiap 45 detik (pushLocation di petugas.html),
+// jadi walau perubahan per-update kecil, koneksi listener ini disegarkan ulang
+// terus-menerus tiap kali dashboard reconnect (jaringan admin putus-nyambung,
+// tab dibuka lagi, dsb) -- setiap reconnect = download ulang SELURUH node ini.
+// Sama seperti listenAbsensi() di bawah, sekarang filter "hari ini" dilakukan
+// di SERVER lewat orderByChild('ts') + startAt(todayStart), bukan lagi di JS
+// setelah semua data (termasuk log GPS hari-hari sebelumnya) sudah terdownload.
 function listenPetugas() {
   if (fbListeners.petugas) return;
-  const ref = window._fbRef(fbDb, 'petugas');
-  fbListeners.petugas = window._fbOnValue(ref, snap => {
+  const baseRef = window._fbRef(fbDb, 'petugas');
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const canQuery = window._fbQuery && window._fbOrderByChild && window._fbStartAt;
+  const target = canQuery
+    ? window._fbQuery(baseRef, window._fbOrderByChild('ts'), window._fbStartAt(todayStart.getTime()))
+    : baseRef; // fallback kalau query helper belum siap: sama seperti perilaku lama (tarik semua, filter di JS)
+
+  fbListeners.petugas = window._fbOnValue(target, snap => {
     const data = snap.val() || {};
-    // hanya petugas yang absen/update posisi HARI INI, log GPS hari
-    // sebelumnya (belum ke-overwrite / lupa logout) tidak dihitung.
-    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    // filter hari ini tetap dipertahankan di JS sebagai jaring pengaman
+    // (mis. kalau fallback tanpa query di atas terpakai, atau ada jam
+    // perangkat yang meleset), bukan lagi sumber utama penghematan.
     const entries = scopeFilterEntries(Object.entries(data).filter(([,v]) => v.ts && v.ts >= todayStart.getTime()));
 
     // update badge (selalu total sesungguhnya, tidak ikut filter panel)

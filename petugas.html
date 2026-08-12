@@ -1654,7 +1654,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 <script src="master-data.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, onValue, update, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, set, get, onValue, update, onDisconnect, serverTimestamp, query, limitToLast } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 // Foto disimpan di Cloudinary (bukan lagi Base64 di Realtime Database), Firebase hanya menyimpan URL foto
 
 // ══════════════════════════════════════
@@ -4042,12 +4042,12 @@ async function startGPS() {
     addLog('GPS tracking (mode browser) dimulai', 'ok');
   }
 
-  // Interval kirim lokasi ke Firebase: 30 detik (sebelumnya 15 detik).
-  // Ini penyumbang terbesar trafik download RTDB di dashboard admin, karena
-  // tiap kirim disiarkan real-time ke semua admin yang sedang membuka tab
-  // "Petugas Aktif". 30 detik masih cukup real-time untuk pemantauan lapangan,
-  // tapi kirimannya jadi separuh dari sebelumnya.
-  sendTimer = setInterval(() => { if (lastPos) pushLocation(lastPos); }, 30000);
+  // Interval kirim lokasi ke Firebase: 45 detik (sebelumnya 30 detik).
+  // Ini salah satu penyumbang trafik download RTDB terbesar di dashboard admin,
+  // karena tiap kirim disiarkan real-time ke semua admin yang sedang membuka
+  // tab "Petugas Aktif". 45 detik masih cukup real-time untuk pemantauan
+  // lapangan, tapi jumlah kirimannya berkurang ~33% dari sebelumnya.
+  sendTimer = setInterval(() => { if (lastPos) pushLocation(lastPos); }, 45000);
   mulaiHeartbeatMonitor();
   mulaiNativeSync();
 }
@@ -4835,7 +4835,16 @@ function normReguUlp(v) {
 window.listenRevisiDanTugas = function() {
   if (!db || !currentUser) return;
 
-  onValue(ref(db, 'laporan'), snap => {
+  // HEMAT KUOTA RTDB: dulu di sini onValue(ref(db,'laporan'), ...) tanpa batas,
+  // jadi TIAP HP petugas yang online ikut "berlangganan" ke SELURUH riwayat
+  // laporan semua regu/ULP, walau yang dibutuhkan cuma laporan "Perlu Revisi"
+  // milik regu sendiri (filter regu/ULP di bawah baru jalan SETELAH data ini
+  // didownload). Sekarang dibatasi limitToLast(400) -- laporan lama yang sudah
+  // beres tidak perlu terus dipantau live. 400 dipilih longgar (bisa disesuaikan
+  // kalau laporan Perlu Revisi kamu ternyata lebih tua dari 400 entri terakhir).
+  // limitToLast() di sini TIDAK butuh index tambahan di Firebase Rules karena
+  // urutannya ikut key (push ID) bawaan, bukan orderByChild().
+  onValue(query(ref(db, 'laporan'), limitToLast(400)), snap => {
     const data = snap.val() || {};
     // Sama seperti penugasan: cocokkan regu DAN ULP supaya laporan "Perlu
     // Revisi" milik regu lain (nama kebetulan sama di ULP berbeda) tidak
@@ -4859,7 +4868,12 @@ window.listenRevisiDanTugas = function() {
     `).join('');
   });
 
-  onValue(ref(db, 'penugasan'), snap => {
+  // Sama seperti 'laporan' di atas: dibatasi limitToLast(200) supaya HP
+  // petugas tidak ikut download seluruh riwayat penugasan semua ULP dari
+  // awal aplikasi ini dipakai, cuma yang paling baru saja (tugas lama yang
+  // sudah "Selesai" toh sudah difilter keluar di bawah, jadi tidak masalah
+  // kalau yang sangat lama tidak ikut ke-listen lagi).
+  onValue(query(ref(db, 'penugasan'), limitToLast(200)), snap => {
     const data = snap.val() || {};
     // Cocokkan REGU **dan** ULP sekaligus, kalau hanya cocok nama regu,
     // penugasan bisa "bocor" ke regu lain yang kebetulan punya nama sama
